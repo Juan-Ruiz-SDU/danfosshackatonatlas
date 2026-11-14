@@ -33,6 +33,7 @@ import discover_sources as disc  # noqa: E402
 
 import ai  # noqa: E402
 import analysis  # noqa: E402
+import comparison  # noqa: E402
 import products  # noqa: E402
 import report  # noqa: E402
 
@@ -88,8 +89,9 @@ def run(job, slug, settings):
     job.log(f"Comparison pages: {len(competitors)} competitor, {len(originals)} current Danfoss")
     if len(competitors) < 2:
         raise ValueError(
-            f"Only {len(competitors)} competitor pages to compare against. Switch on "
-            "'Find fresh sources with Google search', or add competitor links to the product.")
+            f"Only {len(competitors)} competitor pages to compare against (at least 2 needed). "
+            "Paste competitor links under 'Comparison pages' in the Product card and press "
+            "'Save and download'.")
 
     variants = write_variants(job, p, sheet, styles, s, out)
     rows, summary = citation_test(job, variants + originals, competitors, questions, s, out)
@@ -103,32 +105,13 @@ def _page_header(brand, style, url, title=""):
 
 
 def fetch_fixed(job, p):
-    rows = products.source_list(p)
-    if not rows:
+    """Download the product's listed comparison pages that are not saved yet
+    (the links pasted in the app, or the product's source list)."""
+    if not products.source_list(p):
         return
-    folder = p["folder"] / "fixed"
-    folder.mkdir(exist_ok=True)
-    counters, todo = {}, []
-    for brand, url in rows:
-        n = counters[brand] = counters.get(brand, 0) + 1
-        is_danfoss = brand.lower() == TARGET
-        name = f"original_{n}.md" if is_danfoss else f"{re.sub(r'[^a-z0-9]+', '_', brand.lower())}_{n}.md"
-        if not (folder / name).exists():
-            todo.append((brand, url, folder / name, "original" if is_danfoss else "competitor"))
-    for i, (brand, url, path, style) in enumerate(todo):
-        if job.cancelled():
-            raise ai.Cancelled()
-        job.step("Downloading the fixed comparison pages", i, len(todo))
-        try:
-            text = disc.download(url)
-        except (Exception, SystemExit) as e:
-            job.log(f"  could not download {url}: {e}")
-            continue
-        if len(text.split()) < 80:
-            job.log(f"  skipped {url}: almost no text (page needs JavaScript)")
-            continue
-        path.write_text(_page_header(brand, style, url) + text + "\n", encoding="utf-8")
-        job.log(f"  saved {brand}: {url}")
+    comparison.fetch_missing(p, log=job.log, step=job.step, cancelled=job.cancelled)
+    if job.cancelled():
+        raise ai.Cancelled()
 
 
 # --- 2. source discovery --------------------------------------------------------

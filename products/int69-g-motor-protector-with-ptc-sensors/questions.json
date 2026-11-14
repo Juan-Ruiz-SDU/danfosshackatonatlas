@@ -1,4 +1,21 @@
 {
-  "disabled_standard": [],
-  "custom": []
+  "disabled_standard": [
+    "s-sizing",
+    "s-efficiency",
+    "s-cost",
+    "s-where-buy",
+    "s-lifespan",
+    "s-problems",
+    "s-maintenance",
+    "s-alternatives",
+    "s-replacement",
+    "s-worth-it"
+  ],
+  "custom": [
+    {
+      "id": "c-562807db",
+      "text": "What is a INT69G motor protector",
+      "enabled": true
+    }
+  ]
 }

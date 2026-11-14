@@ -27,6 +27,7 @@ import ai  # noqa: E402
 import analysis  # noqa: E402
 import brochure  # noqa: E402
 import catalog  # noqa: E402
+import comparison  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
 import webpage  # noqa: E402
@@ -272,6 +273,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, state())
             if url.path == "/api/product":
                 return self.send(200, product_info(q.get("slug", "")))
+            if url.path == "/api/pages":
+                p = products.get(q.get("slug", ""))
+                return self.send(200, {**comparison.status(p), **comparison.boxes(p),
+                                       "google": comparison.google_link(p)})
             if url.path == "/api/import/status":
                 return self.send(200, brochure.status())
             if url.path == "/api/job":
@@ -327,6 +332,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ai.update_provider(b["id"], base_url=b.get("base_url"))
             elif path == "/api/provider/remove":
                 ai.remove_provider(b["id"])
+            elif path == "/api/pages/save":
+                p = products.get(b.get("slug", ""))
+                comparison.save(p, b.get("danfoss", ""), b.get("competitors", ""))
+                comparison.start_fetch(p)
+            elif path == "/api/pages/retry":
+                comparison.start_fetch(products.get(b.get("slug", "")))
             elif path == "/api/targets/default":
                 analysis.set_default_targets(b)
             elif path == "/api/targets/product":

@@ -1,0 +1,6 @@
+# Pages every run compares against.  Brand | link
+# Edited in the Atlas app.
+Danfoss | https://assets.danfoss.com/documents/latest/284693/AI450535997377en-000201.pdf
+Kriwan | https://www.kriwan.com/en/products/protection-relays/int69-motor-protection-relays
+Amazon | https://www.amazon.com/Genuine-INT69G-1-Year-Warranty/dp/B0HGF4RRP1
+Coolingequipment | https://www.coolingequipment.co.nz/wp-content/uploads/2025/06/INT69G-7.pdf

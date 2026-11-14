@@ -178,7 +178,8 @@ async function loadProduct(slug) {
   $("#fact-sheet").textContent = P.fact_sheet_error ? "Problem with the fact sheet:\n" + P.fact_sheet_error : P.fact_sheet;
   const pg = P.pages;
   $("#pages-hint").innerHTML = `Comparison pages saved: <b>${pg.competitors}</b> competitor, <b>${pg.danfoss}</b> current Danfoss` +
-    (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: switch on “Find fresh sources” for the first run</span>` : "");
+    (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: add competitor links under “Comparison pages” below</span>` : "");
+  loadPages(true);
   renderQuestions();
   renderTargets();
   renderResults();
@@ -192,6 +193,52 @@ for (const [id, key] of [["#f-type", "product_type"], ["#f-app", "application"]]
     await loadProduct(P.product.slug); toast("Saved: the standard questions now use this");
   }));
 }
+
+// --- comparison pages ---------------------------------------------------------------
+let pagesPoll = null;
+async function loadPages(fillBoxes) {
+  clearTimeout(pagesPoll);
+  if (!P) return;
+  const slug = P.product.slug;
+  const st = await api("/api/pages?slug=" + encodeURIComponent(slug)).catch(() => null);
+  if (!st || !P || P.product.slug !== slug) return;
+  $("#cmp-google").href = st.google;
+  if (fillBoxes) { $("#cmp-comp").value = st.box_competitors; $("#cmp-dan").value = st.box_danfoss; }
+  const n = st.competitors;
+  $("#cmp-sum").innerHTML = st.ready
+    ? `<span class="ok">✔ ready, ${n} competitor page${n === 1 ? "" : "s"}</span>`
+    : `<span class="miss">${n} of ${st.min_competitors} competitor pages needed, add links here</span>`;
+  if (fillBoxes && !st.ready) $("#cmp").open = true;
+  const label = {
+    ok: l => `<span class="ok">✔ ready</span> <span class="hint">${l.words} words</span>`,
+    downloading: () => `<span class="hint">⏳ downloading…</span>`,
+    waiting: () => `<span class="hint">waiting…</span>`,
+    new: () => `<span class="hint">not downloaded yet</span>`,
+    failed: l => `<span class="miss">✘ ${esc(l.error)}</span>`,
+  };
+  $("#cmp-status").innerHTML = st.links.map(l => `<li>
+      <span><b>${esc(l.brand)}</b>${l.danfoss ? " (current Danfoss page)" : ""}<br><a class="hint tiny" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a></span>
+      <span>${label[l.state](l)}</span></li>`).join("");
+  const failed = st.links.filter(l => l.state === "failed").length;
+  $("#cmp-busy").innerHTML = st.busy ? "Downloading the pages… you can keep working."
+    : failed ? `${failed} link${failed === 1 ? "" : "s"} could not be downloaded: replace ${failed === 1 ? "it" : "them"} in the box and press Save and download again. <a href="#" id="cmp-retry">Try again</a>` : "";
+  const retry = $("#cmp-retry");
+  if (retry) retry.onclick = e => { e.preventDefault(); safe(async () => { await api("/api/pages/retry", { slug }); loadPages(); }); };
+  $("#cmp-save").disabled = st.busy;
+  if (st.busy) pagesPoll = setTimeout(() => loadPages(), 1500);
+  else if (P.pages.competitors !== n) {  // downloads finished: refresh the counts above
+    P.pages.competitors = n;
+    const pg = P.pages;
+    $("#pages-hint").innerHTML = `Comparison pages saved: <b>${pg.competitors}</b> competitor, <b>${pg.danfoss}</b> current Danfoss` +
+      (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: add competitor links under “Comparison pages” below</span>` : "");
+  }
+}
+$("#cmp-save").onclick = () => safe(async () => {
+  if (!$("#cmp-comp").value.trim()) return toast("Paste at least one competitor link first", 4000);
+  await api("/api/pages/save", { slug: P.product.slug, competitors: $("#cmp-comp").value, danfoss: $("#cmp-dan").value });
+  toast("Saved. Downloading the pages…");
+  loadPages(true);
+});
 
 // --- questions --------------------------------------------------------------------
 function renderQuestions() {

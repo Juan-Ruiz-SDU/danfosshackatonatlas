@@ -41,6 +41,24 @@
         <input id="f-app" placeholder="e.g. heat pumps"></label>
     </div>
     <p class="hint" id="pages-hint"></p>
+    <details id="cmp" class="cmp">
+      <summary>Comparison pages: <span id="cmp-sum"></span></summary>
+      <p>Every run tests the new Danfoss pages <b>against competitors' pages</b>, the way Google's AI picks between them.
+        The app needs <b>at least 2 competitor pages</b>. 4 to 8 is better.</p>
+      <ol class="cmp-steps">
+        <li><a id="cmp-google" href="#" target="_blank" rel="noopener">Search Google for this product ↗</a> (opens a new tab).</li>
+        <li>Open a <b>competitor's product page</b>: a page from the company that makes it. Not a shop, a forum or a news article.</li>
+        <li>Copy the link from the browser's address bar (it starts with <code>https://</code>).</li>
+        <li>Paste it in the box below, <b>one link per line</b>. The brand is read from the link.</li>
+        <li>Press <b>Save and download</b>. Each link then shows ✔ (ready) or ✘ with what to do.</li>
+      </ol>
+      <label>Competitor pages <small>one link per line</small>
+        <textarea id="cmp-comp" rows="5" placeholder="https://www.competitor.com/products/their-product&#10;https://www.another-brand.com/product-page"></textarea></label>
+      <label>Current Danfoss page for this product <small>optional: the page the new pages should beat</small>
+        <textarea id="cmp-dan" rows="1" placeholder="https://www.danfoss.com/en/products/..."></textarea></label>
+      <div class="row"><button id="cmp-save" class="primary">Save and download</button><span class="hint" id="cmp-busy"></span></div>
+      <ul id="cmp-status" class="cmp-status"></ul>
+    </details>
     <details>
       <summary>Show the fact sheet (the only facts the pages may use)</summary>
       <pre id="fact-sheet"></pre>

@@ -7,6 +7,9 @@ Run the page generator with this project's default settings.
   python Run.py --styles plain,stats   only some styles
   python Run.py --model llama3.1:8b    another Ollama model
   python Run.py --help                 all options
+  python Run.py app                    open the Atlas app in your browser (the whole process)
+  python Run.py update-sources         ask prompts/prompts.txt, import the sources Gemini used
+                                       (see lab/discover_sources.py for its options)
 
 Any option you pass overrides the defaults below. Works from any terminal
 folder: paths are resolved relative to this file.
@@ -47,6 +50,19 @@ def check_ollama(host, model):
 
 def main():
     os.chdir(HERE)
+    if sys.argv[1:2] == ["app"]:
+        # The Atlas app in your browser: runs the whole process, hands you the files.
+        sys.path.insert(0, str(HERE / "app"))
+        import server
+        server.main()
+        return
+    if sys.argv[1:2] == ["update-sources"]:
+        # Ask the prompts in prompts/prompts.txt and import the sources Gemini used.
+        sys.path.insert(0, str(HERE / "lab"))
+        import discover_sources
+        sys.argv = ["discover_sources.py"] + sys.argv[2:]
+        discover_sources.main()
+        return
     args = DEFAULTS + sys.argv[1:]  # argparse keeps the last value, so yours win
     if not {"-h", "--help"} & set(args):
         p = argparse.ArgumentParser(add_help=False)

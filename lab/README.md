@@ -113,3 +113,33 @@ It reuses the provider options and answer cache of `experiment.py` (`--provider`
 round of fixes, run the lab on them too (`--questions lab/questions_holdout.txt`). If
 Danfoss only improves on the 12 regular questions, the fixes are learning the test,
 not making better pages.
+
+## Source discovery: which pages does the AI actually use?
+
+`discover_sources.py` asks Gemini, with Google Search turned on, every prompt in
+`prompts/prompts.txt`. It records the web pages Gemini used for each answer and imports
+them as clean text into `corpus/discovered/`. These are the real competitors for each
+question, not a hand-picked list.
+
+The sources change over time, so it only runs when you start it:
+
+```bash
+python Run.py update-sources --limit 3   # quick test with 3 prompts
+python Run.py update-sources             # full update, 50 prompts, about 6 minutes
+```
+
+If it stops halfway because of quota or network, run the same command again: it continues
+where it stopped. Each update writes:
+
+| File | What it is |
+|---|---|
+| `discovered/sources.csv` | Current sources: URL, site, brand, how many prompts cite it, the imported file |
+| `discovered/changes.md` | What this update changed: new and dropped sources, most cited sites, Danfoss share |
+| `discovered/runs/<date>.jsonl` | Every answer with its search queries and sources (one file per update, kept as history) |
+| `corpus/discovered/*.md` | The imported pages. Pages no longer cited are removed (`--keep-old` keeps them) |
+
+Use the discovered pages as the competition in the citation lab:
+
+```bash
+python lab/experiment.py --provider gemini --competitors lab/corpus/discovered
+```

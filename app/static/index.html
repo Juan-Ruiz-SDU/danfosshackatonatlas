@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo">A</span>
+    <div>
+      <div class="name">Atlas</div>
+      <div class="tag">Find the version of your product page that AI search cites first</div>
+    </div>
+  </div>
+  <button class="ghost" id="open-settings">⚙ Settings</button>
+</header>
+
+<main>
+  <div id="banner"></div>
+
+  <!-- 1. Product -->
+  <section class="card" id="card-product">
+    <h2><span class="num">1</span> Product</h2>
+    <div class="row">
+      <select id="product-select" aria-label="Product"></select>
+      <button class="ghost" id="open-import">+ Add a product from a brochure</button>
+    </div>
+    <div class="fields" id="product-fields">
+      <label>Product type <small>used in the standard questions</small>
+        <input id="f-type" placeholder="e.g. brazed plate heat exchanger"></label>
+      <label>Main use <small>used in the standard questions</small>
+        <input id="f-app" placeholder="e.g. heat pumps"></label>
+    </div>
+    <p class="hint" id="pages-hint"></p>
+    <details>
+      <summary>Show the fact sheet (the only facts the pages may use)</summary>
+      <pre id="fact-sheet"></pre>
+    </details>
+  </section>
+
+  <!-- 2. Questions -->
+  <section class="card" id="card-questions">
+    <h2><span class="num">2</span> Buyer questions <span class="count" id="q-count"></span></h2>
+    <p class="hint">The questions people ask AI search. Every page version is tested against the ticked ones.</p>
+    <div class="qgroup">
+      <div class="qhead">
+        <h3>Standard questions <small>shared by all products</small></h3>
+        <span class="links"><a href="#" data-all="standard">all</a> · <a href="#" data-none="standard">none</a></span>
+      </div>
+      <ul id="q-standard" class="qlist"></ul>
+    </div>
+    <div class="qgroup">
+      <div class="qhead">
+        <h3>Questions for this product only</h3>
+        <span class="links"><a href="#" data-all="custom">all</a> · <a href="#" data-none="custom">none</a></span>
+      </div>
+      <ul id="q-custom" class="qlist"><li class="empty">None yet.</li></ul>
+    </div>
+    <form id="q-add" class="addq">
+      <input id="q-text" placeholder="Type a new question…" autocomplete="off">
+      <div class="scope">
+        <label><input type="radio" name="scope" value="custom" checked> Only for this product</label>
+        <label><input type="radio" name="scope" value="standard"> Standard, for all products</label>
+      </div>
+      <button type="submit">Add question</button>
+      <p class="hint tiny" id="scope-hint">In a standard question, write <code>{product}</code>, <code>{a_product}</code> or <code>{application}</code>, and each product fills in its own.</p>
+    </form>
+  </section>
+
+  <!-- 3. Run -->
+  <section class="card" id="card-run">
+    <h2><span class="num">3</span> Run</h2>
+    <label class="switch">
+      <input type="checkbox" id="s-discovery">
+      <span class="slider"></span>
+      <span><b>Find fresh sources with Google search</b><br>
+        <small id="discovery-hint">Off: faster, uses the pages saved earlier. On: asks Google's AI every question and imports the pages it cites as the competition.</small></span>
+    </label>
+    <div class="grid2">
+      <fieldset>
+        <legend>AI that writes the pages</legend>
+        <select id="s-writer"></select>
+        <input id="s-writer-model" list="writer-models" placeholder="model">
+        <datalist id="writer-models"></datalist>
+      </fieldset>
+      <fieldset>
+        <legend>AI that plays Google's answer box</legend>
+        <select id="s-judge"></select>
+        <input id="s-judge-model" list="judge-models" placeholder="model">
+        <datalist id="judge-models"></datalist>
+      </fieldset>
+    </div>
+    <fieldset>
+      <legend>Page versions to write and test</legend>
+      <div id="s-styles" class="chips"></div>
+    </fieldset>
+    <details>
+      <summary>More options</summary>
+      <div class="grid3">
+        <label>Words per page <input type="number" id="s-words" min="150" max="1500" step="50"></label>
+        <label>Repeats per question <input type="number" id="s-repeats" min="1" max="5"></label>
+        <label>Search results the AI sees <input type="number" id="s-topk" min="2" max="10"></label>
+        <label>Retries if the length is off <input type="number" id="s-retries" min="0" max="6"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="s-fresh"> Write brand-new pages (otherwise pages already written with the same settings are reused, which is free)</label>
+    </details>
+    <div class="runbar">
+      <div id="estimate" class="hint"></div>
+      <button id="run" class="primary">Run</button>
+    </div>
+  </section>
+
+  <!-- 4. Progress -->
+  <section class="card hidden" id="card-progress">
+    <h2><span class="num">4</span> Progress</h2>
+    <div class="step" id="p-step"></div>
+    <div class="bar"><div id="p-bar"></div></div>
+    <div class="row between">
+      <span class="hint" id="p-detail"></span>
+      <button class="ghost danger" id="stop">Stop</button>
+    </div>
+    <div id="p-error" class="error hidden"></div>
+    <details id="p-logbox">
+      <summary>Details</summary>
+      <pre id="p-log"></pre>
+    </details>
+  </section>
+
+  <!-- 5. Results -->
+  <section class="card" id="card-results">
+    <h2><span class="num">5</span> Your files</h2>
+    <div id="latest"></div>
+    <details id="older" class="hidden">
+      <summary>Earlier runs</summary>
+      <ul id="runs"></ul>
+    </details>
+  </section>
+</main>
+
+<!-- Settings -->
+<dialog id="settings">
+  <form method="dialog" class="dlg-head"><h2>Settings</h2><button class="ghost">✕</button></form>
+  <h3>API keys</h3>
+  <p class="hint">Saved in the <code>.env</code> file on this computer only. It is never uploaded to git.</p>
+  <div id="keys"></div>
+
+  <h3>AIs</h3>
+  <ul id="prov-list" class="plain"></ul>
+  <details>
+    <summary>+ Add an AI</summary>
+    <p class="hint">Any service with an OpenAI-compatible chat API works (OpenAI, Mistral, Azure OpenAI, a Danfoss internal model, LM Studio...).</p>
+    <form id="prov-add" class="stack">
+      <label>Name <input name="label" required placeholder="e.g. Danfoss internal GPT"></label>
+      <label>API address <input name="base_url" required placeholder="https://api.example.com/v1/"></label>
+      <label>Models <small>comma separated</small> <input name="models" required placeholder="model-a, model-b"></label>
+      <label>Key name <small>leave empty if no key is needed</small> <input name="key_env" placeholder="EXAMPLE_API_KEY"></label>
+      <label>Key <input name="key" type="password" autocomplete="off"></label>
+      <label>Seconds between calls <input name="sleep" type="number" min="0" step="0.5" value="0"></label>
+      <button type="submit">Add AI</button>
+    </form>
+  </details>
+
+  <h3>Standard questions</h3>
+  <p class="hint">Deleting one here removes it for every product. To skip it for one product, untick it instead.</p>
+  <ul id="std-manage" class="plain"></ul>
+</dialog>
+
+<!-- Add product -->
+<dialog id="import">
+  <form method="dialog" class="dlg-head"><h2>Add a product</h2><button class="ghost">✕</button></form>
+  <div id="imp-step1">
+    <p class="hint">Upload a brochure or fact sheet. The AI pulls out the facts, then you check them before anything is written.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="imp-file" accept=".pdf,.docx,.txt,.md">
+      <span id="drop-text">Choose a PDF, Word or text file, or drop it here</span>
+    </label>
+    <div class="row">
+      <select id="imp-provider"></select>
+      <input id="imp-model" list="imp-models" placeholder="model">
+      <datalist id="imp-models"></datalist>
+      <button id="imp-read" class="primary" disabled>Read the brochure</button>
+    </div>
+    <p class="hint" id="imp-status"></p>
+  </div>
+  <form id="imp-step2" class="stack hidden">
+    <p class="hint">Check everything. Pages will only use what is written here.</p>
+    <label>Product name <input name="name" required></label>
+    <div class="grid3">
+      <label>Product type <input name="product_type" placeholder="brazed plate heat exchanger"></label>
+      <label>Main use <input name="application" placeholder="heat pumps"></label>
+      <label>Search phrase <input name="keyword"></label>
+    </div>
+    <label>Facts <small>Markdown</small> <textarea name="facts" rows="14" required></textarea></label>
+    <label>Never claim <small>claims the pages must not make</small> <textarea name="never_claim" rows="4"></textarea></label>
+    <label>Current Danfoss pages for this product <small>optional, one link per line, used as the baseline</small>
+      <textarea name="danfoss_urls" rows="2" placeholder="https://www.danfoss.com/..."></textarea></label>
+    <label>Competitor pages <small>optional, one link per line, or "Brand | link"</small>
+      <textarea name="competitor_urls" rows="3" placeholder="https://www.competitor.com/product"></textarea></label>
+    <div class="row between">
+      <button type="button" class="ghost" id="imp-back">← Back</button>
+      <button type="submit" class="primary">Create product</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

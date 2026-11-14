@@ -1,0 +1,24 @@
+{
+  "_help": "AIs the app can use. To add one, use Settings > Add an AI in the app, or copy an entry below. Any service with an OpenAI-compatible chat API works: base_url must end with /. key_env is the name of the key in .env (null = no key needed). sleep = seconds to wait between calls (free tiers have per-minute limits).",
+  "gemini": {
+    "label": "Google Gemini",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    "key_env": "GEMINI_API_KEY",
+    "models": ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"],
+    "sleep": 6
+  },
+  "ollama": {
+    "label": "Ollama (local, private)",
+    "base_url": "http://localhost:11434/v1/",
+    "key_env": null,
+    "models": ["qwen3:8b", "llama3.1:8b"],
+    "sleep": 0
+  },
+  "openrouter": {
+    "label": "OpenRouter",
+    "base_url": "https://openrouter.ai/api/v1/",
+    "key_env": "OPENROUTER_API_KEY",
+    "models": ["openai/gpt-oss-20b:free"],
+    "sleep": 3
+  }
+}

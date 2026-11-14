@@ -189,7 +189,7 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
 
 
 def ollama_stream(provider_id, model, system, user, temperature=0.1, fmt=None,
-                  on_token=None, cancel=None, on_open=None):
+                  on_token=None, cancel=None, on_open=None, num_ctx=None):
     """One Ollama answer, streamed so the caller can show progress and stop it.
     fmt="json" makes Ollama only produce valid JSON. on_token(n) is called with the
     number of tokens written so far. Returns (text, stats) where stats holds Ollama's
@@ -201,7 +201,8 @@ def ollama_stream(provider_id, model, system, user, temperature=0.1, fmt=None,
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": user}]
     payload = {"model": model, "messages": messages, "stream": True,
-               "options": {"temperature": temperature, "num_ctx": int(p.get("num_ctx", 16384))}}
+               "options": {"temperature": temperature,
+                           "num_ctx": int(num_ctx or p.get("num_ctx", 16384))}}
     if "think" in p:
         payload["think"] = bool(p["think"])
     if fmt:

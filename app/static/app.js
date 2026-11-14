@@ -180,6 +180,7 @@ async function loadProduct(slug) {
   $("#pages-hint").innerHTML = `Comparison pages saved: <b>${pg.competitors}</b> competitor, <b>${pg.danfoss}</b> current Danfoss` +
     (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: switch on “Find fresh sources” for the first run</span>` : "");
   renderQuestions();
+  renderTargets();
   renderResults();
   estimate();
   resetPageTabs();
@@ -305,6 +306,7 @@ function renderResults() {
         <div><b>${pct(r.winner.first)}</b><span>cited first</span></div>
         ${b ? `<div><b>${pct(b.share)}</b><span>current Danfoss page</span></div>` : ""}
       </div>
+      ${r.targets ? targetLine(r.targets) : ""}
       ${r.check_numbers?.length ? `<div class="warnbox">⚠ Check these numbers before publishing: ${esc(r.check_numbers.join(", "))}. They are not in the fact sheet.</div>` : ""}
       <div class="downloads">
         ${f.final_pdf ? `<a class="dl main" href="${fileUrl(r.run, f.final_pdf, 1)}">⬇ Final page (PDF)</a>` : ""}
@@ -321,6 +323,92 @@ function renderResults() {
     ? `<li><span>${esc(o.run)}</span><span class="hint">unfinished</span></li>`
     : `<li><span>${esc(o.run)} · ${esc(o.winner.name)} · ${pct(o.winner.share)}</span>
        <span>${o.files.final_pdf ? `<a href="${fileUrl(o.run, o.files.final_pdf, 1)}">page</a> · <a href="${fileUrl(o.run, o.files.report_pdf, 1)}">report</a> · ` : ""}<a href="${fileUrl(o.run, o.files.zip, 1)}">zip</a></span></li>`).join("");
+  renderSuggestions();
+}
+
+// --- citation targets & wiki suggestions -------------------------------------------
+function renderTargets() {
+  const t = P.targets, d = S.default_targets;
+  $("#t-cited").value = t.cited_pct; $("#t-first").value = t.first_count;
+  $("#t-hint").innerHTML = t.custom
+    ? `This product has its own targets. Default for all products: ${d.cited_pct}% and ${d.first_count}. <a href="#" id="t-reset">Use the default</a>`
+    : `The default for all products (change it in Settings). Changing it here sets targets for this product only.`;
+  const reset = $("#t-reset");
+  if (reset) reset.onclick = e => { e.preventDefault(); saveTargets({ reset: true }); };
+}
+function saveTargets(body) {
+  safe(async () => {
+    await api("/api/targets/product", { slug: P.product.slug, ...body });
+    P.targets = (await api("/api/product?slug=" + encodeURIComponent(P.product.slug))).targets;
+    renderTargets(); toast(body.reset ? "Back to the default targets" : "Targets saved for this product");
+  });
+}
+for (const [id, key] of [["#t-cited", "cited_pct"], ["#t-first", "first_count"]])
+  $(id).addEventListener("change", e => saveTargets({ [key]: e.target.value }));
+
+function targetLine(t) {
+  const m = ok => ok ? `<span class="ok">✔ met</span>` : `<span class="miss">✘ missed</span>`;
+  return `<div class="target-line">Targets: cited in <b>${t.cited_pct}%</b> of ${t.trials} answers (goal ${t.cited_target}%) ${m(t.cited_ok)}
+    · cited first <b>${t.first_count}</b> times (goal ${t.first_target}) ${m(t.first_ok)}</div>`;
+}
+function renderSuggestions() {
+  const box = $("#suggestions");
+  const r = P.runs.find(x => !x.unfinished);
+  const st = r?.analysis?.status;
+  const d = P.suggestions && P.suggestions.run === r?.run ? P.suggestions : null;
+  box.classList.toggle("hidden", !(d || st === "error"));
+  if (!d) {
+    if (st === "error") {
+      box.innerHTML = `<h3>Wiki suggestions</h3>
+        <div class="error">The target was missed, but the analysis could not run: ${esc(r.analysis.error)}</div>
+        <p><button class="primary" id="an-retry">Try the analysis again</button></p>`;
+      $("#an-retry").onclick = () => safe(async () => {
+        await api("/api/analysis/run", { slug: P.product.slug, run: r.run }); startPolling();
+      });
+    }
+    return;
+  }
+  const open = d.suggestions.filter(x => !x.decision).length;
+  const accepted = d.suggestions.filter(x => x.decision === "accepted").length;
+  const list = items => items.length ? `<ul>${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+  const card = x => `<div class="sugg ${x.decision || ""}" data-id="${esc(x.id)}">
+      <div><b>${esc(x.id)}.</b> <span class="file">${esc(x.file)}</span> · ${x.action === "replace" ? "replace text" : "add at the end"}</div>
+      <div>${esc(x.why)}</div>
+      ${x.note ? `<div class="hint">${esc(x.note)}</div>` : ""}
+      ${x.find ? `<div class="hint">Replaces:</div><blockquote>${esc(x.find)}</blockquote><div class="hint">With:</div>` : ""}
+      ${x.decision
+        ? `<blockquote>${esc(x.text)}</blockquote><div class="done">${x.decision === "accepted" ? "✔ Accepted: written to the wiki" : "Declined"}</div>`
+        : `<textarea aria-label="Suggested text">${esc(x.text)}</textarea>
+           ${x.unknown_numbers?.length ? `<div class="warnbox">⚠ Numbers not in the wiki: ${esc(x.unknown_numbers.join(", "))}. Check them before accepting.</div>` : ""}
+           <div class="row"><button class="primary" data-act="accept">Accept</button><button class="ghost" data-act="decline">Decline</button></div>`}
+    </div>`;
+  box.innerHTML = `<h3>Wiki suggestions to reach the targets</h3>
+    <p class="hint">Best version <b>${esc(d.best.name)}</b> (cited ${d.best.cited_count}/${d.best.trials}, first ${d.best.first_count})
+      compared with the worst, <b>${esc(d.worst.name)}</b> (cited ${d.worst.cited_count}/${d.worst.trials}, first ${d.worst.first_count}) · by ${esc(d.analyst)}</p>
+    <p>${esc(d.diagnosis)}</p>
+    ${d.best_does.length ? `<b>The best page:</b>${list(d.best_does)}` : ""}
+    ${d.worst_misses.length ? `<b>The worst page lacks:</b>${list(d.worst_misses)}` : ""}
+    <p class="hint">Nothing changes in the wiki until you accept. You can edit the text before accepting.</p>
+    ${d.suggestions.map(card).join("")}
+    ${d.missing_facts.length ? `<div class="sugg"><b>Missing facts</b> <span class="hint">(a person must find a Danfoss source before adding these)</span>${list(d.missing_facts)}</div>` : ""}
+    ${open ? `<p class="hint">${open} of ${d.suggestions.length} still to decide.</p>` : `<div class="next-run">
+      <b>All suggestions decided</b> (${accepted} accepted). ${accepted
+        ? "The next pages will be written from the updated wiki."
+        : "Nothing changed in the wiki, so the same pages would be written again unless you tick “Write brand-new pages” under More options."}
+      <p><button class="primary" id="next-run">Write a new set of pages</button></p></div>`}`;
+  $$("#suggestions .sugg [data-act]").forEach(b => b.onclick = () => {
+    const c = b.closest(".sugg");
+    safe(async () => {
+      P.suggestions = await api("/api/suggestion", { slug: P.product.slug, run: d.run, id: c.dataset.id,
+        decision: b.dataset.act, text: $("textarea", c)?.value });
+      renderSuggestions();
+      toast(b.dataset.act === "accept" ? "Written to the wiki" : "Declined");
+      if (b.dataset.act === "accept")
+        $("#fact-sheet").textContent = (await api("/api/product?slug=" + encodeURIComponent(P.product.slug))).fact_sheet;
+    });
+  });
+  const next = $("#next-run");
+  if (next) next.onclick = () => { $("#run").click(); $("#card-progress").scrollIntoView({ behavior: "smooth" }); };
 }
 
 // --- settings dialog ----------------------------------------------------------------
@@ -352,12 +440,22 @@ function renderSettings() {
     if (!confirm("Remove this AI from the app?")) return;
     safe(async () => { await api("/api/provider/remove", { id: b.dataset.rm }); await loadState(); renderSettings(); });
   });
+  const td = $("#t-default");
+  td.elements.cited_pct.value = S.default_targets.cited_pct; td.elements.first_count.value = S.default_targets.first_count;
   $("#std-manage").innerHTML = S.standard.map(q => `<li><span>${esc(q.text)}</span><button class="x" data-std="${esc(q.id)}" title="Delete for all products">✕</button></li>`).join("");
   $$("#std-manage [data-std]").forEach(b => b.onclick = () => {
     if (!confirm("Delete this standard question for ALL products?")) return;
     safe(async () => { await api("/api/questions/delete", { id: b.dataset.std, kind: "standard" }); await loadState(); renderSettings(); });
   });
 }
+$("#t-default").onsubmit = e => {
+  e.preventDefault();
+  safe(async () => {
+    await api("/api/targets/default", Object.fromEntries(new FormData(e.target)));
+    await loadState(); toast("Default targets saved");
+    if (P) await loadProduct(P.product.slug);
+  });
+};
 $("#prov-add").onsubmit = e => {
   e.preventDefault();
   const f = Object.fromEntries(new FormData(e.target));

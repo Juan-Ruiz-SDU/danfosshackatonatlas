@@ -230,6 +230,12 @@ def report_pdf(path, c):
         new_x="LMARGIN", new_y="NEXT")
     pdf.set_y(y + 38)
     pdf.set_draw_color(205, 205, 205)
+    tg = c.get("targets")
+    if tg:
+        pdf.text_block(("Targets met. " if tg["met"] else "Targets missed: wiki suggestions are in the app. ")
+                       + _check_text(tg), 10, "B" if not tg["met"] else "",
+                       color=ACCENT if not tg["met"] else (0, 0, 0))
+        pdf.ln(2)
 
     pdf.heading("Which version gets cited?", 13)
     pdf.text_block(f"Citation share per version, over {n_q} buyer questions "
@@ -297,6 +303,11 @@ def report_pdf(path, c):
     pdf.output(str(path))
 
 
+def _check_text(tg):
+    import analysis
+    return analysis.check_text(tg)
+
+
 def report_markdown(c):
     w, b = c["winner"], c["baseline"]
     L = [f"# Citation report: {c['product']}", "", f"{c['date']} · run {c['run']}", "",
@@ -309,6 +320,10 @@ def report_markdown(c):
         L.append(f"| {x['name']} | {pct(x['retrieved'])} | {pct(x['cited'])} | "
                  f"{pct(x['cited_low'])}–{pct(x['cited_high'])} | {pct(x['cited_when_shown'])} | "
                  f"{pct(x['share'])} | {pct(x['first'])} | {pct(x['recommended'])} |")
+    if c.get("targets"):
+        tg = c["targets"]
+        L += ["", ("**Targets met.** " if tg["met"] else "**Targets missed:** wiki suggestions are in the app "
+               "and in wiki_suggestions.md. ") + _check_text(tg)]
     if c["winner_numbers"]:
         L += ["", f"**Check these numbers before publishing:** {', '.join(c['winner_numbers'])}"]
     L += ["", "## Questions", ""] + [f"{i}. {q}" for i, q in enumerate(c["questions"], 1)]

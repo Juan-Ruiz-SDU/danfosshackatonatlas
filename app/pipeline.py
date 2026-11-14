@@ -32,6 +32,7 @@ import experiment as lab  # noqa: E402
 import discover_sources as disc  # noqa: E402
 
 import ai  # noqa: E402
+import analysis  # noqa: E402
 import products  # noqa: E402
 import report  # noqa: E402
 
@@ -52,6 +53,8 @@ DEFAULTS = {
     "styles": ["plain", "stats", "sources"], "words": 400, "repeats": 1,
     "top_k": 5, "max_words": 700, "fresh_pages": False, "retries": 3,
     "retrieval": "page",
+    # when the best page misses the product's citation targets, this AI proposes wiki changes
+    "analysis": True, "analyst": "ollama", "analyst_model": "qwen3:8b",
 }
 
 
@@ -343,6 +346,7 @@ def citation_test(job, targets, competitors, questions, s, out):
             "publishable": style in PUBLISHABLE, "trials": n,
             "retrieved": sum(r["retrieved"] for r in rs) / n,
             "cited": k / n, "cited_low": lo, "cited_high": hi,
+            "cited_count": k, "first_count": sum(r["first"] for r in rs),
             "cited_when_shown": sum(r["cited"] for r in shown) / len(shown) if shown else 0.0,
             "share": sum(r["share"] for r in rs) / n,
             "first": sum(r["first"] for r in rs) / n,
@@ -360,6 +364,8 @@ def finish(job, p, s, out, questions, variants, originals, competitors, rows, su
     winner = next(v for v in variants if v.style == win["style"])
     baseline = next((x for x in summary if x["style"] == "original"), None)
     brands = collections.Counter(b for r in rows for b in r["cited_brands"])
+    targets = analysis.check(win, analysis.product_targets(p))
+    job.log("Targets: " + analysis.check_text(targets))
 
     (out / "final_page.md").write_text(winner.full_text + "\n", encoding="utf-8")
     with (out / "scores.csv").open("w", encoding="utf-8", newline="") as f:
@@ -377,7 +383,7 @@ def finish(job, p, s, out, questions, variants, originals, competitors, rows, su
         "variants": [{"style": v.style, "name": STYLE_NAMES.get(v.style, v.style), "words": v.words,
                       "unknown_numbers": v.unknown_numbers, "attempts": v.attempts,
                       "length_ok": v.length_ok} for v in variants],
-        "winner_length_ok": winner.length_ok,
+        "winner_length_ok": winner.length_ok, "targets": targets,
     }
     files = {"final_md": "final_page.md"}
     try:
@@ -402,9 +408,42 @@ def finish(job, p, s, out, questions, variants, originals, competitors, rows, su
         "winner": {"style": win["style"], "name": win["name"], "share": win["share"],
                    "cited": win["cited"], "first": win["first"]},
         "baseline": ({"share": baseline["share"], "cited": baseline["cited"]} if baseline else None),
-        "check_numbers": winner.unknown_numbers, "files": files,
+        "check_numbers": winner.unknown_numbers, "files": files, "targets": targets,
+        "analysis": {"status": "not needed" if targets["met"] else
+                     "pending" if s.get("analysis", True) else "off"},
     }
-    (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-    job.step("Done", 1, 1)
+    save_result(out, result)
     job.log(f"Best version: {win['name']} (citation share {win['share']:.0%})")
+    if result["analysis"]["status"] == "pending":
+        run_analysis(job, p, out, result)
+    job.step("Done", 1, 1)
+    return result
+
+
+def save_result(out, result):
+    (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def run_analysis(job, p, out, result=None):
+    """Targets missed: let the AI propose wiki changes. A problem here never loses the
+    run: the files are ready, and the analysis can be tried again from Results."""
+    result = result or json.loads((out / "result.json").read_text(encoding="utf-8"))
+    job.log("Target missed: analysing the best and worst version to suggest wiki changes ...")
+    try:
+        d = analysis.analyse(job, p, out)
+        result["analysis"] = {"status": "ready", "count": len(d["suggestions"])}
+        with zipfile.ZipFile(out / "all_results.zip", "a", zipfile.ZIP_DEFLATED) as z:
+            names = set(z.namelist())
+            for name in ("wiki_suggestions.md", "wiki_suggestions.json"):
+                if name not in names:
+                    z.write(out / name, name)
+        result["files"]["suggestions_md"] = "wiki_suggestions.md"
+    except ai.Cancelled:
+        result["analysis"] = {"status": "error", "error": "Stopped by you."}
+        job.log("Wiki analysis stopped. The pages and report are ready.")
+    except Exception as e:  # noqa: BLE001
+        result["analysis"] = {"status": "error", "error": str(e)}
+        job.log(f"Wiki analysis failed: {str(e).rstrip('.')}. The pages and report are ready; "
+                "press 'Try the analysis again' in Results.")
+    save_result(out, result)
     return result

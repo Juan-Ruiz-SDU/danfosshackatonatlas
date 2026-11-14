@@ -103,6 +103,14 @@
       <legend>Page versions to write and test</legend>
       <div id="s-styles" class="chips"></div>
     </fieldset>
+    <fieldset>
+      <legend>Citation targets for this product</legend>
+      <div class="row targets">
+        <label>Danfoss cited in at least <input type="number" id="t-cited" min="0" max="100" step="5"> % of answers</label>
+        <label>and cited first in at least <input type="number" id="t-first" min="0" max="200" step="1"> answers</label>
+      </div>
+      <p class="hint" id="t-hint"></p>
+    </fieldset>
     <details>
       <summary>More options</summary>
       <div class="grid3">
@@ -144,6 +152,7 @@
   <section class="card" id="card-results">
     <h2><span class="num">5</span> Your files</h2>
     <div id="latest"></div>
+    <div id="suggestions" class="hidden"></div>
     <details id="older" class="hidden">
       <summary>Earlier runs</summary>
       <ul id="runs"></ul>
@@ -271,6 +280,14 @@
       <button type="submit">Add AI</button>
     </form>
   </details>
+
+  <h3>Default citation targets</h3>
+  <p class="hint">Used by every product that has no targets of its own. If the best page of a run misses one, the app suggests wiki changes.</p>
+  <form class="row targets" id="t-default">
+    <label>Cited in at least <input type="number" name="cited_pct" min="0" max="100" step="5"> % of answers</label>
+    <label>cited first in at least <input type="number" name="first_count" min="0" max="200"> answers</label>
+    <button>Save default</button>
+  </form>
 
   <h3>Standard questions</h3>
   <p class="hint">Deleting one here removes it for every product. To skip it for one product, untick it instead.</p>

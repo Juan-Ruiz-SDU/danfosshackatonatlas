@@ -24,6 +24,7 @@ REPO = APP.parent
 STATIC = APP / "static"
 sys.path.insert(0, str(APP))
 import ai  # noqa: E402
+import analysis  # noqa: E402
 import brochure  # noqa: E402
 import catalog  # noqa: E402
 import pipeline  # noqa: E402
@@ -37,7 +38,7 @@ class Job:
         self.slug, self.settings = slug, settings
         self.status, self.error, self.result = "running", None, None
         self.step_name, self.done, self.total = "Starting", 0, 0
-        self.lines, self.stop = [], False
+        self.lines, self.stop, self.analysis_run = [], False, None
         self.started = time.time()
 
     def log(self, msg):
@@ -63,19 +64,27 @@ JOB = None
 LOCK = threading.Lock()
 
 
-def start_job(slug, settings):
+def start_job(slug, settings, analysis_run=None):
     global JOB
     with LOCK:
         if JOB and JOB.status == "running":
             raise ValueError("A run is already going. Wait for it, or press Stop.")
         products.get(slug)
         JOB = Job(slug, settings)
+        JOB.analysis_run = analysis_run
     threading.Thread(target=_run, args=(JOB,), daemon=True).start()
 
 
 def _run(job):
     try:
-        job.result = pipeline.run(job, job.slug, job.settings)
+        if job.analysis_run:  # only the wiki analysis of a finished run, again
+            p = products.get(job.slug)
+            out = run_folder(p, job.analysis_run)
+            job.result = pipeline.run_analysis(job, p, out)
+            if job.result["analysis"]["status"] == "error":
+                raise RuntimeError(job.result["analysis"]["error"])
+        else:
+            job.result = pipeline.run(job, job.slug, job.settings)
         job.status = "done"
         job.log("Finished.")
     except ai.Cancelled:
@@ -118,10 +127,20 @@ def state():
     return {"products": products.list_products(), "providers": provs,
             "gemini_key": ai.has_key("GEMINI_API_KEY"), "standard": products.standard_questions(),
             "defaults": pipeline.DEFAULTS, "deps": deps(),
+            "default_targets": analysis.default_targets(),
             "styles": [{"id": k, "name": pipeline.STYLE_NAMES.get(k, k),
                         "publishable": k in pipeline.PUBLISHABLE}
                        for k in pipeline.gv.STYLES],
             "job": JOB.as_dict() if JOB else None}
+
+
+def run_folder(p, run):
+    if not run or "/" in run or "\\" in run or run.startswith("."):
+        raise ValueError("Unknown run")
+    out = p["folder"] / "runs" / run
+    if not (out / "result.json").is_file():
+        raise ValueError("Unknown run")
+    return out
 
 
 def product_info(slug):
@@ -148,6 +167,10 @@ def product_info(slug):
                   "competitors": sum(d.brand.lower() != "danfoss" for d in pages),
                   "fixed_links": len(products.source_list(p))},
         "runs": runs[:20],
+        "targets": analysis.product_targets(p),
+        # suggestions of the latest finished run, to accept or decline
+        "suggestions": next((analysis.load(p["folder"] / "runs" / r["run"])
+                             for r in runs if not r.get("unfinished")), None),
     }
 
 
@@ -304,6 +327,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ai.update_provider(b["id"], base_url=b.get("base_url"))
             elif path == "/api/provider/remove":
                 ai.remove_provider(b["id"])
+            elif path == "/api/targets/default":
+                analysis.set_default_targets(b)
+            elif path == "/api/targets/product":
+                analysis.set_product_targets(products.get(b.get("slug", "")), b, bool(b.get("reset")))
+            elif path == "/api/suggestion":
+                p = products.get(b.get("slug", ""))
+                return self.send(200, analysis.decide(p, run_folder(p, b.get("run")), b.get("id"),
+                                                      b.get("decision"), b.get("text")))
+            elif path == "/api/analysis/run":
+                p = products.get(b.get("slug", ""))
+                run_folder(p, b.get("run"))
+                start_job(p["slug"], {}, analysis_run=b["run"])
             elif path == "/api/import/start":
                 # runs in the background: the page follows it with /api/import/status
                 brochure.start(b["filename"], base64.b64decode(b["data"]),

@@ -4,19 +4,23 @@ Role 3: generate the same page in 4 writing styles from one fact sheet,
 using a local model through Ollama, then flag any number that is not in the
 fact sheet (possible hallucination).
 
-The fact sheet is an Open Knowledge Format (OKF v0.2) bundle: a folder of
-Markdown concept files with YAML frontmatter (see wiki/index.md).
+The fact sheet (--wiki) is either an Open Knowledge Format (OKF v0.2) bundle,
+a folder of Markdown concept files with YAML frontmatter (see wiki/index.md),
+or a single Markdown fact sheet file (e.g. wiki_motor_protector.md).
 
 Only uses the Python standard library: no pip install needed.
 
 Usage:
   python generate_variants.py --wiki wiki --topic "Example Pro invoicing software" \
-      --model qwen3:8b --words 400 --runs 3
+      --model qwen3:8b --words 400 --target 3
+
+  --target N   make sure each style has pages 1..N: only missing pages are
+               generated; existing ones are kept and just checked
+  --runs N     add N new pages per style after the existing ones
 
 Output (folder ./variants). Earlier pages are never overwritten, so the
 progress between runs stays visible:
-  plain_1.md, stats_1.md, sources_1.md, stuffed_1.md, ...   (one file per page;
-                                      numbering continues after existing pages)
+  plain_1.md, stats_1.md, sources_1.md, stuffed_1.md, ...   (one file per page)
   report.json        (one entry per page: word count, fact-check flags, model,
                       wiki and date; new entries are appended after each page)
 """
@@ -159,6 +163,14 @@ def load_okf_bundle(root):
     return "# FACT SHEET (single source of truth)\n\n" + "\n\n".join(parts) + "\n"
 
 
+def load_wiki(path):
+    """A folder is read as an OKF bundle, a file as a ready-made fact sheet."""
+    path = pathlib.Path(path)
+    if path.is_file():
+        return path.read_text(encoding="utf-8")
+    return load_okf_bundle(path)
+
+
 # --- output: keep every earlier page and report entry ------------------------
 def next_run(out, style):
     """First free run number for a style, so earlier pages are never overwritten."""
@@ -196,6 +208,37 @@ def call_ollama(host, model, prompt, temperature):
     return THINK_RE.sub("", text).strip()  # drop reasoning blocks some models emit
 
 
+def length_ok(text, target):
+    return abs(len(text.split()) - target) <= 0.2 * target
+
+
+def generate_page(args, prompt, previous=None):
+    """Generate a page; if its length is more than 20% off the target, ask
+    again with feedback (up to --retries times) and keep the attempt closest
+    to the target length. `previous` is an existing page being redone: the
+    first attempt already gets its word count as feedback, and it is kept if
+    no new attempt is closer to the target."""
+    lo, hi = int(0.8 * args.words), int(1.2 * args.words)
+    best = previous
+    last_words = len(previous.split()) if previous else None
+    for attempt in range(args.retries + 1):
+        p = prompt
+        if last_words is not None:
+            p += (f"\nIMPORTANT: your previous version had {last_words} words. "
+                  f"This version MUST be between {lo} and {hi} words. "
+                  f"Aim for {args.words}.\n")
+        page = call_ollama(args.host, args.model, p, args.temperature)
+        last_words = len(page.split())
+        if best is None or abs(last_words - args.words) < abs(len(best.split()) - args.words):
+            best = page
+        if length_ok(page, args.words):
+            return page, attempt + 1
+        if attempt < args.retries:
+            print(f"     attempt {attempt + 1}: {last_words} words, trying again",
+                  flush=True)
+    return best, args.retries + 1
+
+
 def norm_numbers(text):
     """Set of numbers in text, with thousand/decimal separators removed so
     '1,200' and '1200' match."""
@@ -204,20 +247,32 @@ def norm_numbers(text):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--wiki", default="wiki", help="OKF bundle folder")
+    ap.add_argument("--wiki", default="wiki",
+                    help="OKF bundle folder or single fact sheet .md file")
     ap.add_argument("--topic", required=True, help="what the page is about")
     ap.add_argument("--keyword", help="phrase for the stuffed variant "
                     "(default: taken from the wiki's 'Target search phrase')")
     ap.add_argument("--model", default="qwen3:8b")
     ap.add_argument("--host", default="http://localhost:11434")
     ap.add_argument("--words", type=int, default=400)
-    ap.add_argument("--runs", type=int, default=1, help="pages per style")
+    ap.add_argument("--runs", type=int, default=1,
+                    help="new pages per style, added after the existing ones")
+    ap.add_argument("--target", type=int,
+                    help="fill each style up to pages 1..N, generating only the "
+                         "missing ones (overrides --runs)")
+    ap.add_argument("--retries", type=int, default=3,
+                    help="extra attempts when a new page's length is more than "
+                         "20%% off --words")
+    ap.add_argument("--fix-length", action="store_true",
+                    help="also redo existing pages whose length is more than "
+                         "20%% off --words (the original is kept as "
+                         "before_fix/<name>)")
     ap.add_argument("--temperature", type=float, default=0.3)
     ap.add_argument("--styles", default=",".join(STYLES), help="comma list")
     ap.add_argument("--out", default="variants")
     args = ap.parse_args()
 
-    wiki = load_okf_bundle(args.wiki)
+    wiki = load_wiki(args.wiki)
     keyword = args.keyword
     if not keyword:
         # first bullet after the "Target search phrase" heading
@@ -230,22 +285,61 @@ def main():
     out.mkdir(exist_ok=True)
     report_path = out / "report.json"
     report = load_report(report_path)
+    reported = {e.get("file") for e in report}
 
-    for style in args.styles.split(","):
-        style = style.strip()
+    styles = [s.strip() for s in args.styles.split(",")]
+    for style in styles:
         if style not in STYLES:
             sys.exit(f"Unknown style: {style}")
-        first = next_run(out, style)
-        for run in range(first, first + args.runs):
+    for style in styles:
+        if args.target:
+            runs = range(1, args.target + 1)
+        else:
+            first = next_run(out, style)
+            runs = range(first, first + args.runs)
+        for run in runs:
+            name = f"{style}_{run}.md"
+            path = out / name
             prompt = PROMPT.format(
                 topic=args.topic, words=args.words, wiki=wiki,
                 style=STYLES[style].format(keyword=keyword),
             )
-            print(f"Generating {style} #{run} ...", flush=True)
-            page = call_ollama(args.host, args.model, prompt, args.temperature)
-
-            name = f"{style}_{run}.md"
-            (out / name).write_text(page + "\n", encoding="utf-8")
+            existing = (path.read_text(encoding="utf-8").strip()
+                        if path.is_file() and path.stat().st_size > 0 else None)
+            now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if existing and args.fix_length and not length_ok(existing, args.words):
+                # keep the original in a subfolder (e.g. before_fix/plain_1.md),
+                # so tools that read every .md in the folder don't pick it up
+                backup = out / "before_fix" / name
+                backup.parent.mkdir(exist_ok=True)
+                if not backup.exists():
+                    backup.write_text(existing + "\n", encoding="utf-8")
+                old_words = len(existing.split())
+                print(f"Redoing {name} (was {old_words} words, original saved "
+                      f"in before_fix/) ...", flush=True)
+                page, attempts = generate_page(args, prompt, previous=existing)
+                path.write_text(page + "\n", encoding="utf-8")
+                made = {"model": args.model, "wiki": args.wiki, "attempts": attempts,
+                        "generated_at": now, "fixed_length_from": old_words,
+                        "kept_original": page == existing}
+                report = [e for e in report if e.get("file") != name]
+            elif existing:
+                if name in reported:
+                    print(f"Keeping {name} (already done and checked)", flush=True)
+                    continue
+                # made earlier (e.g. by an interrupted run): check it, don't redo it
+                print(f"Keeping {name}, checking it ...", flush=True)
+                page = existing
+                made = {"model": None, "wiki": None, "existing_page": True,
+                        "generated_at": datetime.datetime.fromtimestamp(
+                            path.stat().st_mtime, datetime.timezone.utc)
+                            .strftime("%Y-%m-%dT%H:%M:%SZ")}
+            else:
+                print(f"Generating {name} ...", flush=True)
+                page, attempts = generate_page(args, prompt)
+                path.write_text(page + "\n", encoding="utf-8")
+                made = {"model": args.model, "wiki": args.wiki, "attempts": attempts,
+                        "generated_at": now}
 
             words = len(page.split())
             unknown = sorted(norm_numbers(page) - allowed, key=len)
@@ -255,12 +349,11 @@ def main():
                 "keyword_count": kw_count,
                 "numbers_not_in_wiki": unknown,
                 "length_ok": abs(words - args.words) <= 0.2 * args.words,
-                "model": args.model, "topic": args.topic, "keyword": keyword,
-                "target_words": args.words, "wiki": args.wiki,
-                "generated_at": datetime.datetime.now(datetime.timezone.utc)
-                                .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "topic": args.topic, "keyword": keyword,
+                "target_words": args.words, **made,
             }
             report.append(entry)
+            reported.add(name)
             # saved after every page, so an interrupted run keeps its entries
             report_path.write_text(json.dumps({"pages": report}, indent=2),
                                    encoding="utf-8")

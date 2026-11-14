@@ -241,7 +241,9 @@ BROCHURE:
 
 
 def draft_from_brochure(text, provider, model):
-    answer = ai.chat(provider, model, "", DRAFT_PROMPT.format(text=text[:60000]),
+    # a local model reads less text at once than Gemini: keep the brochure within its context
+    limit = 30000 if ai.providers().get(provider, {}).get("type") == "ollama" else 60000
+    answer = ai.chat(provider, model, "", DRAFT_PROMPT.format(text=text[:limit]),
                      temperature=0.1, use_cache=False)
     d = ai.parse_json(answer)
     return {k: str(d.get(k, "") or "").strip()
@@ -275,6 +277,10 @@ def create_product(d):
         "---\ntype: Policy\ntitle: Never claim\n"
         "description: Claims that generated pages must never make.\n---\n"
         f"# Never claim\n{never}\n", encoding="utf-8")
+    # OKF index: the generator reads concepts in this order, facts first
+    (wiki / "index.md").write_text(
+        "# Concepts\n* [Product](product.md) - the facts.\n"
+        "* [Never claim](never-claim.md) - claims pages must not make.\n", encoding="utf-8")
 
     urls = []
     for line in d.get("danfoss_urls", "").splitlines():

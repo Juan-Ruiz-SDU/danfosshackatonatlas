@@ -47,8 +47,8 @@ STYLE_NAMES = {
 }
 DEFAULTS = {
     "discovery": False, "search_model": "gemini-2.5-flash",
-    "writer": "gemini", "writer_model": "gemini-2.5-flash",
-    "judge": "gemini", "judge_model": "gemini-2.5-flash",
+    "writer": "ollama", "writer_model": "qwen3:8b",
+    "judge": "ollama", "judge_model": "qwen3:8b",
     "styles": ["plain", "stats", "sources"], "words": 400, "repeats": 1,
     "top_k": 5, "max_words": 700, "fresh_pages": False, "retries": 3,
     "retrieval": "page",
@@ -198,13 +198,19 @@ def discover(job, p, questions, s, out):
             "no_sources": [a["question"] for a in answers if not a["sources"]]}
 
 
+URL_RE = re.compile(r"\A---\s*\n.*?^url:\s*(\S+)", re.DOTALL | re.MULTILINE)
+
+
 def load_pages(p, max_words):
+    """All comparison pages, each once: the same page saved in two folders (e.g. the
+    product's fixed/ and the lab corpus) is matched by its url, or else by its text."""
     seen, pages = set(), []
     for d in products.page_dirs(p):
         for doc in lab.load_docs(d, "unknown", max_words):
-            h = hashlib.sha1(doc.text.encode()).hexdigest()
-            if h not in seen:
-                seen.add(h)
+            m = URL_RE.match(doc.path.read_text(encoding="utf-8", errors="replace")[:2000])
+            key = m.group(1).rstrip("/") if m else hashlib.sha1(doc.text.encode()).hexdigest()
+            if key not in seen:
+                seen.add(key)
                 pages.append(doc)
     return pages
 

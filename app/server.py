@@ -102,10 +102,18 @@ def deps():
 
 def state():
     ai.load_env()
-    provs = {pid: {"label": p["label"], "models": p.get("models", []), "key_env": p.get("key_env"),
-                   "has_key": ai.has_key(p.get("key_env")), "base_url": p["base_url"],
-                   "sleep": p.get("sleep", 0)}
-             for pid, p in ai.providers().items()}
+    provs = {}
+    for pid, p in ai.providers().items():
+        info = {"label": p["label"], "models": p.get("models", []), "key_env": p.get("key_env"),
+                "has_key": ai.has_key(p.get("key_env")), "base_url": p["base_url"],
+                "sleep": p.get("sleep", 0), "type": p.get("type", "openai"),
+                "est_write": p.get("est_write", 30), "est_answer": p.get("est_answer", 10)}
+        if info["type"] == "ollama":
+            info["reachable"], installed = ai.ollama_status(p["base_url"])
+            # show the models that are really installed on that server first
+            info["installed"] = installed
+            info["models"] = installed + [m for m in info["models"] if m not in installed]
+        provs[pid] = info
     return {"products": products.list_products(), "providers": provs,
             "gemini_key": ai.has_key("GEMINI_API_KEY"), "standard": products.standard_questions(),
             "defaults": pipeline.DEFAULTS, "deps": deps(),
@@ -289,12 +297,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if b.get("key") and b.get("key_env"):
                     ai.save_key(b["key_env"].strip(), b["key"])
                 return self.send(200, {"ok": True, "id": pid})
+            elif path == "/api/provider/update":
+                ai.update_provider(b["id"], base_url=b.get("base_url"))
             elif path == "/api/provider/remove":
                 ai.remove_provider(b["id"])
             elif path == "/api/import/extract":
                 text = products.extract_text(b["filename"], base64.b64decode(b["data"]))
-                draft = products.draft_from_brochure(text, b.get("provider", "gemini"),
-                                                     b.get("model", "gemini-2.5-flash"))
+                draft = products.draft_from_brochure(text, b.get("provider", "ollama"),
+                                                     b.get("model", "qwen3:8b"))
                 return self.send(200, {"draft": draft, "words": len(text.split())})
             elif path == "/api/import/save":
                 return self.send(200, {"slug": products.create_product(b.get("draft", {}))})

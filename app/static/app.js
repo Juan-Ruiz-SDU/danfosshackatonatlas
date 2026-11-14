@@ -27,7 +27,6 @@ async function safe(fn) { try { return await fn(); } catch (e) { toast(e.message
 // --- start ------------------------------------------------------------------------
 async function loadState() {
   S = await api("/api/state");
-  renderBanner();
   const sel = $("#product-select");
   const want = recall("product", S.products[0]?.slug);
   sel.innerHTML = S.products.map(p => `<option value="${esc(p.slug)}">${esc(p.name)}</option>`).join("");
@@ -35,6 +34,7 @@ async function loadState() {
   fillProviders();
   renderStyles();
   restoreSettings();
+  renderBanner();
   if (sel.value) await loadProduct(sel.value);
   if (S.job && S.job.status === "running") startPolling();
   else if (S.job && S.job.slug === sel.value && S.job.status !== "done") renderJob(S.job);
@@ -43,24 +43,47 @@ async function loadState() {
 function renderBanner() {
   const b = $("#banner");
   let html = "";
-  if (!S.gemini_key) {
-    html += `<section class="card"><h2>👋 First, add your Gemini API key</h2>
-      <p class="hint">Atlas uses Google Gemini to write and test the pages. Get a free key at
-      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>,
-      paste it here, and press Save. It stays on this computer.</p>
-      <form class="row" id="first-key"><input type="password" id="first-key-val" placeholder="Paste your key" style="flex:1" autocomplete="off">
-      <button class="primary">Save</button></form></section>`;
+  const used = [...new Set([$("#s-writer").value, $("#s-judge").value])].filter(id => S.providers[id]);
+  for (const id of used) {
+    const p = S.providers[id];
+    if (p.type === "ollama" && !p.reachable) {
+      html += `<section class="card"><h2>Ollama can't be reached</h2>
+        <p class="hint">Atlas is set to use Ollama at <code>${esc(p.base_url)}</code>, but nothing answers there.
+        If Ollama runs on <b>your</b> computer, open the Ollama app. If you use the <b>team server</b>, type its address
+        (ask its owner to run <code>ipconfig</code>; you must be on the same Wi-Fi) and press Save.</p>
+        <form class="row" data-addr="${esc(id)}"><input value="${esc(p.base_url)}" style="flex:1" placeholder="http://10.126.128.116:11434/">
+        <button class="primary">Save</button><button type="button" class="ghost" data-recheck>Check again</button></form></section>`;
+    } else if (p.type === "ollama" && p.installed && !p.installed.includes($(id === $("#s-writer").value ? "#s-writer-model" : "#s-judge-model").value)) {
+      html += `<section class="card"><b>Model not installed.</b> <span class="hint">The Ollama server at <code>${esc(p.base_url)}</code> has
+        ${p.installed.length ? esc(p.installed.join(", ")) : "no models"}. Pick one of those, or run <code>ollama pull qwen3:8b</code> on that computer.</span></section>`;
+    } else if (p.key_env && !p.has_key) {
+      html += `<section class="card"><h2>Add your ${esc(p.label)} key</h2>
+        <p class="hint">${id === "gemini" ? `Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. ` : ""}It stays on this computer.
+        Or pick Ollama above to run everything on your own server, with no key and no quota.</p>
+        <form class="row" data-key="${esc(p.key_env)}"><input type="password" placeholder="Paste your key" style="flex:1" autocomplete="off">
+        <button class="primary">Save</button></form></section>`;
+    }
   }
   if (!S.deps.fpdf) {
     html += `<section class="card"><b>PDFs are off.</b> <span class="hint">To get the final page and the report as PDF, close Atlas and run
       <code>pip install -r requirements.txt</code> (or start Atlas with "Start Atlas.bat", which does it for you).</span></section>`;
   }
   b.innerHTML = html;
-  const f = $("#first-key");
-  if (f) f.onsubmit = e => {
+  $$("#banner [data-key]").forEach(f => f.onsubmit = e => {
     e.preventDefault();
-    safe(async () => { await api("/api/key", { env: "GEMINI_API_KEY", value: $("#first-key-val").value }); toast("Key saved"); await loadState(); });
-  };
+    safe(async () => { await api("/api/key", { env: f.dataset.key, value: $("input", f).value }); toast("Key saved"); await loadState(); });
+  });
+  $$("#banner [data-addr]").forEach(f => f.onsubmit = e => {
+    e.preventDefault();
+    safe(async () => { await api("/api/provider/update", { id: f.dataset.addr, base_url: $("input", f).value }); await loadState(); toast(S.providers[f.dataset.addr].reachable ? "Connected" : "Still no answer at that address"); });
+  });
+  $$("#banner [data-recheck]").forEach(btn => btn.onclick = () => safe(loadState));
+
+  // source discovery searches Google, which only Gemini can do
+  const disc = $("#s-discovery");
+  disc.disabled = !S.gemini_key;
+  if (!S.gemini_key) disc.checked = false;
+  disc.closest(".switch").title = S.gemini_key ? "" : "Needs a Gemini key (Settings): Ollama can't search the web";
 }
 
 function fillProviders() {
@@ -116,7 +139,7 @@ function applySettings(s) {
   $("#s-retries").value = s.retries ?? 3;
   $("#s-retrieval").value = s.retrieval === "passage" ? "passage" : "page";
 }
-function saveSettings() { if (restoring) return; store("settings", gather()); estimate(); }
+function saveSettings() { if (restoring) return; store("settings", gather()); renderBanner(); estimate(); }
 ["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-words", "#s-repeats", "#s-topk", "#s-fresh", "#s-retries", "#s-retrieval"]
   .forEach(s => $(s).addEventListener("change", saveSettings));
 
@@ -129,15 +152,21 @@ function estimate() {
   const search = s.discovery ? nq : 0;
   const judge = targets * nq * s.repeats;
   const calls = search + ns + judge;
-  const wait = q => (S.providers[q]?.sleep || 0) + 3;
-  const secs = search * 9 + ns * wait(s.writer) * 2 + judge * wait(s.judge);
+  const pw = S.providers[s.writer] || {}, pj = S.providers[s.judge] || {};
+  // writing: 1.5 attempts per page on average (length retries)
+  const secs = search * 9 + ns * 1.5 * ((pw.est_write || 30) + (pw.sleep || 0)) + judge * ((pj.est_answer || 10) + (pj.sleep || 0));
   const mins = Math.max(1, Math.round(secs / 60));
-  let txt = `${nq} questions × ${targets} page versions → about <b>${calls} AI calls</b>, roughly ${mins} min. Answers already saved are free.`;
+  const time = mins >= 90 ? `${(mins / 60).toFixed(1)} hours` : `${mins} min`;
+  let txt = `${nq} questions × ${targets} page versions → about <b>${calls} AI calls</b>, roughly ${time}. Answers already saved are free.`;
+  if (pw.type === "ollama" || pj.type === "ollama") txt += ` Runs on Ollama: no tokens or quota used.`;
+  if (mins >= 90 && pj.type === "ollama") txt += `<br><span style="color:var(--warn)">That's long on a CPU. To speed it up, tick fewer questions or page versions, or keep the computer from sleeping and let it run.</span>`;
   if (calls > 200 && (s.judge === "gemini" || s.writer === "gemini")) txt += `<br><span style="color:var(--warn)">This may hit Gemini's free daily limit. If it does, press Run again tomorrow: it continues where it stopped.</span>`;
   $("#estimate").innerHTML = txt;
-  $("#discovery-hint").textContent = s.discovery
-    ? `On: asks Google's AI all ${nq} questions and imports the pages it cites as the competition (+${nq} searches).`
-    : `Off: faster, uses the ${P.pages.competitors} competitor pages saved earlier.`;
+  $("#discovery-hint").textContent = !S.gemini_key
+    ? `Needs a Gemini key (Settings), because Ollama can't search the web. Off: uses the ${P.pages.competitors} competitor pages saved earlier.`
+    : s.discovery
+      ? `On: asks Google's AI (Gemini, uses quota) all ${nq} questions and imports the pages it cites as the competition (+${nq} searches).`
+      : `Off: faster, uses the ${P.pages.competitors} competitor pages saved earlier.`;
 }
 
 // --- product ----------------------------------------------------------------------
@@ -309,8 +338,16 @@ function renderSettings() {
     safe(async () => { await api("/api/key", { env: f.dataset.env, value: $("input", f).value }); toast("Key saved"); await loadState(); renderSettings(); });
   });
   $("#prov-list").innerHTML = Object.entries(S.providers).map(([id, p]) =>
-    `<li><span><b>${esc(p.label)}</b> <small class="hint">${esc(p.base_url)} · ${esc(p.models.join(", "))}</small></span>
-     ${id === "gemini" ? `<small class="hint">needed for search</small>` : `<button class="x" data-rm="${esc(id)}" title="Remove">✕</button>`}</li>`).join("");
+    `<li style="flex-wrap:wrap"><span><b>${esc(p.label)}</b>
+       ${p.type === "ollama" ? `<small class="${p.reachable ? "ok" : "hint"}">${p.reachable ? "✔ connected · " + esc((p.installed || []).join(", ") || "no models") : "not reachable"}</small>` : ""}
+       <br><small class="hint">${esc(p.models.join(", "))}</small></span>
+     <form class="row" data-addr="${esc(id)}" style="flex:1 1 300px"><input value="${esc(p.base_url)}" style="flex:1" aria-label="Address">
+       <button>Save address</button>
+       ${["gemini", "ollama"].includes(id) ? "" : `<button type="button" class="x" data-rm="${esc(id)}" title="Remove">✕</button>`}</form></li>`).join("");
+  $$("#prov-list [data-addr]").forEach(f => f.onsubmit = e => {
+    e.preventDefault();
+    safe(async () => { await api("/api/provider/update", { id: f.dataset.addr, base_url: $("input", f).value }); await loadState(); renderSettings(); toast("Address saved"); });
+  });
   $$("#prov-list [data-rm]").forEach(b => b.onclick = () => {
     if (!confirm("Remove this AI from the app?")) return;
     safe(async () => { await api("/api/provider/remove", { id: b.dataset.rm }); await loadState(); renderSettings(); });

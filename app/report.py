@@ -14,6 +14,7 @@ FONT_SETS = [  # regular, bold, italic, bold italic: a Unicode font so ™, ₂,
 ]
 LATIN1 = {"™": "(TM)", "’": "'", "‘": "'", "“": '"', "”": '"', "–": "-", "—": "-", "…": "...",
           "≈": "~", "×": "x", "₂": "2", "•": "-", "→": "->", "≤": "<=", "≥": ">="}
+SUBSCRIPTS = str.maketrans("₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹", "01234567890123456789")
 ACCENT = (200, 16, 46)      # Danfoss-like red for the headline numbers
 BAR = (42, 111, 219)
 GREY = (110, 110, 110)
@@ -42,7 +43,7 @@ def _pdf_class():
                     break
 
         def t(self, s):
-            s = str(s)
+            s = str(s).translate(SUBSCRIPTS)  # Arial has no ₂: CO₂ -> CO2
             if self.uni:
                 return s
             for a, b in LATIN1.items():
@@ -59,31 +60,37 @@ def _pdf_class():
         def text_block(self, text, size=11, style="", h=None, color=(0, 0, 0)):
             self.set_font(self.fam, style, size)
             self.set_text_color(*color)
-            self.multi_cell(0, h or size * 0.52, self.t(text), markdown=True,
+            self.multi_cell(0, h or size * 0.52, self.t(text), markdown=True, align="L",
                             new_x="LMARGIN", new_y="NEXT")
             self.set_text_color(0, 0, 0)
 
         def heading(self, text, size=15):
             self.ln(3)
             self.set_font(self.fam, "B", size)
-            self.multi_cell(0, size * 0.5, self.t(plain(text)), new_x="LMARGIN", new_y="NEXT")
+            self.multi_cell(0, size * 0.5, self.t(plain(text)), align="L", new_x="LMARGIN", new_y="NEXT")
             self.ln(1.5)
 
         def bullet(self, text, mark="•", size=11):
             self.set_font(self.fam, "", size)
             self.set_x(self.l_margin + 3)
             self.cell(6, size * 0.52, self.t(mark))
-            self.multi_cell(0, size * 0.52, self.t(inline(text)), markdown=True,
+            self.multi_cell(0, size * 0.52, self.t(inline(text)), markdown=True, align="L",
                             new_x="LMARGIN", new_y="NEXT")
 
         def grid(self, rows, widths=None, size=9):
             if not rows:
                 return
+            from fpdf.fonts import FontFace
             n = max(len(r) for r in rows)
             rows = [list(r) + [""] * (n - len(r)) for r in rows]
+            self.ln(1)
             self.set_font(self.fam, "", size)
+            self.set_fill_color(255, 255, 255)   # colours left over from the bar chart
+            self.set_draw_color(205, 205, 205)
+            self.set_text_color(0, 0, 0)
             kw = {"col_widths": widths} if widths else {}
-            with self.table(text_align="LEFT", line_height=size * 0.55,
+            head = FontFace(emphasis="BOLD", fill_color=(242, 242, 242))
+            with self.table(text_align="LEFT", line_height=size * 0.55, headings_style=head,
                             first_row_as_headings=True, **kw) as table:
                 for r in rows:
                     row = table.row()
@@ -222,6 +229,7 @@ def report_pdf(path, c):
         f"Cited in {pct(w['cited'])} of answers, cited first in {pct(w['first'])}."),
         new_x="LMARGIN", new_y="NEXT")
     pdf.set_y(y + 38)
+    pdf.set_draw_color(205, 205, 205)
 
     pdf.heading("Which version gets cited?", 13)
     pdf.text_block(f"Citation share per version, over {n_q} buyer questions "
@@ -231,12 +239,10 @@ def report_pdf(path, c):
 
     rows = [["Version", "Retrieved", "Cited", "95% range", "Cited when shown", "Share", "Cited first", "Recommended"]]
     for x in c["summary"]:
-        rows.append([x["name"] + ("" if x["publishable"] or x["style"] == "original" else " *"),
-                     pct(x["retrieved"]), pct(x["cited"]), f"{pct(x['cited_low'])}–{pct(x['cited_high'])}",
+        rows.append([x["name"], pct(x["retrieved"]), pct(x["cited"]),
+                     f"{pct(x['cited_low'])}–{pct(x['cited_high'])}",
                      pct(x["cited_when_shown"]), pct(x["share"]), pct(x["first"]), pct(x["recommended"])])
-    pdf.grid(rows, widths=(34, 15, 12, 18, 17, 12, 14, 18), size=8)
-    if any(not x["publishable"] and x["style"] != "original" for x in c["summary"]):
-        pdf.text_block("* test version, never to be published", 8, color=GREY)
+    pdf.grid(rows, widths=(32, 14, 11, 17, 17, 11, 13, 21), size=8)
 
     pdf.heading("Before you publish", 13)
     if c["winner_numbers"]:

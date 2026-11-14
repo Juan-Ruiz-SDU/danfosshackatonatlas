@@ -1,0 +1,207 @@
+{
+ "id": "gasketed-plate-heat-exchanger-service",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/",
+ "copied": "2026-11-14T22:27:40",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Gasketed plate heat exchanger service | Danfoss",
+  "description": "Our service team offers repairs, trouble shooting, upgrades, and on-site cleaning and maintenance of your plate heat exchanger solution. We always utilize genuine spare parts both for SONDEX® heat exchangers and our selection of other heat exchanger brands.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Service and distribution",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/"
+  ],
+  [
+   "Gasketed plate heat exchanger service",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.86 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "117 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "28 (19 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "47 chars",
+   "status": "ok",
+   "note": "Gasketed plate heat exchanger service | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "257 chars",
+   "status": "warn",
+   "note": "Our service team offers repairs, trouble shooting, upgrades, and on-site cleaning and maintenance of your plate heat exchanger solution. We always utilize genuine spare parts both for SONDEX® heat exchangers and our selection of other heat exchanger brands."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "2 of 15",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "373 of 724",
+   "status": "warn",
+   "note": "Most of the text only appears after JavaScript runs: crawlers that do not run it (many AI search bots) miss it, and Googlebot reads it later"
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "environmentally friendly",
+   "sentence": "Our skilled technicians will clean your heat exchangers using environmentally friendly, economical methods, and we will have your heat exchanger up and running at full capacity as soon as possible."
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "superior",
+   "sentence": "Discover superior processing with Danfoss’s hygienic gasketed plate heat exchangers, meticulously engineered to meet the most stringent hygienic requirements."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Gasketed plate heat exchanger service"
+  },
+  {
+   "level": 4,
+   "text": "Localized service and maintenance – always available near you!"
+  },
+  {
+   "level": 4,
+   "text": "At your convenience!"
+  },
+  {
+   "level": 4,
+   "text": "Replacement with genuine spare parts"
+  },
+  {
+   "level": 4,
+   "text": "360-degree analysis of your solution"
+  },
+  {
+   "level": 2,
+   "text": "Documents"
+  },
+  {
+   "level": 2,
+   "text": "Related products"
+  }
+ ],
+ "words_raw": 373,
+ "words_rendered": 724,
+ "links": [
+  "https://www.danfoss.com/en/contact-us/contacts-list/",
+  "https://www.danfoss.com/en/products/dcs/heat-exchangers/plate-heat-exchangers/semi-welded-plate-heat-exchanger-industrial-refrigeration-ammonia-applications/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/free-flow-plate-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/hygienic-gasketed-plate-heat-exchangers/"
+ ]
+}

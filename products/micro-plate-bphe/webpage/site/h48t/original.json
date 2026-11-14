@@ -1,0 +1,235 @@
+{
+ "id": "h48t",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/",
+ "copied": "2026-11-14T22:26:35",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Micro Plate™ brazed plate heat exchanger for transcritical systems | Danfoss",
+  "description": "Danfoss introduces CO2 brazed heat exchanger dedicated for transcritical systems Growing our already extensive brazed plate heat exchanger portfolio, we proudly unveil our latest innovation within the Micro Plate™ technology. Specially designed for CO2 transcritical systems, this state-of-the-art brazed heat exchanger (model H48T-CH) meet the demanding requirements for heat recovery systems in supermarkets and hypermarkets.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Brazed heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/"
+  ],
+  [
+   "Micro Plate™ brazed plate heat exchanger for transcritical systems",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "New Micro Plate™ brazed heat exchanger (H48T-CH) dedicated for heat recovery systems in supermarkets and hypermarkets",
+  "Software"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.55 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "129 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "28 (19 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "76 chars",
+   "status": "warn",
+   "note": "Micro Plate™ brazed plate heat exchanger for transcritical systems | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "427 chars",
+   "status": "warn",
+   "note": "Danfoss introduces CO2 brazed heat exchanger dedicated for transcritical systems Growing our already extensive brazed plate heat exchanger portfolio, we proudly unveil our latest innovation within the Micro Plate™ technology. Specially designed for CO2 transcritical systems, this state-of-the-art brazed heat exchanger (model H48T-CH) meet the demanding requirements for heat recovery systems in supermarkets and hypermarkets."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 2,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 2,
+   "status": "bad",
+   "note": "New Micro Plate™ brazed heat exchanger (H48T-CH) dedicated for heat recovery systems in supermarkets and hypermarkets; Software — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "3 of 11",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "581 of 949",
+   "status": "warn",
+   "note": "Most of the text only appears after JavaScript runs: crawlers that do not run it (many AI search bots) miss it, and Googlebot reads it later"
+  }
+ ],
+ "claims": [
+  {
+   "type": "superlative",
+   "match": "unmatched",
+   "sentence": "With the unique Micro Plate™ technology, the heat exchanger pushes the boundaries of thermal performance and makes it an unmatched and reliable heat exchanger in a CO2 system."
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "Revolutionary",
+   "sentence": "Revolutionary Micro Plate™ technology Danfoss’ Micro Plate™ technology is setting new standards in energy efficiency."
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "superior",
+   "sentence": "Micro Plate™ design for superior heat transfer and lower pressure loss"
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "superior",
+   "sentence": "Experience superior heat transfer with our brazed plate heat exchangers featuring our revolutionary Micro Plate™ technology."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Micro Plate™ brazed plate heat exchanger for transcritical systems"
+  },
+  {
+   "level": 4,
+   "text": "Compact, high-performance CO₂ heat exchanger designed for demanding transcritical environments"
+  },
+  {
+   "level": 4,
+   "text": "Technical Specifications"
+  },
+  {
+   "level": 2,
+   "text": "Applications"
+  },
+  {
+   "level": 4,
+   "text": "Heat reclaim technology maximizes energy efficiency"
+  },
+  {
+   "level": 2,
+   "text": "Journey towards a net-zero supermarket"
+  },
+  {
+   "level": 2,
+   "text": "Documents"
+  },
+  {
+   "level": 2,
+   "text": "Software"
+  },
+  {
+   "level": 2,
+   "text": "Heat exchanger selection software"
+  },
+  {
+   "level": 2,
+   "text": "Related products"
+  }
+ ],
+ "words_raw": 581,
+ "words_rendered": 949,
+ "links": [
+  "https://store.danfoss.com/en/Climate-Solutions/Climate-Solutions-for-cooling/Heat-Exchangers/Brazed-Plate-Heat-Exchangers/Micro-Plate%E2%84%A2-Brazed-Plate-Heat-Exchangers/c/CFH_2188/",
+  "https://youtu.be/5_Olg--_6X8/",
+  "https://www.danfoss.com/en/markets/food-and-beverage/dcs/smart-store/",
+  "https://hexselector.com/",
+  "https://www.danfoss.com/en/products/dcs/valves/control-and-regulating-valves/ctr-electric-3-way-valve-transcritical-co2/",
+  "https://www.danfoss.com/en/products/dcs/electronic-controls/products/pack-controllers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/",
+  "https://www.danfoss.com/en/products/dhs/substations-and-skid-solutions/hru-heat-recovery-stations/heat-recovery-units-for-data-centers-and-supermarkets/hru-heat-recovery-units-for-supermarkets/"
+ ]
+}

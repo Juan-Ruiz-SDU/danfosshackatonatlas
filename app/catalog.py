@@ -197,10 +197,13 @@ def facts_for(p, item_id):
 
 
 def proposed_url(p, slug_id):
-    """A proposed address for a product page: under the family page's address
-    (from the copy made in the Web page tab), or a local anchor if there is none."""
-    copy = webpage.store_paths(p)["copy"]
-    base = webpage.read_copy(copy)[0].get("url", "") if copy.is_file() else ""
+    """A proposed address for a product page: under the product's own page in the
+    mini website (Web page tab), or a local anchor if there is none yet."""
+    import website  # here, not at the top: website imports webpage too
+    danfoss = next((u for b, u in products.source_list(p) if b.lower() == "danfoss"), "")
+    pid = website.lab_page(p, danfoss)
+    copy = website.page_paths(p, pid)["copy"] if pid else None
+    base = webpage.read_copy(copy)[0].get("url", "") if copy and copy.is_file() else ""
     if not base.startswith("http"):
         return f"#{slug_id}"
     return base.rstrip("/") + f"/{slug_id}/"

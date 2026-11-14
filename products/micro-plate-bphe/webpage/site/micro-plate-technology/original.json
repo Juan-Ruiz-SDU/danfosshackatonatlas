@@ -1,8 +1,9 @@
 {
- "source": "https://www.danfoss.com/en/products/dcs/heat-exchangers/micro-plate-heat-exchangers/",
+ "id": "micro-plate-technology",
+ "url": "https://www.danfoss.com/en/products/dcs/heat-exchangers/micro-plate-heat-exchangers/",
  "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/",
- "copied": "2026-11-14T20:07:57",
- "imported": "",
+ "copied": "2026-11-14T22:26:19",
+ "rendered_with": "browser",
  "meta": {
   "title": "Micro Plate™ brazed plate heat exchangers | Danfoss",
   "description": "The next step in application-focused, high-performance heat exchanger design, Micro Plates™ are a revolutionary technology, specially created for district energy solutions and for use in heat pumps, chillers, and close control systems for cooling capacities up 800 kW / 225 TR.",
@@ -40,9 +41,7 @@
   ]
  ],
  "removed_empty_sections": [
-  "Documents",
-  "Software",
-  "Product range"
+  "Software"
  ],
  "audit": [
   {
@@ -59,8 +58,8 @@
   },
   {
    "check": "Time to first byte",
-   "value": "2.14 s",
-   "status": "bad",
+   "value": "0.64 s",
+   "status": "warn",
    "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
   },
   {
@@ -77,7 +76,7 @@
   },
   {
    "check": "Scripts",
-   "value": "23 (16 external)",
+   "value": "28 (19 external)",
    "status": "warn",
    "note": "Content must not depend on them"
   },
@@ -130,16 +129,10 @@
    "note": "Enhanced heat transfer; Better flow distribution; Longer lifetime"
   },
   {
-   "check": "Words readable without JavaScript",
-   "value": 1024,
-   "status": "ok",
-   "note": ""
-  },
-  {
    "check": "Empty sections (filled by JavaScript)",
-   "value": 3,
+   "value": 1,
    "status": "bad",
-   "note": "Documents; Software; Product range — a crawler that does not run scripts sees nothing there"
+   "note": "Software — a crawler that does not run scripts sees nothing there"
   },
   {
    "check": "Repeated list items",
@@ -155,26 +148,15 @@
   },
   {
    "check": "Images without alt text",
-   "value": "4 of 11",
+   "value": "4 of 22",
    "status": "warn",
    "note": ""
   },
   {
-   "check": "robots.txt",
-   "value": "readable",
+   "check": "Words readable without JavaScript",
+   "value": "1024 of 1126",
    "status": "ok",
-   "note": "https://www.danfoss.com/robots.txt"
-  },
-  {
-   "check": "Sitemap declared in robots.txt",
-   "value": 1,
-   "status": "ok",
-   "note": "https://www.danfoss.com/sitemap_index"
-  },
-  {
-   "check": "Googlebot allowed by robots.txt",
-   "value": "yes",
-   "status": "ok"
+   "note": ""
   }
  ],
  "claims": [
@@ -284,26 +266,14 @@
    "text": "Product range"
   }
  ],
- "robots": {
-  "url": "https://www.danfoss.com/robots.txt",
-  "status": "ok",
-  "note": "",
-  "sitemaps": [
-   "https://www.danfoss.com/sitemap_index"
-  ],
-  "googlebot_allowed": true
- },
- "download": {
-  "status": 200,
-  "redirects": [
-   {
-    "status": 301,
-    "from": "https://www.danfoss.com/en/products/dcs/heat-exchangers/micro-plate-heat-exchangers/",
-    "to": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/"
-   }
-  ],
-  "ttfb": 2.14,
-  "total": 2.309,
-  "bytes": 165641
- }
+ "words_raw": 1024,
+ "words_rendered": 1126,
+ "links": [
+  "https://www.danfoss.com/en/contact-us/",
+  "https://tools.danfoss.com/cooling/model/MPHE_Z/",
+  "https://hexselector.com/",
+  "https://www.danfoss.com/en/about-danfoss/news/dcs/this-danish-university-is-at-the-forefront-of-the-refrigerant-revolution-with-low-gwp-scroll-chillers/",
+  "https://store.danfoss.com/en/Climate-Solutions-for-cooling/Heat-Exchangers/Plate-Heat-Exchangers/c/2080/",
+  "https://store.danfoss.com/en/Climate-Solutions-for-heating/Heat-Exchangers/c/4049/"
+ ]
 }

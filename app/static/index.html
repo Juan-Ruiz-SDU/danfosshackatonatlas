@@ -23,6 +23,7 @@
     <button role="tab" data-tab="run" aria-selected="true">Run</button>
     <button role="tab" data-tab="web" aria-selected="false">Web page</button>
     <button role="tab" data-tab="catalog" aria-selected="false">Product by product</button>
+    <button role="tab" data-tab="citations" aria-selected="false">Citations</button>
   </nav>
   <div id="banner"></div>
 
@@ -151,40 +152,91 @@
   </section>
   </div>
 
-  <!-- Web page: the current Danfoss page, reformatted (format only) -->
+  <!-- Web page: a reconstruction of Danfoss's website, edited page by page -->
   <div id="tab-web" class="tab hidden">
     <section class="card">
-      <h2><span class="num">1</span> Copy of the current page <span class="count product-name"></span></h2>
-      <p class="hint">Atlas reverse-engineers Danfoss's page <b>once</b>: it reads it the way a crawler does (without
-        running JavaScript) and saves a snapshot as the reference, plus <b>your own copy</b>, already laid out for
-        crawlers (one H1, real headings, lists, tables). From then on everything works on your copy: Danfoss's
-        site is not downloaded again.</p>
+      <h2><span class="num">1</span> Copy of Danfoss's website <span class="count product-name"></span></h2>
+      <p class="hint">Atlas reverse-engineers a section of danfoss.com <b>once</b>, for example the heat exchanger catalog.
+        It reads every page twice: the way a crawler without JavaScript sees it, and the way a browser shows it.
+        It keeps a snapshot of each page as the reference, plus <b>your own copy</b> of each page, already laid out
+        for crawlers. Then it shows the copies as a small website below. Danfoss's live site cannot be shown inside
+        Atlas, because its server forbids being framed. After the copy, everything works on your copies.</p>
       <p id="web-copyinfo" class="hint"></p>
       <form id="web-form" class="row">
-        <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/..." aria-label="Current Danfoss page">
-        <button class="primary" id="web-copy-btn">Make the copy</button>
+        <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/en/products/..." aria-label="First page of the section to copy">
+        <label class="inline">Pages <input id="web-max" type="number" min="1" max="40" value="15" style="width:70px"></label>
+        <button class="primary" id="web-copy-btn">Copy the website</button>
       </form>
-      <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copy (otherwise only the reference snapshot is renewed)</label>
-      <details><summary>The site blocks the download? Import the page from your browser</summary>
-        <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, and pick the file here.</p>
+      <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copies (otherwise only the reference snapshots are renewed)</label>
+      <div id="web-job" class="hidden">
+        <div class="row between"><span class="step" id="web-job-step"></span><button class="ghost danger" id="web-stop" type="button">Stop</button></div>
+        <pre id="web-log"></pre>
+      </div>
+      <details><summary>The site blocks the download? Import one page from your browser</summary>
+        <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, write its address
+          in the box above and pick the file here.</p>
         <input type="file" id="web-import" accept=".html,.htm">
       </details>
       <p class="hint" id="web-status"></p>
     </section>
+
+    <section class="card hidden" id="web-site">
+      <h2><span class="num">2</span> Your website</h2>
+      <div class="sitebox">
+        <ol id="web-pages" class="pagelist" aria-label="Pages of the website"></ol>
+        <div class="browser">
+          <div class="browserbar"><span class="dots"><i></i><i></i><i></i></span><span id="web-addr" class="addr"></span>
+            <a id="web-open" class="ghostlink" target="_blank" rel="noopener">Open ↗</a></div>
+          <iframe id="web-frame" sandbox="allow-same-origin" title="Your website"></iframe>
+        </div>
+      </div>
+      <h3>How the website spreads authority</h3>
+      <p class="hint">Search engines pass authority through links: every page should be reachable from the first page
+        in few clicks, linked from related pages, and listed in the sitemap. All its text should be in the HTML.</p>
+      <div id="web-sitechecks"></div>
+    </section>
+
     <section class="card hidden" id="web-edit">
-      <h2><span class="num">2</span> Your copy</h2>
-      <p class="hint">Adapt the page here (or in <code>products/&lt;product&gt;/webpage/page.md</code>). Markdown:
-        <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>, <code>- list</code>,
-        <code>| table |</code>, <code>[link](https://...)</code>. The lines between <code>---</code> at the top are the
-        page's title, description and address. Facts must come from the wiki: the check below compares your copy
-        with Danfoss's page and flags new numbers that are not in the wiki.</p>
-      <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy (Markdown)"></textarea>
+      <h2><span class="num">3</span> Edit this page: <span id="web-edit-title"></span></h2>
+      <p class="hint">Markdown: <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>,
+        <code>- list</code>, <code>| table |</code>, <code>[link](https://...)</code>, and catalog tiles as
+        <code>- [Title](https://...): description</code>. The lines between <code>---</code> at the top are the page's
+        title, description and address. Links to other pages of the website stay links between them. Facts must come
+        from the wiki: the check below flags new numbers that are not in it.</p>
+      <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy of this page (Markdown)"></textarea>
+      <div class="row">
+        <select id="web-wiki-pick" aria-label="Wiki block to insert" style="flex:1 1 300px"></select>
+        <button type="button" id="web-wiki-insert">Insert wiki block at the cursor</button>
+      </div>
+      <p class="hint tiny">A wiki block is a line like <code>{{wiki: platforms/heat-pump-platforms}}</code> (or
+        <code>{{wiki: technologies/micro-plate-pattern#Benefits}}</code> for one section). When the website is built
+        it is replaced by that part of the wiki <b>as it is now</b>, so when the team updates the wiki, the page follows.</p>
+      <p class="hint" id="web-wiki-used"></p>
       <div class="row between">
         <span class="hint" id="web-saved"></span>
         <button class="primary" id="web-save">Save and check</button>
       </div>
     </section>
+
+    <section class="card hidden" id="web-gaps-card">
+      <h2>Against the competitors: what to add</h2>
+      <p class="hint">For each buyer question: where this page ranks against the saved competitor pages (best passage
+        and whole page), which page beats it, the question's words the winner has and this page lacks, and the wiki
+        blocks that contain them. Train the page by adding those wiki blocks under a heading in the buyer's words,
+        never the competitor's text. Check the holdout questions too (see <code>wiki/guidelines/competitor-training.md</code>).</p>
+      <div id="web-gaps"></div>
+    </section>
+
     <div id="web-out" class="stackcards hidden">
+      <section class="card">
+        <h2>Fact check: is every claim backed by a source?</h2>
+        <p class="hint">Each sentence, list item and table row is checked against the wiki facts, the original
+          documents in <code>raw/</code> and Danfoss's own pages. Claims copied from a source pass at once; every
+          number must appear in the matching source; the rest goes to a grounding checker (Bespoke-MiniCheck if it is
+          installed in Ollama, otherwise the Run tab's answer-box AI, which must quote the exact supporting words).</p>
+        <div class="row"><button class="primary" id="web-verify">Check every claim</button><span class="hint" id="web-verify-status"></span></div>
+        <div id="web-verify-out"></div>
+      </section>
       <section class="card">
         <h2>Changes compared to Danfoss's page</h2>
         <div id="web-check"></div>
@@ -194,8 +246,6 @@
         <h2>Headings: before and after</h2>
         <p class="hint">AI search cuts pages into passages at the headings. Bold text that only looks like a heading does not count.</p>
         <div class="grid2" id="web-outline"></div>
-        <details><summary>Preview the reformatted page</summary>
-          <iframe id="web-frame" class="preview" sandbox title="Reformatted page preview"></iframe></details>
       </section>
       <section class="card">
         <h2>Crawler checks</h2>
@@ -218,6 +268,66 @@
     </div>
   </div>
 
+  <!-- Citations: what Gemini with Google Search cites, over time -->
+  <div id="tab-citations" class="tab hidden">
+    <section class="card">
+      <h2><span class="num">1</span> Ask Gemini with Google Search</h2>
+      <p class="hint">The agent asks Gemini every buyer prompt in <code>prompts/prompts.txt</code> with Google Search
+        switched on. It records the searches Gemini runs (its sub-queries), the pages it cites and how much of the
+        answer each page supports, then imports those pages as text. Every update is kept, so you can see how the
+        citations change. AI Overviews has no public API: reading it needs a paid search-results service.</p>
+      <p id="cit-key" class="hint"></p>
+      <div class="row">
+        <label class="inline">Prompts <select id="cit-section"></select></label>
+        <label class="inline">At most <input id="cit-limit" type="number" min="0" value="0" style="width:70px"> <small>(0 = all)</small></label>
+        <label class="inline">Model <input id="cit-model" value="gemini-2.5-flash" list="cit-models" style="width:190px"></label>
+        <datalist id="cit-models"><option value="gemini-2.5-flash"><option value="gemini-2.5-pro"><option value="gemini-2.5-flash-lite"></datalist>
+        <button class="primary" id="cit-update">Update citations</button>
+      </div>
+      <div id="cit-job" class="hidden">
+        <div class="step" id="cit-job-step"></div>
+        <pre id="cit-log"></pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">2</span> How the citations change</h2>
+      <p class="hint">One line per update. <b>Share</b> = the part of Gemini's answers a site supports, on average per prompt.
+        Gemini gives no score per page: this share, measured from its answer, is the closest real number.</p>
+      <div id="cit-history"></div>
+      <div id="cit-sites"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">3</span> Answers of one update</h2>
+      <div class="row"><label class="inline">Update <select id="cit-run"></select></label>
+        <label class="inline">Compare with our page <select id="cit-ours" style="max-width:420px"></select></label></div>
+      <div id="cit-prompts"></div>
+    </section>
+
+    <section class="card hidden" id="cit-detail">
+      <h2 id="cit-q"></h2>
+      <p class="hint" id="cit-meta"></p>
+      <h3>What Gemini cited, and how much of its answer each page supports</h3>
+      <div id="cit-sources"></div>
+      <h3>Gemini's searches (sub-queries) and our page</h3>
+      <p class="hint">For each search Gemini ran: where our page's best passage ranks among the cited pages' passages
+        (BM25), and which page leads. A sub-query is answered when our page has a passage that leads it: a section
+        whose heading and first sentence answer that search directly, with the facts.</p>
+      <div id="cit-queries"></div>
+      <h3>Why these pages? (AI reviewer)</h3>
+      <p class="hint">The reviewer sees plain-text passages of the same length, brand names hidden and the order
+        shuffled, so markdown and length cannot count. It scores each on checkable signals and explains. Its total
+        is then compared with Gemini's real shares: high agreement means the reviewer judges like the engine.
+        Uses the "AI that plays Google's answer box" from the Run tab.</p>
+      <div class="row"><button id="cit-explain" class="primary">Explain why</button>
+        <label class="check"><input type="checkbox" id="cit-fresh"> ask again</label>
+        <span class="hint" id="cit-explain-status"></span></div>
+      <div id="cit-why"></div>
+      <details><summary>Gemini's answer</summary><pre id="cit-answer"></pre></details>
+    </section>
+  </div>
+
   <!-- Product by product -->
   <div id="tab-catalog" class="tab hidden">
     <section class="card">
@@ -235,6 +345,8 @@
       <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this product's facts.</p>
       <div id="cat-out" class="hidden">
         <div id="cat-flags"></div>
+        <div class="row"><button id="cat-verify">Fact check this page</button><span class="hint" id="cat-verify-status"></span></div>
+        <div id="cat-verify-out"></div>
         <div class="downloads" id="cat-files"></div>
         <details open><summary>Preview</summary>
           <iframe id="cat-frame" class="preview" sandbox title="Product page preview"></iframe></details>

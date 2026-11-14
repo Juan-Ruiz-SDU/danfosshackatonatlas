@@ -181,3 +181,35 @@ ul.outline li.fixed small { color: var(--ok); }
 ul.claims { padding-left: 18px; font-size: 13.5px; }
 ul.claims li { margin: 6px 0; }
 iframe.preview { width: 100%; height: 520px; border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-top: 8px; }
+
+/* --- the mini website in the Web page tab --- */
+main:has(#tab-web:not(.hidden)) { max-width: 1280px; }
+label.inline { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+#web-log { max-height: 220px; }
+.sitebox { display: grid; grid-template-columns: 260px 1fr; gap: 14px; margin-top: 6px; }
+.pagelist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 10px;
+  max-height: 680px; overflow: auto; font-size: 13.5px; }
+.pagelist li { padding: 7px 10px; border-top: 1px solid var(--line); cursor: pointer; }
+.pagelist li:first-child { border-top: 0; }
+.pagelist li:hover, .pagelist li.sel { background: var(--accent-soft); }
+.pagelist li .meta { display: block; font-size: 12px; color: var(--muted); }
+.pagelist li.d1 { padding-left: 22px; } .pagelist li.d2 { padding-left: 34px; } .pagelist li.d3 { padding-left: 46px; }
+.pagelist li .labtag { font-size: 11px; color: var(--accent); font-weight: 600; }
+.browser { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.browserbar { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--field); border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.browserbar .dots i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--line); margin-right: 4px; }
+.browserbar .addr { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted);
+  background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+.ghostlink { text-decoration: none; font-weight: 600; }
+#web-frame { width: 100%; height: 680px; border: 0; background: #fff; }
+@media (max-width: 860px) {
+  .sitebox { grid-template-columns: 1fr; }
+  .pagelist { max-height: 220px; }
+  #web-frame { height: 520px; }
+}
+.chipbtn { font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 999px; margin: 2px 0; }
+.sharebar { display: inline-block; width: 70px; height: 8px; background: var(--line); border-radius: 4px; vertical-align: middle; overflow: hidden; }
+.sharebar i { display: block; height: 100%; background: var(--blue); }
+.sharebar i.us { background: var(--accent); }
+#cit-log { max-height: 220px; }
+#cit-answer { max-height: 300px; }

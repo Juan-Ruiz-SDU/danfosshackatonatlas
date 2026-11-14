@@ -1,0 +1,210 @@
+{
+ "id": "free-flow-plates",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/",
+ "copied": "2026-11-14T22:27:52",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Free Flow plates | Danfoss",
+  "description": "SONDEX® Free Flow plates for plate heat exchangers easily handle media containing particles and fibers and applications with high risk of fouling.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Gasketed heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/"
+  ],
+  [
+   "Plate technology",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/"
+  ],
+  [
+   "Free Flow plates",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.59 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "132 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "29 (19 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "26 chars",
+   "status": "ok",
+   "note": "Free Flow plates | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "146 chars",
+   "status": "ok",
+   "note": "SONDEX® Free Flow plates for plate heat exchangers easily handle media containing particles and fibers and applications with high risk of fouling."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, FAQPage, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "1 of 14",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "430 of 724",
+   "status": "warn",
+   "note": "Most of the text only appears after JavaScript runs: crawlers that do not run it (many AI search bots) miss it, and Googlebot reads it later"
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "The deep and wide channels provide ample room for hard-to-handle media to flow effortlessly, ensuring gentle treatment of the output product and leading to sustainable quality improvements."
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "superior",
+   "sentence": "Discover superior processing with Danfoss’s hygienic gasketed plate heat exchangers, meticulously engineered to meet the most stringent hygienic requirements."
+  },
+  {
+   "type": "price",
+   "match": "price",
+   "sentence": "Where can I get a price list?"
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Free Flow plates"
+  },
+  {
+   "level": 3,
+   "text": "What does that mean for you?"
+  },
+  {
+   "level": 3,
+   "text": "Features and benefits"
+  },
+  {
+   "level": 2,
+   "text": "Documents"
+  },
+  {
+   "level": 2,
+   "text": "Related products"
+  },
+  {
+   "level": 2,
+   "text": "FAQ"
+  }
+ ],
+ "words_raw": 430,
+ "words_rendered": 724,
+ "links": [
+  "https://www.danfoss.com/en/contact-us/contacts-list/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/hygienic-gasketed-plate-heat-exchangers/"
+ ]
+}

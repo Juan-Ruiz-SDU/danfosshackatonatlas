@@ -21,3 +21,6 @@ lab/cache/
 app/cache/
 products/*/runs/
 products/*/webpage/cache/
+
+# Citations tab: cached AI reviewer answers
+lab/discovered/explanations/

@@ -83,9 +83,13 @@ def remove_provider(pid):
 
 # --- chat ----------------------------------------------------------------------
 def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cache=True,
-         log=print, salt=None):
+         log=print, salt=None, json_mode=False):
     """One answer from any provider. Answers are cached on disk, so re-running the
-    same step costs nothing. A different salt (e.g. the repeat number) gets a new answer."""
+    same step costs nothing. A different salt (e.g. the repeat number) gets a new answer.
+    json_mode asks the provider for valid JSON (OpenAI-compatible response_format,
+    supported by Ollama and Gemini), which small local models need."""
+    if json_mode:
+        salt = f"{salt}|json"
     p = providers().get(provider_id)
     if not p:
         raise RuntimeError(f"Unknown AI '{provider_id}'. Check Settings.")
@@ -101,7 +105,10 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
 
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": user}]
-    body = json.dumps({"model": model, "temperature": temperature, "messages": messages}).encode()
+    req_body = {"model": model, "temperature": temperature, "messages": messages}
+    if json_mode:
+        req_body["response_format"] = {"type": "json_object"}
+    body = json.dumps(req_body).encode()
     headers = {"Content-Type": "application/json"}
     if key:
         headers["Authorization"] = f"Bearer {key}"

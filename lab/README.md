@@ -81,6 +81,8 @@ facts in one passage. The Atlas app's **Web page** tab shows both rankings per q
 made and edited in the Atlas app's **Web page** tab. It is extracted with `fetch_sources.py`'s
 extractor, the same way as `danfoss_original/`, and read by default as its own style.
 
+Its product facts come from the wiki through wiki blocks. `experiment.py` rebuilds it from the
+current wiki before every run, so the test always scores the page with the wiki as it is.
 Its header says `content: same as the original` while only the format changed. Then
 `original` vs `restructured` measures the effect of the format alone. Once the team adapts
 the text, the header says `content: changed`.
@@ -176,8 +178,19 @@ where it stopped. Each update writes:
 | `discovered/runs/<date>.jsonl` | Every answer with its search queries and sources (one file per update, kept as history) |
 | `corpus/discovered/*.md` | The imported pages. Pages no longer cited are removed (`--keep-old` keeps them) |
 
+Each source also records its **share of Gemini's answer**: the part of the answer it supports, from
+Gemini's `groundingSupports`. Its rank, any confidence scores and the answer pieces it supports are
+kept too. The Atlas app's Citations tab shows them over time.
+
 Use the discovered pages as the competition in the citation lab:
 
 ```bash
 python lab/experiment.py --provider gemini --competitors lab/corpus/discovered
 ```
+
+## Original sources (`raw/`)
+
+`python Run.py update-raw` (`lab/fetch_raw.py`) downloads every Danfoss document the wiki cites into `raw/`.
+The writer gets matching original passages next to the wiki facts. The Atlas fact check verifies claims
+against them. Sources without a URL in the wiki, such as the main eBrochure, must be added by hand
+(see `raw/README.md`).

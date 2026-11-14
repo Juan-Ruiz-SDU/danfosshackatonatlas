@@ -1,0 +1,185 @@
+{
+ "id": "danfoss-heat-exchanger-distribution-partner-network",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+ "copied": "2026-11-14T22:27:28",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Danfoss heat exchangers - Authorized distribution partners | Danfoss",
+  "description": "Expand your business and gain a competitive edge by partnering with Danfoss, a global leader in heat exchanger solutions.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Service and distribution",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/"
+  ],
+  [
+   "Danfoss heat exchanger distribution partner network",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "1.26 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "216 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "34 (24 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "68 chars",
+   "status": "warn",
+   "note": "Danfoss heat exchangers - Authorized distribution partners | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "121 chars",
+   "status": "ok",
+   "note": "Expand your business and gain a competitive edge by partnering with Danfoss, a global leader in heat exchanger solutions."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "0 of 5",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "2714 of 2809",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "GREEN",
+   "sentence": "Via Gian Pietro Sardi 24 43124 – Parma Italy +39 0521 3971 mbs@mbs-europe.com www.mbs-europe.com Application Type Food & Beverage Product type Gasketed plate heat exchangers Brazed plate heat exchangers Heat exchanger sp"
+  },
+  {
+   "type": "superlative",
+   "match": "unparalleled",
+   "sentence": "The performance of the Brazed Plate Heat Exchanger (BPHE) has been proven through 30 years of constant development, ensuring unparalleled efficiency for all applications."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Danfoss heat exchanger distribution partner network"
+  },
+  {
+   "level": 4,
+   "text": "Join our network of heat exchanger distribution and service partners"
+  }
+ ],
+ "words_raw": 2714,
+ "words_rendered": 2809,
+ "links": [
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/"
+ ]
+}

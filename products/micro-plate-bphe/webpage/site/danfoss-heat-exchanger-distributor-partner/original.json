@@ -1,0 +1,225 @@
+{
+ "id": "danfoss-heat-exchanger-distributor-partner",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+ "copied": "2026-11-14T22:27:18",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Danfoss heat exchanger distributor partner - Fueling new growth opportunities together | Danfoss",
+  "description": "Join the Danfoss Heat Exchanger Distribution Partner Network and become part of a global community focused on innovation, quality, and sustainable growth. Partner with Danfoss a trusted global leader in heat exchanger solutions to expand your business and gain a competitive edge.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Service and distribution",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/"
+  ],
+  [
+   "Danfoss heat exchanger distributor partner - Fueling new growth opportunities together",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "Let’s build the future together",
+  "Contact us"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "1.14 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "154 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "34 (24 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "96 chars",
+   "status": "warn",
+   "note": "Danfoss heat exchanger distributor partner - Fueling new growth opportunities together | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "280 chars",
+   "status": "warn",
+   "note": "Join the Danfoss Heat Exchanger Distribution Partner Network and become part of a global community focused on innovation, quality, and sustainable growth. Partner with Danfoss a trusted global leader in heat exchanger solutions to expand your business and gain a competitive edge."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 0,
+   "status": "ok",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 3,
+   "status": "warn",
+   "note": "Top reasons to join the Danfoss heat exchanger partner network:; We’re expanding our distributor and service network and seeking partners who:; By becoming a Danfoss heat exchanger distributor partner, you’ll gain access to:"
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 2,
+   "status": "bad",
+   "note": "Let’s build the future together; Contact us — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "2 of 5",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "467 of 467",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "As a partner you’ll benefit from a trusted partnership that’s focused on sustainable growth, local market impact, and world-class support."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Danfoss heat exchanger distributor partner - Fueling new growth opportunities together"
+  },
+  {
+   "level": 2,
+   "text": "Connect with our heat exchanger distributor and service partners"
+  },
+  {
+   "level": 3,
+   "text": "Together, we make a difference"
+  },
+  {
+   "level": 3,
+   "text": "Why partner with Danfoss?"
+  },
+  {
+   "level": 0,
+   "text": "Top reasons to join the Danfoss heat exchanger partner network:",
+   "pseudo": true
+  },
+  {
+   "level": 3,
+   "text": "Let’s build the future together"
+  },
+  {
+   "level": 0,
+   "text": "We’re expanding our distributor and service network and seeking partners who:",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "By becoming a Danfoss heat exchanger distributor partner, you’ll gain access to:",
+   "pseudo": true
+  },
+  {
+   "level": 3,
+   "text": "Introducing the heat exchanger kit – Grow faster, deliver smarter"
+  },
+  {
+   "level": 4,
+   "text": "Key Benefits:"
+  },
+  {
+   "level": 3,
+   "text": "Partner with Danfoss - Shape the future of heat exchangers"
+  },
+  {
+   "level": 2,
+   "text": "Contact us"
+  }
+ ],
+ "words_raw": 467,
+ "words_rendered": 467,
+ "links": [
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/"
+ ]
+}

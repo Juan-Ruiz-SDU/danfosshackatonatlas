@@ -1,0 +1,162 @@
+{
+ "start": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+ "prefix": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+ "copied": "2026-11-14T22:27:54",
+ "browser": true,
+ "pages": [
+  {
+   "id": "heat-exchangers",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+   "title": "Heat exchangers – brazed and gasketed | Danfoss",
+   "h1": "Heat exchangers",
+   "depth": 0,
+   "parent": null,
+   "words_raw": 49,
+   "words_rendered": 723
+  },
+  {
+   "id": "micro-plate-technology",
+   "url": "https://www.danfoss.com/en/products/dcs/heat-exchangers/micro-plate-heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/",
+   "title": "Micro Plate™ brazed plate heat exchangers | Danfoss",
+   "h1": "Micro Plate™ brazed plate heat exchangers",
+   "depth": null,
+   "parent": null,
+   "words_raw": 1024,
+   "words_rendered": 1126
+  },
+  {
+   "id": "brazed-plate-heat-exchangers-for-cooling-and-heating-applications",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+   "title": "Brazed plate heat exchangers | Danfoss",
+   "h1": "Brazed plate heat exchangers",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 661,
+   "words_rendered": 1236
+  },
+  {
+   "id": "h48t",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/",
+   "title": "Micro Plate™ brazed plate heat exchanger for transcritical systems | Danfoss",
+   "h1": "Micro Plate™ brazed plate heat exchanger for transcritical systems",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 581,
+   "words_rendered": 949
+  },
+  {
+   "id": "standard-plate-heat-exchangers",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+   "title": "Standard plate heat exchangers | Danfoss",
+   "h1": "Standard plate heat exchangers",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 492,
+   "words_rendered": 980
+  },
+  {
+   "id": "free-flow-plate-heat-exchangers",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/free-flow-plate-heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/free-flow-plate-heat-exchangers/",
+   "title": "SONDEX® Free Flow plate heat exchangers | Danfoss",
+   "h1": "Free Flow plate heat exchangers",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 405,
+   "words_rendered": 975
+  },
+  {
+   "id": "hygienic-gasketed-plate-heat-exchangers",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/hygienic-gasketed-plate-heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/hygienic-gasketed-plate-heat-exchangers/",
+   "title": "Hygienic gasketed plate heat exchangers | Danfoss",
+   "h1": "Hygienic gasketed plate heat exchangers",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 426,
+   "words_rendered": 912
+  },
+  {
+   "id": "plate-and-shell-heat-exchangers",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/welded-heat-exchangers/plate-and-shell-heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/welded-heat-exchangers/plate-and-shell-heat-exchangers/",
+   "title": "Plate and shell heat exchangers | Danfoss",
+   "h1": "Plate and shell heat exchangers",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 378,
+   "words_rendered": 706
+  },
+  {
+   "id": "spiral-heat-exchangers",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/welded-heat-exchangers/spiral-heat-exchangers/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/welded-heat-exchangers/spiral-heat-exchangers/",
+   "title": "Spiral heat exchangers | Danfoss",
+   "h1": "Spiral heat exchangers",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 535,
+   "words_rendered": 871
+  },
+  {
+   "id": "danfoss-heat-exchanger-distributor-partner",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+   "title": "Danfoss heat exchanger distributor partner - Fueling new growth opportunities together | Danfoss",
+   "h1": "Danfoss heat exchanger distributor partner - Fueling new growth opportunities together",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 467,
+   "words_rendered": 467
+  },
+  {
+   "id": "danfoss-heat-exchanger-distribution-partner-network",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+   "title": "Danfoss heat exchangers - Authorized distribution partners | Danfoss",
+   "h1": "Danfoss heat exchanger distribution partner network",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 2714,
+   "words_rendered": 2809
+  },
+  {
+   "id": "gasketed-plate-heat-exchanger-service",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/",
+   "title": "Gasketed plate heat exchanger service | Danfoss",
+   "h1": "Gasketed plate heat exchanger service",
+   "depth": 1,
+   "parent": "heat-exchangers",
+   "words_raw": 373,
+   "words_rendered": 724
+  },
+  {
+   "id": "fishbone-plates",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/fishbone-plates/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/fishbone-plates/",
+   "title": "Fishbone plates | Danfoss",
+   "h1": "Fishbone plates",
+   "depth": 2,
+   "parent": "standard-plate-heat-exchangers",
+   "words_raw": 469,
+   "words_rendered": 753
+  },
+  {
+   "id": "free-flow-plates",
+   "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/",
+   "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/free-flow-plates/",
+   "title": "Free Flow plates | Danfoss",
+   "h1": "Free Flow plates",
+   "depth": 2,
+   "parent": "free-flow-plate-heat-exchangers",
+   "words_raw": 430,
+   "words_rendered": 724
+  }
+ ]
+}

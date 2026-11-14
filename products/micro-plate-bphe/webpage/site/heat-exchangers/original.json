@@ -1,0 +1,229 @@
+{
+ "id": "heat-exchangers",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+ "copied": "2026-11-14T22:26:13",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Heat exchangers – brazed and gasketed | Danfoss",
+  "description": "Brazed and gasketed plate heat exchangers for heat transfer and refrigeration applications. New technology with micro plate and micro channel heat exchanger condensers.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.93 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "103 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "28 (19 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "47 chars",
+   "status": "ok",
+   "note": "Heat exchangers – brazed and gasketed | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "168 chars",
+   "status": "warn",
+   "note": "Brazed and gasketed plate heat exchangers for heat transfer and refrigeration applications. New technology with micro plate and micro channel heat exchanger condensers."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 0,
+   "status": "ok",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "1 of 13",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "49 of 723",
+   "status": "bad",
+   "note": "Most of the text only appears after JavaScript runs: crawlers that do not run it (many AI search bots) miss it, and Googlebot reads it later"
+  },
+  {
+   "check": "robots.txt",
+   "value": "readable",
+   "status": "ok",
+   "note": "https://www.danfoss.com/robots.txt"
+  },
+  {
+   "check": "Sitemap declared in robots.txt",
+   "value": 1,
+   "status": "ok",
+   "note": "https://www.danfoss.com/sitemap_index"
+  },
+  {
+   "check": "Googlebot allowed by robots.txt",
+   "value": "yes",
+   "status": "ok"
+  }
+ ],
+ "claims": [
+  {
+   "type": "superlative",
+   "match": "unparalleled",
+   "sentence": "The performance of the Brazed Plate Heat Exchanger (BPHE) has been proven through 30 years of constant development, ensuring unparalleled efficiency for all applications."
+  },
+  {
+   "type": "superlative",
+   "match": "unparalleled",
+   "sentence": "The performance of the Brazed Plate Heat Exchanger (BPHE) has been proven through 30 years of constant development, ensuring unparalleled efficiency for all applications."
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "superior",
+   "sentence": "Discover superior processing with Danfoss’s hygienic gasketed plate heat exchangers, meticulously engineered to meet the most stringent hygienic requirements."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Join the Danfoss heat exchanger distributor partner network and become part of a global community focused on innovation, quality, and sustainable growth."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Connect with our diverse network of distributor partners committed to innovation, quality, and sustainable growth."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Heat exchangers"
+  },
+  {
+   "level": 2,
+   "text": "Brazed heat exchangers"
+  },
+  {
+   "level": 2,
+   "text": "Gasketed heat exchangers"
+  },
+  {
+   "level": 2,
+   "text": "Welded heat exchangers"
+  },
+  {
+   "level": 2,
+   "text": "Service and distribution"
+  }
+ ],
+ "words_raw": 49,
+ "words_rendered": 723,
+ "links": [
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/h48t/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dcs/heat-exchangers/plate-heat-exchangers/semi-welded-plate-heat-exchanger-industrial-refrigeration-ammonia-applications/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/free-flow-plate-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/hygienic-gasketed-plate-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/welded-heat-exchangers/plate-and-shell-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/welded-heat-exchangers/spiral-heat-exchangers/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distributor-partner/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/danfoss-heat-exchanger-distribution-partner-network/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/"
+ ]
+}

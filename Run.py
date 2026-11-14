@@ -9,6 +9,7 @@ Run the page generator with this project's default settings.
   python Run.py --help                 all options
   python Run.py app                    open the Atlas app in your browser (the whole process)
   python Run.py update-sources         ask prompts/prompts.txt, import the sources Gemini used
+  python Run.py update-raw             download the original Danfoss documents the wiki cites into raw/
                                        (see lab/discover_sources.py for its options)
 
 Any option you pass overrides the defaults below. Works from any terminal
@@ -55,6 +56,13 @@ def main():
         sys.path.insert(0, str(HERE / "app"))
         import server
         server.main()
+        return
+    if sys.argv[1:2] == ["update-raw"]:
+        # Download the original Danfoss documents the wiki cites into raw/.
+        sys.path.insert(0, str(HERE / "lab"))
+        import fetch_raw
+        sys.argv = ["fetch_raw.py"] + sys.argv[2:]
+        fetch_raw.main()
         return
     if sys.argv[1:2] == ["update-sources"]:
         # Ask the prompts in prompts/prompts.txt and import the sources Gemini used.

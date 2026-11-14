@@ -312,6 +312,15 @@ def parse_page(raw_html):
 
 
 # --- the format-only rebuild -------------------------------------------------------
+def _is_card(blocks, i):
+    """A catalog tile: a short linked title followed by a paragraph with the same link."""
+    if i + 1 >= len(blocks):
+        return False
+    a, b = blocks[i], blocks[i + 1]
+    return (a["kind"] in ("text", "p") and a.get("href") and len(a["text"]) <= 150
+            and b["kind"] in ("p", "text") and b.get("href") == a["href"] and len(b["text"]) > len(a["text"]))
+
+
 def structure(blocks):
     """Turn content blocks into a clean outline, without changing any text:
       - exactly one H1 (the first H1, or the first heading)
@@ -337,6 +346,14 @@ def structure(blocks):
                 items.append({"kind": f"h{lvl}", "text": b["text"], "real": True})
                 last_real = lvl
             i += 1
+            continue
+        if _is_card(blocks, i):  # catalog tiles: a linked title + a linked description
+            cards = []
+            while _is_card(blocks, i):
+                cards.append({"title": blocks[i]["text"], "href": blocks[i]["href"],
+                              "text": blocks[i + 1]["text"]})
+                i += 2
+            items.append({"kind": "cards", "items": cards})
             continue
         if b["kind"] == "text" and b.get("href"):  # a bare link, e.g. "Contact us"
             items.append({"kind": "p", "text": b["text"], "href": b["href"]})
@@ -443,11 +460,19 @@ a{color:#2a6fdb}
 .updated{color:#6b6b70;font-size:.9rem}"""
 
 
-def render_html(items, meta, url, breadcrumbs=None, lang="en", note=""):
+def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map=None, chrome=None):
     """A light, static HTML page: everything in the first response, no scripts
-    except the JSON-LD data, one H1, a table of contents of the H2 sections."""
+    except the JSON-LD data, one H1, a table of contents of the H2 sections.
+    link_map(absolute_url) -> local href (or None) points links to pages of a
+    reconstructed site; chrome = {css, header, crumbs, footer} wraps the page in
+    a site's header, navigation and footer (see site.py)."""
+    def href_of(target):
+        absolute = urllib.parse.urljoin(url, target)
+        local = link_map(absolute) if link_map else None
+        return local or absolute
+
     def e(s):  # escaped text, with [text](url) Markdown links turned into links
-        return MD_LINK_RE.sub(lambda m: f'<a href="{urllib.parse.urljoin(url, m.group(2))}">{m.group(1)}</a>',
+        return MD_LINK_RE.sub(lambda m: f'<a href="{html.escape(href_of(m.group(2)))}">{m.group(1)}</a>',
                               html.escape(s))
 
     used, toc, body = set(), [], []
@@ -462,19 +487,24 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note=""):
         k = it["kind"]
         if k == "h1":
             body.append(f"<h1>{e(it['text'])}</h1>")
-            if toc:
+            if len(toc) > 2:
                 body.append('<nav class="toc" aria-label="Contents"><b>Contents</b><ol>'
-                            + "".join(f'<li><a href="#{s}">{e(t)}</a></li>' for s, t in toc)
+                            + "".join(f'<li><a href="#{s}">{html.escape(t)}</a></li>' for s, t in toc)
                             + "</ol></nav>")
         elif k in ("h2", "h3"):
             body.append(f'<{k} id="{it["id"]}">{e(it["text"])}</{k}>')
         elif k == "p":
             t = e(it["text"])
             if it.get("href"):
-                t = f'<a href="{html.escape(urllib.parse.urljoin(url, it["href"]))}">{t}</a>'
+                t = f'<a href="{html.escape(href_of(it["href"]))}">{t}</a>'
             body.append(f"<p>{t}</p>")
         elif k == "ul":
             body.append("<ul>" + "".join(f"<li>{e(x)}</li>" for x in it["items"]) + "</ul>")
+        elif k == "cards":
+            body.append('<div class="cards">' + "".join(
+                f'<a class="card" href="{html.escape(href_of(c["href"]))}"><h3>{html.escape(c["title"])}</h3>'
+                f'<p>{html.escape(c["text"])}</p><span class="more">Read more</span></a>'
+                for c in it["items"]) + "</div>")
         elif k == "table":
             rows = it["rows"]
             head = rows[0] if rows else []
@@ -487,6 +517,7 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note=""):
     title = meta.get("title") or next((x["text"] for x in items if x["kind"] == "h1"), "")
     desc = meta.get("description", "")
     today = datetime.date.today().isoformat()
+    ch = chrome or {}
     return f"""<!doctype html>
 <html lang="{html.escape(lang or 'en')}">
 <head>
@@ -498,15 +529,17 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note=""):
 <script type="application/ld+json">
 {ld}
 </script>
-<style>{CSS}</style>
+<style>{ch.get("css", CSS)}</style>
 </head>
 <body>
+{ch.get("header", "")}
 <main>
+{ch.get("crumbs", "")}
 <article>
 {chr(10).join(body)}
 </article>
 </main>
-<footer><p class="updated">{html.escape(note or f"Page generated {today}.")}</p></footer>
+<footer>{ch.get("footer", "")}<p class="updated">{html.escape(note or f"Page generated {today}.")}</p></footer>
 </body>
 </html>
 """
@@ -516,7 +549,9 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note=""):
 def words_of(items_or_blocks):
     out = []
     for it in items_or_blocks:
-        if "items" in it:
+        if it.get("kind") == "cards":
+            out += [w for c in it["items"] for w in (c["title"] + " " + c["text"]).split()]
+        elif "items" in it:
             out += [w for x in it["items"] for w in x.split()]
         elif "rows" in it:
             out += [w for r in it["rows"] for c in r for w in c.split()]
@@ -668,6 +703,9 @@ def to_markdown(items_or_blocks):
             lines.append("#" * int(k[1]) + " " + it["text"])
         elif k == "ul":
             lines += [f"- {x}" for x in it["items"]]
+        elif k == "cards":  # each tile is its own small section for a crawler
+            for c in it["items"]:
+                lines += ["### " + c["title"], c["text"]]
         elif k == "table":
             lines += [" | ".join(r) for r in it["rows"]]
         elif k == "row":
@@ -743,6 +781,7 @@ def lab_file(text, url, style="restructured"):
 
 # --- Markdown: the editable copy -----------------------------------------------------
 MD_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+CARD_RE = re.compile(r"^\[([^\]]+)\]\(([^)\s]+)\)(?::\s*(.*))?$")  # "[title](url): description"
 FRONT_RE = re.compile(r"\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
 
 
@@ -765,6 +804,9 @@ def items_to_md(items, base=""):
             out += [t, ""]
         elif k == "ul":
             out += [f"- {x}" for x in it["items"]] + [""]
+        elif k == "cards":  # catalog tiles: "- [title](url): description"
+            out += [f"- [{c['title']}]({urllib.parse.urljoin(base, c['href'])}): {c['text']}"
+                    for c in it["items"]] + [""]
         elif k == "table" and it["rows"]:
             rows = it["rows"]
             out += ["| " + " | ".join(rows[0]) + " |", "|" + "---|" * len(rows[0])]
@@ -785,7 +827,13 @@ def md_to_items(md):
                          else {"kind": "p", "text": text})
             para.clear()
         if lst:
-            items.append({"kind": "ul", "items": lst[:]})
+            cards = [CARD_RE.match(x) for x in lst]
+            if all(cards) and any(m.group(3) for m in cards):
+                items.append({"kind": "cards", "items": [
+                    {"title": m.group(1), "href": m.group(2), "text": (m.group(3) or "").strip()}
+                    for m in cards]})
+            else:
+                items.append({"kind": "ul", "items": lst[:]})
             lst.clear()
         if tbl:
             rows = [r for r in tbl if not all(re.fullmatch(r":?-{2,}:?", c) for c in r if c)]
@@ -826,7 +874,7 @@ def read_copy_text(text):
     meta = {}
     if m:
         for line in m.group(1).splitlines():
-            if ":" in line:
+            if ":" in line and not line[:1].isspace() and not line.startswith("-"):  # top-level keys only
                 k, v = line.split(":", 1)
                 meta[k.strip()] = v.strip().strip("'\"")
         text = text[m.end():]
@@ -922,18 +970,25 @@ def robots_audit(r):
 
 
 def write_sitemap(p):
-    """sitemap.xml for the pages Atlas made for this product (the reformatted page and
-    the product pages), each with its canonical URL and the date its file changed.
-    Product page URLs are proposals until the pages are published."""
+    """sitemap.xml for the pages Atlas made for this product: the mini website's
+    pages (webpage/site/), the product pages and any single reformatted page, each
+    with its canonical URL and the date its copy last changed. Product page URLs
+    are proposals until the pages are published."""
     paths = store_paths(p)
+    site_dir = paths["folder"] / "site"
     entries = []
-    for f in [paths["rebuilt"]] + sorted((paths["folder"] / "products").glob("*.html")):
+    for f in ([paths["rebuilt"]] + sorted(site_dir.glob("*.html"))
+              + sorted((paths["folder"] / "products").glob("*.html"))):
         if not f.is_file():
             continue
         m = re.search(r'<link rel="canonical" href="([^"]+)"', f.read_text(encoding="utf-8"))
         loc = html.unescape(m.group(1)) if m else ""
         if loc.startswith("http") and loc not in [x for x, _ in entries]:  # template + AI: one URL
-            src = paths["copy"] if f == paths["rebuilt"] and paths["copy"].is_file() else f
+            src = f
+            if f == paths["rebuilt"] and paths["copy"].is_file():
+                src = paths["copy"]
+            elif f.parent == site_dir and (site_dir / f.stem / "page.md").is_file():
+                src = site_dir / f.stem / "page.md"
             entries.append((loc, datetime.date.fromtimestamp(src.stat().st_mtime).isoformat()))
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            "<!-- Made by Atlas from the pages in this folder. Product page URLs are proposals. -->\n"
@@ -964,72 +1019,6 @@ def store_paths(p):
             "lab": lab_dir / "restructured_1.md"}
 
 
-def create_copy(p, url, replace=False, raw_html=None, filename=""):
-    """Reverse-engineer Danfoss's page once: download it (or read a saved HTML file),
-    keep a snapshot as reference, and write the editable copy page.md if there is
-    none yet or replace=True. Returns True if page.md was (re)written."""
-    paths = store_paths(p)
-    if raw_html is None:
-        info = fetch(url)
-    else:
-        why = fetch_sources.block_reason(raw_html)
-        if why:
-            raise ValueError(f"That file is a {why}, not the page. Save the page again once it shows.")
-        info = {"url": url or filename, "final_url": url or "", "status": None, "redirects": [],
-                "fetched": datetime.datetime.now().isoformat(timespec="seconds"), "html": raw_html,
-                "imported": filename}
-    meta, blocks = parse_page(info["html"])
-    if len(words_of(blocks)) < 80:
-        raise ValueError("Almost no text in that page: it probably needs JavaScript to show its content.")
-    items, removed = structure(blocks)
-    final_url = meta.get("canonical") or info["final_url"] or url
-    base = info["final_url"] or final_url
-    paths["cache"].mkdir(parents=True, exist_ok=True)
-    (paths["cache"] / "original.html").write_text(info["html"], encoding="utf-8")
-    robots = robots_info(final_url) if raw_html is None and final_url.startswith("http") else None
-    checks = audit(meta, blocks, info if raw_html is None else None)
-    if raw_html is not None:
-        checks = [c for c in checks if c["check"] != "Server"]
-    if robots:
-        checks += robots_audit(robots)
-    record = {
-        "source": url, "final_url": final_url, "copied": info["fetched"],
-        "imported": info.get("imported", ""),
-        "meta": {k: meta[k] for k in ("title", "description", "canonical", "lang")},
-        "breadcrumbs": breadcrumbs_from(info["html"], base),
-        "removed_empty_sections": removed, "audit": checks,
-        "claims": claim_flags("\n".join(b["text"] for b in blocks)),
-        "outline": [{"level": b["level"], "text": b["text"]} if b["kind"] == "heading"
-                    else {"level": 0, "text": b["text"], "pseudo": True}
-                    for b in blocks if b["kind"] == "heading" or b.get("pseudo")],
-        "robots": robots,
-        "download": {k: info.get(k) for k in ("status", "redirects", "ttfb", "total", "bytes")},
-    }
-    paths["folder"].mkdir(parents=True, exist_ok=True)
-    write_copy(paths["original_md"], {"source": url, "final_url": final_url, "copied": info["fetched"],
-                                      "note": "Snapshot of the page as copied. Do not edit it: edit page.md"},
-               blocks_to_md(blocks, base))
-    paths["original_json"].write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
-    if replace or not paths["copy"].is_file():
-        write_copy(paths["copy"], {"title": meta.get("title", ""), "description": meta.get("description", ""),
-                                   "url": final_url, "lang": meta.get("lang") or "en",
-                                   "copied_from": final_url, "copied": info["fetched"][:10]},
-                   items_to_md(items, base))
-        return True
-    return False
-
-
-def save_copy(p, text):
-    """Save the edited copy (page.md) after a basic check."""
-    paths = store_paths(p)
-    if not paths["original_json"].is_file():
-        raise ValueError("Make the copy first.")
-    _, body = read_copy_text(text)
-    if not any(x["kind"] == "h1" for x in md_to_items(body)):
-        raise ValueError("The copy needs one main title: a line starting with '# '.")
-    paths["copy"].write_text(text.replace("\r\n", "\n"), encoding="utf-8")
-
-
 def changes(original_md, removed, copy_md, allowed_numbers):
     """What the copy changed compared with Danfoss's page (words and numbers), and
     new numbers that are not in the wiki facts either."""
@@ -1047,50 +1036,3 @@ def changes(original_md, removed, copy_md, allowed_numbers):
             "numbers_added": added_n,
             "numbers_not_in_wiki": [n for n in added_n if n not in allowed_numbers],
             "removed_empty_sections": removed}
-
-
-def analyze(p, questions, competitors, allowed_numbers=frozenset(), top_k=5):
-    """Everything the Web page tab shows, from the saved copy (no download)."""
-    paths = store_paths(p)
-    if not paths["original_json"].is_file() or not paths["copy"].is_file():
-        return {"copy": None}
-    rec = json.loads(paths["original_json"].read_text(encoding="utf-8"))
-    _, original_md = read_copy(paths["original_md"])
-    copy_text = paths["copy"].read_text(encoding="utf-8")
-    cmeta, copy_md = read_copy_text(copy_text)
-    items = md_to_items(copy_md)
-    page_url = cmeta.get("url") or rec["final_url"]
-    rebuilt = render_html(items, {"title": cmeta.get("title", ""), "description": cmeta.get("description", "")},
-                          page_url, [tuple(b) for b in rec.get("breadcrumbs", [])], cmeta.get("lang") or "en",
-                          note=f"Based on {rec['final_url']} (copied {rec['copied'][:10]}), laid out for crawlers.")
-    paths["rebuilt"].write_text(rebuilt, encoding="utf-8")
-    ch = changes(original_md, rec.get("removed_empty_sections", []), copy_md, allowed_numbers)
-    lab = lab_file(lab_text(rebuilt), page_url).replace(
-        "style: restructured\n",
-        f"style: restructured\ncontent: {'same as the original' if ch['same'] else 'changed'}\n")
-    paths["lab"].parent.mkdir(parents=True, exist_ok=True)
-    paths["lab"].write_text(lab, encoding="utf-8")
-    listed = write_sitemap(p)
-    rmeta, _ = parse_page(rebuilt)
-    rebuilt_audit = audit(rmeta, items, None, items)
-    rebuilt_audit.append({"check": "Listed in sitemap.xml", "value": "yes" if page_url in listed else "no",
-                          "status": "ok" if page_url in listed else "warn",
-                          "note": "webpage/sitemap.xml, dated when the copy last changed"})
-    md_before, md_after = md_for_crawler(original_md), to_markdown(items)
-    return {
-        "copy": {"text": copy_text, "copied": rec["copied"], "source": rec["source"],
-                 "final_url": rec["final_url"], "imported": rec.get("imported", ""),
-                 "changed": datetime.datetime.fromtimestamp(paths["copy"].stat().st_mtime)
-                 .isoformat(timespec="seconds")},
-        "final_url": page_url, "changes": ch,
-        "audit": {"original": rec["audit"], "rebuilt": rebuilt_audit},
-        "claims": {"original": rec["claims"], "copy": claim_flags(strip_links(copy_md))},
-        "googlebot": {"original": googlebot_view(md_before, questions),
-                      "rebuilt": googlebot_view(md_after, questions)},
-        "bm25": bm25_table({"original": md_before, "rebuilt": md_after}, competitors, questions, top_k),
-        "files": {"rebuilt": "rebuilt.html", "sitemap": "sitemap.xml",
-                  "lab": paths["lab"].relative_to(REPO).as_posix()},
-        "outline": {"original": rec["outline"],
-                    "rebuilt": [{"level": int(i["kind"][1]), "text": i["text"]}
-                                for i in items if i["kind"] in ("h1", "h2", "h3")]},
-    }

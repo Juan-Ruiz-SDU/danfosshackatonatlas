@@ -1,10 +1,12 @@
 ---
-source: "https://www.danfoss.com/en/products/dcs/heat-exchangers/micro-plate-heat-exchangers/"
-final_url: "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/"
-copied: "2026-11-14T20:07:57"
-note: "Snapshot of the page as copied. Do not edit it: edit page.md"
+title: "Micro Plate™ heat exchangers for heat pumps | Danfoss"
+description: "Micro Plate™ brazed plate heat exchangers (BPHE) for heat pumps: 11 platforms from 2 kW to 300 kW, R32, R290 and other low-GWP refrigerants, double wall models."
+url: "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/"
+lang: "en"
+copied_from: "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/"
+copied: "2026-11-14"
 ---
-# Micro Plate™ brazed plate heat exchangers
+# Micro Plate™ brazed plate heat exchangers for heat pumps
 
 [Contact us](https://www.danfoss.com/en/contact-us/)
 
@@ -16,21 +18,43 @@ Compared to traditional fishbone plates, Micro Plate™ technology offers unpara
 
 Discover the excellent performance of our brazed heat exchangers, offering a reliable and efficient alternative to existing brands in the market. With seamless compatibility, our heat exchangers provide a hassle-free solution for system upgrades or maintenance, ensuring optimal heat transfer.
 
-#### The Micro Plate™ revolution
+## Micro Plate™ brazed plate heat exchangers (BPHE) for heat pumps
+
+{{wiki: products/micro-plate-bphe-heat-pumps}}
+
+## Heat pump platforms: capacity, models and working pressure
+
+{{wiki: platforms/heat-pump-platforms}}
+
+## Low-GWP refrigerants and a lower refrigerant charge
+
+{{wiki: technologies/micro-plate-pattern#Benefits}}
+
+{{wiki: technologies/z-design-series}}
+
+{{wiki: technologies/mixing-chamber}}
+
+## Double wall (double-wall) brazed plate heat exchangers for domestic hot water
+
+{{wiki: technologies/double-wall-option}}
+
+## How Micro Plate™ technology works
+
+### The Micro Plate™ revolution
 
 The unique and patented Micro Plate™ design, outperforms other solutions on the market with better thermal and hydraulic performance, significantly lower pressure drop and vastly improved heat transfer.
 
-**Enhanced heat transfer**
+### Enhanced heat transfer
 
 The Micro Plate™ plate-pattern creates a completely new type of channel. The plates can be made very thin, due to the design and the number of contact points. The thin plates along with the strong turbulence created by the dimple pattern ensures the highest thermal performance.
 
 In addition, the dimple pattern creates a nozzle-diffusor channel, which has bigger turbulence and less scaling than traditional fishbone channel. In the nozzle the velocity of liquid increases, and in the diffusor it decreases. That leads to local pressure oscillations inside the channel, which helps to thin down the boundary level and create bigger turbulence on the surface of the heat plate, preventing dirt to stick to the plates.
 
-**Better flow distribution**
+### Better flow distribution
 
 The improved water flow distribution in the Micro Plate™ design leads to an even velocity profile of the liquid, decreasing the number of stagnant zones on the plate. Minimizing the stagnant zones is essential to achieve high efficiency of heat transfer with a minimum loss of pressure. Optimized flow distribution areas allow the Micro Plate™ to effectively use the area around porthole for heat transfer, which increases the heat transfer area of each plate. Hence, the heat transfer area is almost equal to physical area of the heat plate.
 
-**Longer lifetime**
+### Longer lifetime
 
 The Micro Plate™ brazing points are flat, which increases the brazing area between the heat plates. This ensures that the pressure loads are distributed across a bigger area, which means higher strength and higher-pressure resistance compared to fishbone design.
 
@@ -41,11 +65,12 @@ The Micro Plate™ brazing points are flat, which increases the brazing area bet
 - Substantial cost and energy savings
 - Better self-cleaning
 - More flexible and compact design
-MPHE Z-design range of Micro Plate Heat Exchangers
+
+### MPHE Z-design range of Micro Plate Heat Exchangers
 
 Unleash the benefits of patented Danfoss Micro Plate technology in your chiller applications with high density refrigerants (R32, R410A, R454B) in capacity range from few kW up to 800 kW.
 
-#### Micro Plate™ Z-series - a game changer for heat pumps and chillers
+### Micro Plate™ Z-series - a game changer for heat pumps and chillers
 
 The secret behind the game-changing advantages of the Z-series lies in the use of the dimple-based design, which promotes an asymmetric Z-shaped flow of fluid across the plates. We’ve completely rethought the plate pattern and in so doing, pushed the performance of our heat exchangers to the limits. Not only does this maximize the heat transfer surface, but the liquid and vapor phases of the refrigerant also remain well mixed, ensuring even thermal contact with the water side of the system. As a result, it is possible to reduce refrigerant volume the and the same heat transfer capacity can be achieved with fewer plates, which reduces both raw material needs and product weight.
 
@@ -60,30 +85,26 @@ Using the same innovative technology all Z-design models have been created with 
 - Higher heat transfer and energy efficiency
 - Minimal hold-up volume leading to less refrigerant charge and savings for installation costs
 - Reduction in both raw material needs and product weight
-- Reduction in both raw material needs and product weight
 - Suitable for several refrigerant options
 - Compatible with other Danfoss products and suitable for use in oil free systems
+
 [View the 3D models: MPHE with Z design MPHE dual circuit with Z design MPHE Double Wall](https://tools.danfoss.com/cooling/model/MPHE_Z)
 
 ## Documents
 
+| Brazed plate heat exchangers - Instructions (DE/RU/PT/FR/IT/ES/ZH/PL/DK) | 2.59 MB |
+|---|---|
+| Z-design MPHEs for chillers Economic and environmental savings in cooling | 21.65 MB |
+
 ## Videos
 
-MPHE Z-design range of Micro Plate™ Heat Exchangers
-
-Danfoss Micro Plate Heat Exchanger (MPHE) with Z design technology
-
-Danfoss Micro Plate™ Heat Exchangers for heating systems
-
-Danfoss double wall Micro Plate™ Heat Exchanger, the safe route to flammables and lower-GWP
-
-Danfoss EffyBoost dual circuit Micro Plate brazed plate heat exchanger
-
-Robotics and automation set a new standard for heat exchanger production
-
-Heat exchanger lab for future proof and highly efficient brazed heat exchangers
-
-## Software
+- MPHE Z-design range of Micro Plate™ Heat Exchangers
+- Danfoss Micro Plate Heat Exchanger (MPHE) with Z design technology
+- Danfoss Micro Plate™ Heat Exchangers for heating systems
+- Danfoss double wall Micro Plate™ Heat Exchanger, the safe route to flammables and lower-GWP
+- Danfoss EffyBoost dual circuit Micro Plate brazed plate heat exchanger
+- Robotics and automation set a new standard for heat exchanger production
+- Heat exchanger lab for future proof and highly efficient brazed heat exchangers
 
 ## HEXSelector: Heat exchanger design software
 
@@ -91,12 +112,22 @@ No matter if you have a chiller, a heat pump or a domestic hot water application
 
 [Download HEXSelector](https://hexselector.com/)
 
+{{wiki: services/hexselector}}
+
+## Testing in Danfoss Application Development Centers
+
+{{wiki: services/application-development-centers}}
+
 ## Case stories
 
-This Danish university is at the forefront of the refrigerant revolution with low-GWP scroll chillers
+### This Danish university is at the forefront of the refrigerant revolution with low-GWP scroll chillers
 
 Advanced labs for education and research will put a high demand on the cooling system. Therefore, Danfoss and partner G.I. Industrial Holding are introducing one of the first chillers using the refrigerant R452B. It has some of the lowest Global Warming Potential for scroll systems available today.
 
 [Read more](https://www.danfoss.com/en/about-danfoss/news/dcs/this-danish-university-is-at-the-forefront-of-the-refrigerant-revolution-with-low-gwp-scroll-chillers/)
 
 ## Product range
+
+- [Brazed plate heat exchangers for cooling applications](https://store.danfoss.com/en/Climate-Solutions-for-cooling/Heat-Exchangers/Plate-Heat-Exchangers/c/2080): Brazed plate heat exchangers with fishbone or Micro PlateTM plate technology offer a compact and flexible solution designed for ultra-efficient performance for your high-pressure or extreme-temperature applications.
+
+- [Brazed plate heat exchangers for heating applications](https://store.danfoss.com/en/Climate-Solutions-for-heating/Heat-Exchangers/c/4049): The XB and SL range of copper brazed plate heat exchangers are ideal for use in District Heating (DH) and District Cooling (DC) applications

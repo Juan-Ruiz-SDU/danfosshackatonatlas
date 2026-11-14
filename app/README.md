@@ -40,42 +40,62 @@ https://aistudio.google.com/apikey. The key is saved in `.env`, which is never c
 Answers are saved in `app/cache/`. If a run stops because of the free daily limit, press Run again
 the next day and it continues where it stopped, without spending the quota again.
 
-## Web page tab: your own copy of the Danfoss page
+## Web page tab: your own copy of Danfoss's website
 
-1. **Make the copy (once).** Atlas reverse-engineers the current Danfoss page, from the first Danfoss
-   link of the product. It reads the page the way a crawler does, without running JavaScript, and saves:
-   - `webpage/original.md` and `original.json`: a snapshot of the page as it was (the reference), with
-     the crawler checks of the live page. These include status, redirects, response time, robots.txt
-     and sitemap.
-   - `webpage/page.md`: **your copy**, already laid out for crawlers:
-     - one H1
-     - real headings instead of bold text and skipped levels
-     - lists and tables
-     - title, description and address in the lines between `---` at the top
-   Headings with nothing under them in the HTML are left out and listed. On the live page a script
-   fills them.
-   After this, Danfoss's site is not downloaded again. If its bot protection blocks the download,
-   Atlas says so and keeps your copy. You can also save the page from your browser (Ctrl+S) and
-   import the file.
-2. **Adapt your copy** in the tab's editor, or in `page.md` directly. Atlas compares it with Danfoss's
-   page and lists the words and numbers you added or removed. It warns about new numbers that are not
-   in the wiki.
-3. On every save Atlas writes:
-   - `rebuilt.html`: your copy as a light static page with Product and breadcrumb JSON-LD and no
-     scripts;
-   - `sitemap.xml` (see `wiki/guidelines/sitemap.md`);
-   - the citation test copy, style `restructured`. It is extracted the same way as Danfoss's page,
-     so every run in the Run tab also scores it.
-4. It shows, side by side with Danfoss's page:
-   - the headings
+1. **Copy the website (once).** Give the first page of a section of danfoss.com. For Micro Plate that is
+   the heat exchanger catalog (`site_start` in `product.json`). Atlas follows the links in the pages'
+   content that stay inside that section, up to two clicks deep and the number of pages you choose. It
+   always includes the product's own Danfoss page. Every page is read twice:
+   - without JavaScript, the way many crawlers see it;
+   - with JavaScript, in Edge or Chrome without a window, the way a visitor sees it.
+
+   For each page Atlas saves a snapshot as the reference (`site/<page>/original.md` and `.json`) and
+   **your copy** (`site/<page>/page.md`), already laid out for crawlers. Copying again only renews
+   the snapshots, unless you tick "Also replace my edited copies".
+
+   danfoss.com cannot be shown inside Atlas: its server forbids being framed (`X-Frame-Options`). If its
+   bot protection blocks a download, Atlas says so. You can save that page from your browser and import it.
+2. **Your website** shows the copies as a small website that looks like Danfoss's: header, menu,
+   breadcrumbs, catalog tiles and footer. The links between the pages work. Click through it, or pick a
+   page in the list. The list shows how deep each page is and how many pages link to it and from it.
+   **How the website spreads authority** checks the whole site against `wiki/guidelines/site-structure.md`:
+   - pages a crawler cannot reach from the first page;
+   - orphan pages;
+   - pages more than 3 clicks deep;
+   - the sitemap;
+   - Danfoss pages whose text needs JavaScript.
+3. **Product facts come from the wiki.** In a page copy, a line `{{wiki: platforms/heat-pump-platforms}}`
+   (or `{{wiki: technologies/micro-plate-pattern#Benefits}}` for one section) is replaced by that part of the
+   wiki whenever the website is built:
+   - when the tab opens;
+   - when a page is saved;
+   - before every Run;
+   - before every `lab/experiment.py` run.
+
+   When the team changes the wiki, the web pages and the citation test change with them. Pick blocks from
+   the list under the editor.
+   **Against the competitors** shows, for each question:
+   - where the page ranks against the saved competitor pages;
+   - which page beats it;
+   - the question's words it lacks;
+   - the wiki blocks that hold those words. Click one to insert it.
+
+   See `wiki/guidelines/competitor-training.md` for the method and the first training round.
+4. **Edit the page** in Markdown. Catalog tiles are written as `- [Title](address): description`.
+   Atlas compares your copy with Danfoss's page and warns about new numbers that are not in the wiki.
+5. For the page you pick it shows:
+   - the headings, before and after
    - crawler checks
-   - what Googlebot sees: the passages AI search would cut, and which one answers each question
-   - BM25 per question: whole page and best passage
+   - what Googlebot sees
+   - BM25 per question against the competitor pages
    - the never-claim screen
 
-Committed: `original.md`, `original.json`, `page.md`, `rebuilt.html`, `sitemap.xml`.
-Not committed: `cache/` (the downloaded HTML). Copy again only to renew the reference. Tick
-"Also replace my edited copy" only to start your copy over.
+   The product's own page (Micro Plate) is also the `restructured` page of the citation test.
+
+Files in `products/<name>/webpage/`:
+- committed: `site.json` (the map), `site/<page>/` (snapshot and copy), `site/<page>.html` (the
+  rendered page), `sitemap.xml`;
+- not committed: `cache/` (downloaded HTML).
 
 ## Product by product tab
 
@@ -90,6 +110,48 @@ pressure table, are added to the matching product. Pick a product to build its p
 
 Each page gets the same crawler checks, Googlebot view and BM25 table. Files:
 `products/<name>/webpage/products/<product>.html`.
+
+## Citations tab: what Gemini with Google Search cites
+
+The agent is `lab/discover_sources.py`, the same one `python Run.py update-sources` runs. It asks Gemini,
+with Google Search on, every prompt in `prompts/prompts.txt` and keeps three things:
+- the searches Gemini ran (its sub-queries);
+- the pages it cited;
+- how much of the answer each page supports.
+
+It then imports those pages as text. **Update citations** runs it for one section of the prompts,
+or for at most N prompts. Every update is kept in `lab/discovered/runs/`, so the tab shows how the
+citations change.
+
+- **Share of the answer.** Gemini does not use BM25 and gives no score per page. It does say which
+  pieces of its answer each page supports. A page's share is the part of the answer it supports, from
+  that data. Updates made before shares were recorded show support counts instead.
+- **Per prompt**, the tab shows:
+  - the cited pages with their shares;
+  - Gemini's searches;
+  - for each search, where the chosen page of ours ranks among the cited pages' passages (BM25) and who leads.
+  "Our pages" are the website copy, the last Atlas run and the newest variants. The wiki is not used here.
+- **Explain why** asks an AI reviewer (the Run tab's answer-box AI) to score the cited passages and ours
+  on checkable signals: direct answer, figures with units, named models, definition or comparison,
+  scope, self-contained. It then explains the result. Every passage is plain text of the same length,
+  with brand names hidden and the order shuffled, so markdown and length cannot count. The reviewer's
+  totals are compared with Gemini's real shares (rank correlation), so you can see whether the reviewer
+  judges like the engine.
+- AI Overviews has no public API. Reading it needs a paid search-results service (for example SerpApi or
+  DataForSEO).
+
+## Fact check
+
+**Check every claim** (Web page tab) and **Fact check this page** (Product by product) check each sentence,
+list item and table row. The sources are the wiki, the original documents in `raw/` and Danfoss's page
+snapshots. The checks run in this order:
+1. A claim copied from a source passes at once.
+2. Every number must appear in the best-matching source.
+3. The rest goes to a grounding checker: Bespoke-MiniCheck-7B if it is installed in Ollama
+   (`ollama pull bespoke-minicheck`; check its licence for commercial use). Otherwise the Run tab's
+   answer-box AI checks it, and must quote the exact supporting words. The quote is verified in code.
+
+See `app/verify.py`.
 
 ## Search ranking: whole pages or passages
 
@@ -116,7 +178,7 @@ Source discovery always uses Gemini, because it reports which Google Search page
 | `products/<name>/questions.json` | Questions switched off for this product, and its own questions |
 | `products/<name>/sources/`, `fixed/` | Comparison pages: discovered, and from the fixed link list |
 | `products/<name>/runs/<date>/` | Each run's results (not committed) |
-| `products/<name>/webpage/` | Web page tabs: `page.md` (your copy), `original.md/.json` (reference), `rebuilt.html`, `sitemap.xml`, `products/*.html`, `cache/` (not committed) |
+| `products/<name>/webpage/` | Web page tab: `site.json`, `site/<page>/page.md` (your copies), `original.md/.json` (references), `site/*.html`, `sitemap.xml`; `products/*.html` (product pages); `cache/` (not committed) |
 | `wiki/guidelines/` | How pages are written and laid out. Instructions for the writer, not facts |
 | `questions/standard.json` | Standard questions for all products |
 | `app/providers.json` | The AIs the app can use |

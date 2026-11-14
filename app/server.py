@@ -25,9 +25,12 @@ STATIC = APP / "static"
 sys.path.insert(0, str(APP))
 import ai  # noqa: E402
 import catalog  # noqa: E402
+import citations  # noqa: E402
+import verify  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
 import webpage  # noqa: E402
+import website  # noqa: E402
 
 
 # --- the one background run -----------------------------------------------------
@@ -160,34 +163,208 @@ def page_context(slug):
     return p, questions, competitors
 
 
-def analyze_page(slug):
-    """The Web page tab, from the saved copy (never downloads)."""
+class SiteJob:
+    """Copying a site section in the background (it takes a minute or two)."""
+
+    def __init__(self, slug):
+        self.slug, self.status, self.error, self.lines, self.stop = slug, "running", None, [], False
+        self.started = time.time()
+
+    def log(self, msg):
+        self.lines.append(f"{time.strftime('%H:%M:%S')}  {msg}")
+        del self.lines[:-300]
+
+    def as_dict(self):
+        return {"slug": self.slug, "status": self.status, "error": self.error,
+                "log": self.lines[-80:], "elapsed": int(time.time() - self.started)}
+
+
+SITE_JOB = None
+
+
+def site_state(slug):
+    p = products.get(slug)
+    if not (SITE_JOB and SITE_JOB.slug == slug and SITE_JOB.status == "running"):
+        website.refresh(p, danfoss_url(p))  # the wiki may have changed: rebuild from it
+    site = website.load_map(p)
+    return {"site": site, "checks": website.site_checks(p) if site else None,
+            "lab_page": website.lab_page(p, danfoss_url(p)) if site else None,
+            "start": website.default_start(p, danfoss_url(p)),
+            "job": SITE_JOB.as_dict() if SITE_JOB and SITE_JOB.slug == slug else None}
+
+
+def start_site_copy(b):
+    global SITE_JOB
+    p = products.get(b.get("slug", ""))
+    url = (b.get("url") or website.default_start(p, danfoss_url(p))).strip()
+    if not url.startswith(("http://", "https://")):
+        raise ValueError("Give the address of the Danfoss page or catalog to copy (https://...).")
+    with LOCK:
+        if SITE_JOB and SITE_JOB.status == "running":
+            raise ValueError("A copy is already running. Wait for it, or press Stop.")
+        SITE_JOB = job = SiteJob(p["slug"])
+
+    def work():
+        try:
+            website.copy_site(p, url, also=[danfoss_url(p)], max_pages=max(1, min(int(b.get("max_pages") or 15), 40)),
+                              replace=bool(b.get("replace")), log=job.log, cancelled=lambda: job.stop)
+            job.status = "done"
+            job.log("Finished.")
+        except (ValueError, RuntimeError) as e:
+            job.status, job.error = "error", str(e)
+            job.log("ERROR: " + str(e))
+        except BaseException as e:  # noqa: BLE001
+            job.status, job.error = "error", f"Unexpected problem: {e}"
+            job.log(traceback.format_exc())
+    threading.Thread(target=work, daemon=True).start()
+
+
+def site_page(slug, pid):
     p, questions, competitors = page_context(slug)
     try:
         allowed = pipeline.gv.allowed_numbers(products.fact_sheet(p))
     except ValueError:
         allowed = frozenset()
-    return webpage.analyze(p, questions, competitors, allowed)
+    return website.page_analysis(p, pid, questions, competitors, allowed,
+                                 website.lab_page(p, danfoss_url(p)))
 
 
-def copy_page(b):
-    """Reverse-engineer the current page once (download, or a saved .html file),
-    then show the analysis. `replace` also overwrites the edited copy."""
+def save_site_page(b):
     p = products.get(b.get("slug", ""))
-    url = (b.get("url") or danfoss_url(p)).strip()
-    raw = None
-    if b.get("data"):
-        raw = base64.b64decode(b["data"]).decode("utf-8", errors="replace")
-    elif not url.startswith(("http://", "https://")):
-        raise ValueError("Give the address of the current Danfoss page (https://...).")
-    wrote = webpage.create_copy(p, url, bool(b.get("replace")), raw, b.get("filename", ""))
-    return {**analyze_page(p["slug"]), "copy_written": wrote}
+    website.save_page(p, str(b.get("id", "")), str(b.get("text", "")))
+    return {**site_page(p["slug"], str(b.get("id", ""))), "checks": website.site_checks(p)}
 
 
-def save_page(b):
+def import_site_page(b):
     p = products.get(b.get("slug", ""))
-    webpage.save_copy(p, str(b.get("text", "")))
-    return analyze_page(p["slug"])
+    raw = base64.b64decode(b.get("data", "")).decode("utf-8", errors="replace")
+    pid = website.import_page(p, (b.get("url") or "").strip(), raw, b.get("filename", ""))
+    return {"id": pid}
+
+
+# --- Citations tab: the Gemini + Google Search agent -------------------------------------
+CIT_JOB = None
+
+
+def citations_state(slug):
+    p = products.get(slug)
+    runs = citations.list_runs()
+    latest = runs[-1].name if runs else None
+    ai.load_env()
+    return {"history": citations.history(), "sections": {k: len(v) for k, v in citations.prompt_sections().items()},
+            "latest": latest, "summary": citations.run_summary(latest) if latest else [],
+            "ours": [{"id": o["id"], "label": o["label"]} for o in citations.our_pages(p, danfoss_url(p))],
+            "has_key": ai.has_key("GEMINI_API_KEY"),
+            "job": CIT_JOB.as_dict() if CIT_JOB else None}
+
+
+def citations_prompt(q):
+    p = products.get(q.get("slug", ""))
+    rows = citations.load_run(q.get("run", ""))
+    i = int(q.get("i", 0))
+    if not 0 <= i < len(rows):
+        raise ValueError("No such prompt in that run")
+    row = rows[i]
+    ours = next((o for o in citations.our_pages(p, danfoss_url(p)) if o["id"] == q.get("ours")), None) \
+        or (citations.our_pages(p, danfoss_url(p)) or [None])[0]
+    srcs = sorted(row["sources"], key=lambda s: -citations._share(s, row))
+    return {"prompt": row["prompt"], "asked_at": row.get("asked_at", ""), "model": row.get("model", ""),
+            "answer": row.get("answer", ""), "search_queries": row.get("search_queries", []),
+            "coverage": round(row["supported_chars"] / row["answer_chars"], 3) if row.get("answer_chars") else None,
+            "sources": [{"site": s.get("domain"), "url": s.get("url"), "share": citations._share(s, row),
+                         "supports": s.get("supports", 0), "confidence": s.get("confidence"),
+                         "rank": s.get("rank"), "danfoss": citations.is_target(s)} for s in srcs],
+            "ours": {"id": ours["id"], "label": ours["label"]} if ours else None,
+            "compare": citations.compare(row, ours) if ours else None}
+
+
+def start_citations_update(b):
+    global CIT_JOB
+    sections = citations.prompt_sections()
+    want = b.get("section") or "all"
+    prompts = [x for v in sections.values() for x in v] if want == "all" else sections.get(want, [])
+    limit = int(b.get("limit") or 0)
+    if limit:
+        prompts = prompts[:limit]
+    if not prompts:
+        raise ValueError("No prompts to ask.")
+    with LOCK:
+        if CIT_JOB and CIT_JOB.status == "running":
+            raise ValueError("An update is already running.")
+        CIT_JOB = job = SiteJob(b.get("slug", ""))
+    all_prompts = want == "all" and not limit
+
+    def work():
+        try:
+            job.log(f"Asking Gemini with Google Search: {len(prompts)} prompts ({want})")
+            name = citations.update(prompts, b.get("model") or "gemini-2.5-flash", job.log, all_prompts)
+            job.status = "done"
+            job.log(f"Finished: {name}")
+        except (ValueError, RuntimeError) as e:
+            job.status, job.error = "error", str(e)
+            job.log("ERROR: " + str(e))
+        except BaseException as e:  # noqa: BLE001
+            job.status, job.error = "error", f"Unexpected problem: {e}"
+            job.log(traceback.format_exc())
+    threading.Thread(target=work, daemon=True).start()
+
+
+# --- fact check (verify.py) ----------------------------------------------------------------
+VERIFY_JOB = None
+
+
+def page_markdown(p, kind, ref):
+    """The text of a page to check: a page of the mini website, or a product page."""
+    if kind == "site":
+        _, items = website._copy_items(p, ref)
+        return webpage.to_markdown(items)
+    path = (webpage.store_paths(p)["folder"] / ref).resolve()
+    root = webpage.store_paths(p)["folder"].resolve()
+    if root not in path.parents or path.suffix != ".html" or not path.is_file():
+        raise ValueError("Build the product page first.")
+    _, blocks = webpage.parse_page(path.read_text(encoding="utf-8"))
+    return webpage.to_markdown(blocks)
+
+
+def start_verify(b):
+    global VERIFY_JOB
+    p = products.get(b.get("slug", ""))
+    md = page_markdown(p, b.get("kind", "site"), str(b.get("ref", "")))
+    with LOCK:
+        if VERIFY_JOB and VERIFY_JOB.status == "running":
+            raise ValueError("A fact check is already running.")
+        VERIFY_JOB = job = SiteJob(p["slug"])
+    job.result, job.key = None, f"{b.get('kind')}:{b.get('ref')}"
+
+    def work():
+        try:
+            job.result = verify.check_page(p, md, b.get("provider") or "gemini", b.get("model") or "gemini-2.5-flash",
+                                           log=job.log, cancelled=lambda: job.stop)
+            job.status = "done"
+            job.log("Finished.")
+        except (ValueError, RuntimeError) as e:
+            job.status, job.error = "error", str(e)
+            job.log("ERROR: " + str(e))
+        except BaseException as e:  # noqa: BLE001
+            job.status, job.error = "error", f"Unexpected problem: {e}"
+            job.log(traceback.format_exc())
+    threading.Thread(target=work, daemon=True).start()
+
+
+def verify_state():
+    if not VERIFY_JOB:
+        return None
+    return {**VERIFY_JOB.as_dict(), "key": VERIFY_JOB.key, "result": VERIFY_JOB.result}
+
+
+def citations_explain(b):
+    p = products.get(b.get("slug", ""))
+    row = citations.load_run(b.get("run", ""))[int(b.get("i", 0))]
+    ours = next((o for o in citations.our_pages(p, danfoss_url(p)) if o["id"] == b.get("ours")), None)
+    if not ours:
+        raise ValueError("Pick one of our pages to compare.")
+    return citations.explain(row, ours, b.get("provider") or "gemini", b.get("model") or "gemini-2.5-flash",
+                             fresh=bool(b.get("fresh")))
 
 
 def build_product_page(b):
@@ -244,8 +421,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, JOB.as_dict() if JOB else None)
             if url.path.startswith("/files/"):
                 return self.file(urllib.parse.unquote(url.path[len("/files/"):]), q.get("download") == "1")
-            if url.path == "/api/webpage":
-                return self.send(200, analyze_page(q.get("slug", "")))
+            if url.path == "/api/site":
+                return self.send(200, site_state(q.get("slug", "")))
+            if url.path == "/api/site/page":
+                return self.send(200, site_page(q.get("slug", ""), q.get("id", "")))
+            if url.path == "/api/site/wiki":
+                return self.send(200, website.wiki_blocks(products.get(q.get("slug", ""))))
+            if url.path == "/api/citations":
+                return self.send(200, citations_state(q.get("slug", "")))
+            if url.path == "/api/citations/run":
+                return self.send(200, citations.run_summary(q.get("run", "")))
+            if url.path == "/api/citations/prompt":
+                return self.send(200, citations_prompt(q))
+            if url.path == "/api/verify/job":
+                return self.send(200, verify_state())
             if url.path == "/api/catalog":
                 return self.send(200, catalog.catalog(products.get(q.get("slug", ""))))
             if url.path.startswith("/pages/"):
@@ -300,10 +489,24 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, {"slug": products.create_product(b.get("draft", {}))})
             elif path == "/api/catalog/build":
                 return self.send(200, build_product_page(b))
-            elif path == "/api/webpage/copy":
-                return self.send(200, copy_page(b))
-            elif path == "/api/webpage/save":
-                return self.send(200, save_page(b))
+            elif path == "/api/site/copy":
+                start_site_copy(b)
+            elif path == "/api/site/stop":
+                if SITE_JOB:
+                    SITE_JOB.stop = True
+            elif path == "/api/site/save":
+                return self.send(200, save_site_page(b))
+            elif path == "/api/site/import":
+                return self.send(200, import_site_page(b))
+            elif path == "/api/citations/update":
+                start_citations_update(b)
+            elif path == "/api/citations/explain":
+                return self.send(200, citations_explain(b))
+            elif path == "/api/verify":
+                start_verify(b)
+            elif path == "/api/verify/stop":
+                if VERIFY_JOB:
+                    VERIFY_JOB.stop = True
             else:
                 return self.send(404, {"error": "Not found"})
             self.send(200, {"ok": True})

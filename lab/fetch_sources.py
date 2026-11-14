@@ -107,10 +107,14 @@ def block_reason(raw_html, status=200):
     for pat, why in BLOCK_STRONG:
         if re.search(pat, raw_html, re.I):
             return why
-    words = len(html_to_text(raw_html).split()) if raw_html else 0
-    if status in (401, 403, 429, 503) or words < 150:
+    # weak markers: only in the text a reader sees (a reCAPTCHA script on a normal
+    # page, or a page whose content a script loads later, is not a bot check)
+    visible = html_to_text(raw_html) if raw_html else ""
+    if "<noscript" in raw_html.lower():
+        visible += " " + " ".join(re.findall(r"<noscript[^>]*>(.*?)</noscript>", raw_html, re.S | re.I))
+    if status in (401, 403, 429, 503) or len(visible.split()) < 150:
         for pat, why in BLOCK_WEAK:
-            if re.search(pat, raw_html, re.I):
+            if re.search(pat, visible, re.I):
                 return why
         if status in (401, 403, 429, 503):
             return f"HTTP {status}"

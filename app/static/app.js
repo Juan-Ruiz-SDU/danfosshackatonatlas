@@ -373,22 +373,24 @@ function showTab(name) {
   $$(".tab").forEach(t => t.classList.toggle("hidden", t.id !== "tab-" + name));
   store("tab", name);
   if (name === "catalog" && P && !CAT) safe(loadCatalog);
-  if (name === "web" && P && !WEB) safe(loadWeb);
+  if (name === "web" && P && !SITE) safe(loadWeb);
+  if (name === "citations" && P && !CIT) safe(loadCitations);
 }
 $$(".tabs [role=tab]").forEach(b => b.onclick = () => showTab(b.dataset.tab));
 
-let WEB = null, CAT = null, CATSEL = null;
+let WEB = null, CAT = null, CATSEL = null, CATFILE = null;
 function resetPageTabs() {
-  WEB = null; CAT = null; CATSEL = null;
+  WEB = null; SITE = null; PAGESEL = null; CAT = null; CATSEL = null; WIKIBLOCKS = null; CIT = null; CITROW = null;
   $$(".product-name").forEach(e => e.textContent = P.product.name);
   if (!$("#web-url").value || $("#web-url").dataset.auto === "1") {
     $("#web-url").value = P.danfoss_url || ""; $("#web-url").dataset.auto = "1";
   }
-  $("#web-out").classList.add("hidden"); $("#web-edit").classList.add("hidden");
-  $("#web-status").textContent = ""; $("#web-md").value = "";
+  ["#web-out", "#web-edit", "#web-site", "#web-job", "#web-gaps-card"].forEach(s => $(s).classList.add("hidden"));
+  $("#web-status").textContent = ""; $("#web-md").value = ""; $("#web-verify-out").innerHTML = "";
   $("#cat-page").classList.add("hidden"); $("#cat-list").innerHTML = "";
   if (!$("#tab-catalog").classList.contains("hidden")) safe(loadCatalog);
   if (!$("#tab-web").classList.contains("hidden")) safe(loadWeb);
+  if (!$("#tab-citations").classList.contains("hidden")) safe(loadCitations);
 }
 $("#web-url").addEventListener("input", e => e.target.dataset.auto = "0");
 
@@ -452,64 +454,167 @@ function renderBm25(el, bm) {
 
 function pageUrl(file, dl) { return `/pages/${encodeURIComponent(P.product.slug)}/${file.split("/").map(encodeURIComponent).join("/")}${dl ? "?download=1" : ""}`; }
 
-// --- Web page tab ---------------------------------------------------------------------------
+// --- Web page tab: the mini website ------------------------------------------------------
+let SITE = null, PAGESEL = null, sitePoll = null;
+
 async function loadWeb() {
-  $("#web-status").textContent = "";
-  WEB = await api("/api/webpage?slug=" + encodeURIComponent(P.product.slug));
-  if (!WEB.copy) {
-    $("#web-copyinfo").innerHTML = "No copy yet. Check the address and press <b>Make the copy</b>.";
-    $("#web-copy-btn").textContent = "Make the copy";
-    $("#web-edit").classList.add("hidden"); $("#web-out").classList.add("hidden");
+  SITE = await api("/api/site?slug=" + encodeURIComponent(P.product.slug));
+  if (!$("#web-url").value || $("#web-url").dataset.auto === "1") {
+    $("#web-url").value = SITE.start || P.danfoss_url || ""; $("#web-url").dataset.auto = "1";
+  }
+  renderJobBox(SITE.job);
+  if (SITE.job && SITE.job.status === "running") pollSite();
+  if (!SITE.site) {
+    $("#web-copyinfo").innerHTML = "No copy yet. Check the first page of the section (for example the catalog) and press <b>Copy the website</b>. It takes a minute or two.";
+    ["#web-site", "#web-edit", "#web-out"].forEach(s => $(s).classList.add("hidden"));
     return;
   }
-  renderWeb();
+  renderSite();
+  const ids = SITE.site.pages.map(x => x.id);
+  await selectPage(ids.includes(PAGESEL) ? PAGESEL : (SITE.lab_page || ids[0]), true);
 }
 
-function webCall(path, body, msg) {
-  const btns = [$("#web-copy-btn"), $("#web-save")]; btns.forEach(b => b.disabled = true);
-  $("#web-status").textContent = msg;
-  return safe(async () => {
-    try {
-      WEB = await api(path, { slug: P.product.slug, ...body });
-      renderWeb();
-      $("#web-status").textContent = WEB.copy_written === false
-        ? "Reference snapshot renewed. Your edited copy was kept (tick “Also replace” to start over)." : "";
-      return true;
-    } catch (err) { $("#web-status").textContent = ""; throw err; } finally { btns.forEach(b => b.disabled = false); }
-  });
+function renderJobBox(job) {
+  const box = $("#web-job");
+  box.classList.toggle("hidden", !job);
+  if (!job) return;
+  const label = { running: "Copying the website…", done: "✔ Copy finished", error: "⚠ Stopped with a problem" }[job.status] || job.status;
+  $("#web-job-step").textContent = `${label} (${Math.floor(job.elapsed / 60)}:${String(job.elapsed % 60).padStart(2, "0")})`;
+  $("#web-stop").classList.toggle("hidden", job.status !== "running");
+  const log = $("#web-log"); log.textContent = job.log.join("\n"); log.scrollTop = log.scrollHeight;
+  $("#web-copy-btn").disabled = job.status === "running";
+}
+
+function pollSite() {
+  clearInterval(sitePoll);
+  sitePoll = setInterval(async () => {
+    const s = await api("/api/site?slug=" + encodeURIComponent(P.product.slug)).catch(() => null);
+    if (!s) return;
+    renderJobBox(s.job);
+    if (!s.job || s.job.status !== "running") {
+      clearInterval(sitePoll); sitePoll = null;
+      if (s.job?.status === "done") { toast("Website copied"); await safe(loadWeb); }
+      else if (s.job?.status === "error") toast(s.job.error, 8000);
+    }
+  }, 1500);
 }
 
 $("#web-form").onsubmit = e => {
   e.preventDefault();
   if (!P) return;
-  if (WEB?.copy && $("#web-replace").checked && !confirm("Replace your edited copy with a fresh copy of Danfoss's page?")) return;
-  webCall("/api/webpage/copy", { url: $("#web-url").value.trim(), replace: $("#web-replace").checked },
-    "Reading Danfoss's page and making the copy… (a few seconds)");
+  if (SITE?.site && $("#web-replace").checked && !confirm("Replace ALL your edited page copies with fresh copies of Danfoss's pages?")) return;
+  safe(async () => {
+    await api("/api/site/copy", { slug: P.product.slug, url: $("#web-url").value.trim(),
+      max_pages: +$("#web-max").value || 15, replace: $("#web-replace").checked });
+    $("#web-copy-btn").disabled = true;
+    renderJobBox({ status: "running", log: ["Starting…"], elapsed: 0 });
+    pollSite();
+  });
 };
+$("#web-stop").onclick = () => safe(async () => { await api("/api/site/stop", {}); toast("Stopping after the current page…"); });
 $("#web-import").onchange = e => {
   const file = e.target.files[0];
   if (!file || !P) return;
-  if (WEB?.copy && $("#web-replace").checked && !confirm("Replace your edited copy with this file?")) return;
   const r = new FileReader();
-  r.onload = () => webCall("/api/webpage/copy", {
-    url: $("#web-url").value.trim(), replace: $("#web-replace").checked,
-    filename: file.name, data: String(r.result).split(",")[1],
-  }, "Reading the saved page…").finally(() => { e.target.value = ""; });
+  r.onload = () => safe(async () => {
+    const res = await api("/api/site/import", { slug: P.product.slug, url: $("#web-url").value.trim(),
+      filename: file.name, data: String(r.result).split(",")[1] });
+    toast("Page imported"); PAGESEL = res.id; await loadWeb();
+  }).finally(() => { e.target.value = ""; });
   r.readAsDataURL(file);
 };
+
+function renderSite() {
+  const s = SITE.site, rows = Object.fromEntries((SITE.checks?.pages || []).map(r => [r.id, r]));
+  $("#web-copy-btn").textContent = "Copy the website again";
+  $("#web-copyinfo").innerHTML = `${s.pages.length} pages copied ${esc(s.copied.replace("T", " "))} from <a href="${esc(s.start)}" target="_blank" rel="noopener">${esc(s.start)}</a>${s.browser ? "" : " (without a browser: pages that need JavaScript may be incomplete)"}.`;
+  $("#web-site").classList.remove("hidden");
+  $("#web-pages").innerHTML = s.pages.map(pg => {
+    const r = rows[pg.id] || {};
+    const d = r.depth == null ? 3 : Math.min(r.depth, 3);
+    return `<li data-id="${esc(pg.id)}" class="d${d} ${pg.id === PAGESEL ? "sel" : ""}">${esc(r.h1 || pg.h1)}
+      ${pg.id === SITE.lab_page ? '<span class="labtag">· in the citation test</span>' : ""}
+      <span class="meta">${r.depth == null ? "not linked from the first page" : r.depth === 0 ? "first page" : r.depth + " click" + (r.depth > 1 ? "s" : "") + " deep"} · ${r.links_in ?? 0} links in · ${r.links_out ?? 0} out</span></li>`;
+  }).join("");
+  $$("#web-pages li").forEach(li => li.onclick = () => safe(() => selectPage(li.dataset.id, true)));
+  if (SITE.checks) renderAudit($("#web-sitechecks"), { "Your website": SITE.checks.summary });
+}
+
+async function selectPage(id, setFrame) {
+  if (PAGESEL !== id) $("#web-verify-out").innerHTML = "";
+  PAGESEL = id;
+  $$("#web-pages li").forEach(li => li.classList.toggle("sel", li.dataset.id === id));
+  if (setFrame) $("#web-frame").src = pageUrl(`site/${id}.html`) + "?t=" + Date.now();
+  WEB = await api(`/api/site/page?slug=${encodeURIComponent(P.product.slug)}&id=${encodeURIComponent(id)}`);
+  renderPage();
+}
+
+// follow clicks inside the little website: select the page it shows
+$("#web-frame").addEventListener("load", () => {
+  try {
+    const m = /\/site\/([^/?#]+)\.html$/.exec($("#web-frame").contentWindow.location.pathname);
+    if (m && decodeURIComponent(m[1]) !== PAGESEL) safe(() => selectPage(decodeURIComponent(m[1]), false));
+  } catch (e) { /* a page outside the website */ }
+});
+
 $("#web-save").onclick = () => {
-  if (!P) return;
-  webCall("/api/webpage/save", { text: $("#web-md").value }, "Saving your copy and checking it…")
-    .then(ok => ok && toast("Copy saved"));
+  if (!P || !PAGESEL) return;
+  const btn = $("#web-save"); btn.disabled = true;
+  $("#web-status").textContent = "";
+  safe(async () => {
+    try {
+      const r = await api("/api/site/save", { slug: P.product.slug, id: PAGESEL, text: $("#web-md").value });
+      SITE.checks = r.checks; WEB = r;
+      renderSite(); renderPage();
+      $("#web-frame").src = pageUrl(`site/${PAGESEL}.html`) + "?t=" + Date.now();
+      toast("Page saved");
+    } finally { btn.disabled = false; }
+  });
 };
 
-function renderWeb() {
+let WIKIBLOCKS = null;
+async function loadWikiBlocks() {
+  WIKIBLOCKS = await api("/api/site/wiki?slug=" + encodeURIComponent(P.product.slug));
+  $("#web-wiki-pick").innerHTML = WIKIBLOCKS.flatMap(b => [
+    `<option value="${esc(b.ref)}">${esc(b.title)} — whole</option>`,
+    ...b.sections.filter(s => !["facts", "summary"].includes(s.toLowerCase()))
+      .map(s => `<option value="${esc(b.ref + "#" + s)}">${esc(b.title)} — ${esc(s)}</option>`),
+  ]).join("");
+}
+function insertWiki(ref) {
+  const t = $("#web-md"), line = `\n{{wiki: ${ref}}}\n`;
+  const at = t.selectionStart ?? t.value.length;
+  t.value = t.value.slice(0, at) + line + t.value.slice(at);
+  t.focus(); t.selectionStart = t.selectionEnd = at + line.length;
+  toast("Wiki block inserted: press Save and check");
+}
+$("#web-wiki-insert").onclick = () => $("#web-wiki-pick").value && insertWiki($("#web-wiki-pick").value);
+
+function renderGaps(rows) {
+  $("#web-gaps-card").classList.remove("hidden");
+  $("#web-gaps").innerHTML = `<div class="tablewrap"><table class="data"><thead><tr><th>Question</th><th>Rank<br><small>passage · page</small></th><th>Beaten by</th><th>Words the winner has, this page lacks</th><th>Wiki blocks with them</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${esc(r.question)}</td>
+      <td><span class="${r.passage_rank === 1 ? "good" : r.passage_rank > 5 ? "badtxt" : ""}">#${r.passage_rank}</span> · #${r.page_rank}</td>
+      <td>${esc(r.winner || "—")}</td>
+      <td>${r.missing.map(esc).join(", ") || (r.absent_everywhere.length ? `<span class="hint">none (${r.absent_everywhere.map(esc).join(", ")}: on no page)</span>` : "—")}</td>
+      <td>${r.wiki.map(s => `<button type="button" class="chipbtn" data-ref="${esc(s.ref)}" title="has “${esc(s.term)}”">+ ${esc(s.title)}</button>`).join(" ") || "—"}</td></tr>`).join("") +
+    "</tbody></table></div>";
+  $$("#web-gaps [data-ref]").forEach(b => b.onclick = () => { insertWiki(b.dataset.ref); $("#web-md").scrollIntoView({ block: "center" }); });
+}
+
+function renderPage() {
   const w = WEB, c = w.changes, cp = w.copy;
-  $("#web-copy-btn").textContent = "Copy the page again";
-  $("#web-copyinfo").innerHTML = `Copy made ${esc(cp.copied.replace("T", " "))} from ${cp.imported ? `the saved file <b>${esc(cp.imported)}</b>` : `<a href="${esc(cp.final_url)}" target="_blank" rel="noopener">${esc(cp.final_url)}</a>`}.`;
+  if (!WIKIBLOCKS) safe(loadWikiBlocks);
+  $("#web-wiki-used").innerHTML = w.wiki.used.length
+    ? `Wiki blocks on this page (they follow the wiki): ${w.wiki.used.map(u => `<code>${esc(u)}</code>`).join(" ")}` : "No wiki blocks on this page yet.";
+  if (w.gaps) renderGaps(w.gaps);
+  const meta = (/^---[\s\S]*?\nurl:\s*"?([^"\n]*)"?/m.exec(cp.text) || [])[1] || cp.final_url;
+  $("#web-addr").textContent = meta;
+  $("#web-open").href = pageUrl(w.file);
   $("#web-edit").classList.remove("hidden");
-  if ($("#web-md").value !== cp.text) $("#web-md").value = cp.text;
-  $("#web-saved").textContent = `Last saved ${cp.changed.replace("T", " ")}`;
+  $("#web-edit-title").textContent = (SITE.checks?.pages || []).find(r => r.id === w.id)?.h1 || w.id;
+  if ($("#web-md").dataset.page !== w.id || $("#web-md").value !== cp.text) { $("#web-md").value = cp.text; $("#web-md").dataset.page = w.id; }
+  $("#web-saved").textContent = `Copied ${cp.copied.slice(0, 10)} (${cp.rendered_with}) · last saved ${cp.changed.replace("T", " ")}`;
   $("#web-out").classList.remove("hidden");
   const list = (a) => a.map(esc).join(" ");
   $("#web-check").innerHTML = (c.same
@@ -520,22 +625,186 @@ function renderWeb() {
          ${c.numbers_added.length ? `<p class="hint"><b>New numbers:</b> ${list(c.numbers_added)}</p>` : ""}
          ${c.numbers_removed.length ? `<p class="hint"><b>Numbers removed:</b> ${list(c.numbers_removed)}</p>` : ""}`)
     + (c.numbers_not_in_wiki.length ? `<div class="warnbox">⚠ New numbers that are not in the wiki: <b>${list(c.numbers_not_in_wiki)}</b>. Every fact must come from the wiki: add it there with its Danfoss source, or remove it.</div>` : "")
-    + (c.removed_empty_sections.length ? `<p class="hint">Left out when copying: headings with nothing under them in the HTML (a script fills them on the live page, so a crawler sees them empty): <b>${esc(c.removed_empty_sections.join(", "))}</b>.</p>` : "")
-    + `<p class="hint">Your copy is in the citation test as <code>${esc(w.files.lab)}</code> (style “restructured”), extracted the same way as Danfoss's page.</p>`;
-  $("#web-files").innerHTML = `<a class="dl main" href="${pageUrl(w.files.rebuilt, 1)}">⬇ Your page (HTML)</a>
-    <a class="dl" href="${pageUrl(w.files.rebuilt)}" target="_blank" rel="noopener">Open it in a new tab</a>
-    <a class="dl" href="${pageUrl(w.files.sitemap)}" target="_blank" rel="noopener">sitemap.xml</a>
+    + (c.removed_empty_sections.length ? `<p class="hint">Left out when copying: headings with nothing under them (a script fills them on the live page, so a crawler sees them empty): <b>${esc(c.removed_empty_sections.join(", "))}</b>.</p>` : "")
+    + (w.is_lab_page ? `<p class="hint">This page is the product's page in the citation test: <code>${esc(w.lab_file || "")}</code> (style “restructured”), extracted the same way as Danfoss's page.</p>` : "");
+  $("#web-files").innerHTML = `<a class="dl main" href="${pageUrl(w.file, 1)}">⬇ This page (HTML)</a>
+    <a class="dl" href="${pageUrl("sitemap.xml")}" target="_blank" rel="noopener">sitemap.xml</a>
     <a class="dl" href="${esc(cp.final_url)}" target="_blank" rel="noopener">Danfoss's page</a>`;
-  const outline = (list, title) => `<div><h3>${title}</h3><ul class="outline">${list.map(h => h.pseudo && !h.level ? `<li class="pseudo">bold text: ${esc(h.text)}</li>`
-      : `<li class="lv${h.level}${h.pseudo ? " fixed" : ""}"><b>H${h.level}</b> ${esc(h.text)}${h.pseudo ? " <small>(was bold text)</small>" : ""}</li>`).join("")}</ul></div>`;
+  const outline = (lst, title) => `<div><h3>${title}</h3><ul class="outline">${lst.map(h => h.pseudo && !h.level ? `<li class="pseudo">bold text: ${esc(h.text)}</li>`
+      : `<li class="lv${h.level}"><b>H${h.level}</b> ${esc(h.text)}</li>`).join("")}</ul></div>`;
   $("#web-outline").innerHTML = outline(w.outline.original, "Danfoss's page") + outline(w.outline.rebuilt, "Your copy");
-  $("#web-frame").src = pageUrl(w.files.rebuilt) + "?t=" + Date.now();
   renderAudit($("#web-audit"), w.audit);
   renderGooglebot($("#web-gbot"), w.googlebot);
   renderBm25($("#web-bm25"), w.bm25);
   const claims = (fs) => fs.length ? `<ul class="claims">${fs.map(f => `<li><span class="tag">${esc(f.type)}</span> “${esc(f.match)}” — <span class="hint">${esc(f.sentence)}</span></li>`).join("")}</ul>` : `<p class="okbox">✔ None found.</p>`;
   $("#web-claims").innerHTML = `<div class="grid2"><div><h3>Danfoss's page</h3>${claims(w.claims.original)}</div><div><h3>Your copy</h3>${claims(w.claims.copy)}</div></div>`;
 }
+
+// --- Citations tab: what Gemini with Google Search cites ------------------------------------
+let CIT = null, CITROW = null, citPoll = null;
+
+async function loadCitations() {
+  CIT = await api("/api/citations?slug=" + encodeURIComponent(P.product.slug));
+  $("#cit-key").innerHTML = CIT.has_key ? "✔ Gemini key saved."
+    : `<span style="color:var(--warn)">No Gemini API key yet: add it in ⚙ Settings to run updates.</span>`;
+  const sec = $("#cit-section"), prev = sec.value;
+  sec.innerHTML = `<option value="all">All (${Object.values(CIT.sections).reduce((a, b) => a + b, 0)})</option>` +
+    Object.entries(CIT.sections).map(([k, n]) => `<option value="${esc(k)}">${esc(k)} (${n})</option>`).join("");
+  sec.value = prev && [...sec.options].some(o => o.value === prev) ? prev : (Object.keys(CIT.sections)[0] || "all");
+  const ours = $("#cit-ours"), prevO = ours.value;
+  ours.innerHTML = CIT.ours.map(o => `<option value="${esc(o.id)}">${esc(o.label)}</option>`).join("") || `<option value="">No page of ours yet</option>`;
+  if (prevO && CIT.ours.some(o => o.id === prevO)) ours.value = prevO;
+  renderCitJob(CIT.job);
+  if (CIT.job && CIT.job.status === "running") pollCitations();
+  renderCitHistory();
+  const runs = CIT.history.runs;
+  $("#cit-run").innerHTML = runs.map(r => `<option value="${esc(r.run)}">${esc(r.date)} · ${r.prompts} prompts</option>`).join("") || `<option value="">No update yet</option>`;
+  if (CIT.latest) $("#cit-run").value = CIT.latest;
+  renderCitPrompts(CIT.summary);
+}
+
+function renderCitJob(job) {
+  $("#cit-job").classList.toggle("hidden", !job);
+  if (!job) return;
+  const label = { running: "Asking Gemini…", done: "✔ Update finished", error: "⚠ Stopped" }[job.status] || job.status;
+  $("#cit-job-step").textContent = `${label} (${Math.floor(job.elapsed / 60)}:${String(job.elapsed % 60).padStart(2, "0")})`;
+  const log = $("#cit-log"); log.textContent = job.log.join("\n"); log.scrollTop = log.scrollHeight;
+  $("#cit-update").disabled = job.status === "running";
+}
+
+function pollCitations() {
+  clearInterval(citPoll);
+  citPoll = setInterval(async () => {
+    const s = await api("/api/citations?slug=" + encodeURIComponent(P.product.slug)).catch(() => null);
+    if (!s) return;
+    renderCitJob(s.job);
+    if (!s.job || s.job.status !== "running") {
+      clearInterval(citPoll); citPoll = null;
+      if (s.job?.status === "done") toast("Citations updated");
+      else if (s.job?.status === "error") toast(s.job.error, 8000);
+      await safe(loadCitations);
+    }
+  }, 2000);
+}
+
+$("#cit-update").onclick = () => safe(async () => {
+  await api("/api/citations/update", { slug: P.product.slug, section: $("#cit-section").value,
+    limit: +$("#cit-limit").value || 0, model: $("#cit-model").value.trim() });
+  renderCitJob({ status: "running", log: ["Starting…"], elapsed: 0 });
+  pollCitations();
+});
+
+function shareBar(x, danfoss) {
+  const w = Math.round(100 * (x || 0));
+  return `<span class="sharebar"><i style="width:${w}%" class="${danfoss ? "us" : ""}"></i></span> ${w}%`;
+}
+
+function renderCitHistory() {
+  const h = CIT.history;
+  if (!h.runs.length) {
+    $("#cit-history").innerHTML = `<p class="hint">No update yet. Press <b>Update citations</b> (needs a Gemini key). A first test with “At most 3” takes about a minute.</p>`;
+    $("#cit-sites").innerHTML = ""; return;
+  }
+  $("#cit-history").innerHTML = `<div class="tablewrap"><table class="data"><thead><tr><th>Update</th><th>Prompts</th><th>Pages cited</th><th>Answers citing Danfoss</th><th>Danfoss share</th><th>Most cited sites (share)</th></tr></thead><tbody>` +
+    h.runs.map(r => `<tr><td>${esc(r.date)}<div class="tiny hint">${esc(r.model)}${r.has_shares ? "" : " · counts only"}</div></td><td>${r.prompts}</td><td>${r.sources}</td>
+      <td>${r.danfoss_answers} of ${r.prompts}</td><td>${shareBar(r.danfoss_share, true)}</td>
+      <td class="tiny">${r.top_sites.map(([d, v]) => `${esc(d)} ${pct(v)}`).join(" · ")}</td></tr>`).join("") + "</tbody></table></div>";
+  const runs = h.runs.slice().reverse();
+  $("#cit-sites").innerHTML = runs.length < 2 ? "" : `<h3>Share per site, update by update</h3><div class="tablewrap"><table class="data"><thead><tr><th>Site</th>${runs.map(r => `<th>${esc(r.date.slice(5))}</th>`).join("")}</tr></thead><tbody>` +
+    h.sites.map(s => `<tr><td>${esc(s.site)}</td>${runs.map(r => `<td>${s.by_run[r.run] != null ? pct(s.by_run[r.run]) : "–"}</td>`).join("")}</tr>`).join("") + "</tbody></table></div>";
+}
+
+function renderCitPrompts(rows) {
+  $("#cit-prompts").innerHTML = !rows.length ? "" : `<div class="tablewrap"><table class="data pick"><thead><tr><th>Prompt</th><th>Pages</th><th>Searches</th><th>Top page (share)</th><th>Danfoss share</th></tr></thead><tbody>` +
+    rows.map(r => `<tr data-i="${r.i}"><td>${esc(r.prompt)}</td><td>${r.sources}</td><td>${r.queries}</td><td>${esc(r.top || "—")} ${r.top ? pct(r.top_share) : ""}</td><td>${shareBar(r.danfoss_share, true)}</td></tr>`).join("") + "</tbody></table></div>";
+  $$("#cit-prompts tr[data-i]").forEach(tr => tr.onclick = () => safe(() => openCitPrompt(+tr.dataset.i)));
+}
+
+$("#cit-run").onchange = () => safe(async () => {
+  renderCitPrompts(await api("/api/citations/run?run=" + encodeURIComponent($("#cit-run").value)));
+  $("#cit-detail").classList.add("hidden");
+});
+$("#cit-ours").onchange = () => CITROW != null && safe(() => openCitPrompt(CITROW));
+
+async function openCitPrompt(i) {
+  CITROW = i;
+  $$("#cit-prompts tr[data-i]").forEach(tr => tr.classList.toggle("sel", +tr.dataset.i === i));
+  const q = new URLSearchParams({ slug: P.product.slug, run: $("#cit-run").value, i, ours: $("#cit-ours").value });
+  const d = await api("/api/citations/prompt?" + q);
+  $("#cit-detail").classList.remove("hidden");
+  $("#cit-q").textContent = d.prompt;
+  $("#cit-meta").textContent = `Asked ${d.asked_at.replace("T", " ")} · ${d.model}` + (d.coverage != null ? ` · ${pct(d.coverage)} of the answer is backed by a source` : "");
+  $("#cit-answer").textContent = d.answer;
+  $("#cit-sources").innerHTML = d.sources.length ? `<div class="tablewrap"><table class="data"><thead><tr><th>#</th><th>Page</th><th>Share of the answer</th><th>Pieces supported</th><th>Confidence</th></tr></thead><tbody>` +
+    d.sources.map(s => `<tr><td>${s.rank ?? ""}</td><td>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.site)}</a>` : esc(s.site)}${s.danfoss ? ' <span class="tag">Danfoss</span>' : ""}</td>
+      <td>${shareBar(s.share, s.danfoss)}</td><td>${s.supports}</td><td>${s.confidence != null ? s.confidence : "—"}</td></tr>`).join("") + "</tbody></table></div>"
+    : `<p class="hint">Gemini answered without searching.</p>`;
+  const c = d.compare;
+  if (!c) { $("#cit-queries").innerHTML = `<p class="hint">No page of ours to compare yet.</p>`; return; }
+  $("#cit-queries").innerHTML = (c.queries.length ? `<p class="hint">Our page answers <b>${c.answered} of ${c.n_queries}</b> searches best (${esc(d.ours.label)}).</p>
+    <div class="tablewrap"><table class="data"><thead><tr><th>Search</th><th>Our rank</th><th>Leads</th><th>Our best passage</th></tr></thead><tbody>` +
+    c.queries.map(x => `<tr><td>${esc(x.query)}</td><td><span class="${x.answered ? "good" : "badtxt"}">#${x.our_rank}</span> of ${x.of}</td><td>${esc(x.leader)}</td><td class="tiny">${esc(x.our_passage)}</td></tr>`).join("") + "</tbody></table></div>"
+    : `<p class="hint">None of the cited pages could be imported, so there is nothing to compare.</p>`)
+    + (c.docs.length ? `<details><summary>The passage of each cited page that best matches what Gemini took from it</summary>${c.docs.map(x => `<p><b>${esc(x.site)}</b> (${pct(x.share)}): <span class="hint">${esc(x.likely_passage || "—")}</span></p>`).join("")}</details>` : "")
+    + (c.not_imported.length ? `<p class="hint tiny">Not imported (blocked or no text): ${c.not_imported.map(x => esc(x.site)).join(", ")}</p>` : "");
+  $("#cit-why").innerHTML = ""; $("#cit-explain-status").textContent = "";
+}
+
+$("#cit-explain").onclick = () => {
+  if (CITROW == null) return;
+  const s = gather(), btn = $("#cit-explain"); btn.disabled = true;
+  $("#cit-explain-status").textContent = `Asking ${S.providers[s.judge]?.label || s.judge} (${s.judge_model})… a local model can take a minute or two.`;
+  safe(async () => {
+    try {
+      const r = await api("/api/citations/explain", { slug: P.product.slug, run: $("#cit-run").value, i: CITROW,
+        ours: $("#cit-ours").value, provider: s.judge, model: s.judge_model, fresh: $("#cit-fresh").checked });
+      const keys = r.rubric.map(k => k.key);
+      $("#cit-why").innerHTML = `<p>${esc(r.why)}</p>
+        ${r.missing.length ? `<p class="hint"><b>What the weakest passages lack:</b> ${r.missing.map(esc).join("; ")}</p>` : ""}
+        <div class="tablewrap"><table class="data"><thead><tr><th>Passage</th><th>Gemini share</th>${r.rubric.map(k => `<th title="${esc(k.text)}">${esc(k.key.replace(/_/g, " "))}</th>`).join("")}<th>Total</th></tr></thead><tbody>` +
+        r.rows.sort((a, b) => b.total - a.total).map(x => `<tr><td>${esc(x.label)} · ${esc(x.name)}</td><td>${pct(x.gemini_share)}</td>${keys.map(k => `<td>${x.scores[k]}</td>`).join("")}<td><b>${x.total}</b></td></tr>`).join("") + "</tbody></table></div>" +
+        `<p class="hint">Agreement with Gemini's shares (rank correlation, −1 to 1): <b>${r.agreement ?? "not enough pages"}</b>. Each passage was ${r.words_per_passage} words. Reviewer: ${esc(r.model)}.</p>` +
+        `<details><summary>The passages the reviewer saw</summary>${r.rows.map(x => `<p><b>${esc(x.label)} · ${esc(x.name)}</b>: <span class="hint">${esc(x.excerpt)}</span></p>`).join("")}</details>`;
+      $("#cit-explain-status").textContent = "";
+    } catch (e) { $("#cit-explain-status").textContent = ""; throw e; } finally { btn.disabled = false; }
+  });
+};
+
+// --- fact check (both web tabs) ---------------------------------------------------------
+let verifyPoll = null;
+function factCheck(kind, ref, out, status, btn) {
+  const s = gather();
+  btn.disabled = true; out.innerHTML = "";
+  status.textContent = "Starting…";
+  safe(async () => {
+    try {
+      await api("/api/verify", { slug: P.product.slug, kind, ref, provider: s.judge, model: s.judge_model });
+    } catch (e) { btn.disabled = false; status.textContent = ""; throw e; }
+    clearInterval(verifyPoll);
+    verifyPoll = setInterval(async () => {
+      const j = await api("/api/verify/job").catch(() => null);
+      if (!j) return;
+      status.textContent = j.status === "running" ? (j.log.slice(-1)[0] || "Checking…") : "";
+      if (j.status === "running") return;
+      clearInterval(verifyPoll); btn.disabled = false;
+      if (j.status === "error") { toast(j.error, 8000); return; }
+      const r = j.result, m = r.summary;
+      const icon = { supported: "✔", partly: "▲", unsupported: "✖", "not checked": "…" };
+      const cls = { supported: "st-ok", partly: "st-warn", unsupported: "st-bad", "not checked": "" };
+      out.innerHTML = `<div class="${m.unsupported ? "warnbox" : "okbox"}">${m.supported} of ${m.claims} claims supported` +
+        (m.partly ? `, ${m.partly} partly` : "") + (m.unsupported ? `, <b>${m.unsupported} not supported</b>` : "") +
+        (m["not checked"] ? `, ${m["not checked"]} not checked (limit)` : "") + ` · model calls: ${m.model_calls} (${esc(r.backend)})</div>` +
+        `<div class="tablewrap"><table class="data"><thead><tr><th>Verdict</th><th>Claim</th><th>How</th><th>Best source</th></tr></thead><tbody>` +
+        r.claims.filter(c => c.verdict !== "supported").concat(r.claims.filter(c => c.verdict === "supported").slice(0, 15)).map(c =>
+          `<tr><td class="${cls[c.verdict] || ""}"><span class="icon">${icon[c.verdict] || ""}</span> ${esc(c.verdict)}</td><td>${esc(c.claim)}</td>
+           <td class="tiny">${esc(c.method)}${c.note ? `<div class="hint">${esc(c.note)}</div>` : ""}${c.quote ? `<div class="hint">“${esc(c.quote)}”</div>` : ""}</td>
+           <td class="tiny">${c.evidence[0] ? `<b>${esc(c.evidence[0].source)}</b>: ${esc(c.evidence[0].text.slice(0, 160))}` : "—"}</td></tr>`).join("") +
+        `</tbody></table></div>` + (m.supported > 15 ? `<p class="hint tiny">Showing the first 15 supported claims.</p>` : "");
+    }, 1500);
+  });
+}
+$("#web-verify").onclick = () => PAGESEL && factCheck("site", PAGESEL, $("#web-verify-out"), $("#web-verify-status"), $("#web-verify"));
+$("#cat-verify").onclick = () => CATFILE && factCheck("product", CATFILE, $("#cat-verify-out"), $("#cat-verify-status"), $("#cat-verify"));
 
 // --- Product by product tab ---------------------------------------------------------------
 async function loadCatalog() {
@@ -574,6 +843,7 @@ function buildProduct(version) {
           ? `<div class="warnbox">⚠ Check before use:${f.numbers_not_in_facts.length ? ` numbers not in this product's facts: <b>${esc(f.numbers_not_in_facts.join(", "))}</b>.` : ""}${f.claims.length ? ` Never-claim words: ${f.claims.map(c => `“${esc(c.match)}”`).join(", ")}.` : ""}</div>`
           : `<div class="okbox">✔ No numbers outside this product's facts and no never-claim words found. Still read it before use.</div>`)
         : `<div class="okbox">✔ Every sentence comes from the fact sheet (${r.words} words).</div>`;
+      CATFILE = r.file; $("#cat-verify-out").innerHTML = "";
       $("#cat-files").innerHTML = `<a class="dl main" href="${pageUrl(r.file, 1)}">⬇ Page (HTML)</a><a class="dl" href="${pageUrl(r.file)}" target="_blank" rel="noopener">Open in a new tab</a>`;
       $("#cat-frame").src = pageUrl(r.file) + "?t=" + Date.now();
       renderAudit($("#cat-audit"), { [version]: r.audit });

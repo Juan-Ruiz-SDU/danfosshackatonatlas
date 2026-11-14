@@ -392,6 +392,24 @@ def pct(x):
 
 
 # --- main --------------------------------------------------------------------
+def refresh_site_copies():
+    """The 'restructured' page is the team's website copy from the Atlas app, which
+    takes product facts from the wiki. Rebuild it first, so the lab tests it with
+    the wiki as it is now. Quietly skipped if the app or the copy is missing."""
+    try:
+        sys.path.insert(0, str(REPO / "app"))
+        import products as atlas_products
+        import website
+        for p in atlas_products.list_products():
+            prod = atlas_products.get(p["slug"])
+            if prod.get("restructured_dir"):
+                url = next((u for b, u in atlas_products.source_list(prod) if b.lower() == TARGET.lower()), "")
+                if website.refresh(prod, url):
+                    print(f"Website copy of '{p['slug']}' rebuilt from the current wiki")
+    except Exception as e:  # noqa: BLE001
+        print(f"(website copy not rebuilt: {e})")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--provider", choices=PROVIDERS, default="fake")
@@ -429,6 +447,7 @@ def main():
     args = ap.parse_args()
 
     load_dotenv()
+    refresh_site_copies()
     max_words = args.max_words
     targets = [d for folder in args.variants for d in load_docs(folder, TARGET, max_words)]
     targets = [d for d in targets if d.brand.lower() == TARGET.lower()]

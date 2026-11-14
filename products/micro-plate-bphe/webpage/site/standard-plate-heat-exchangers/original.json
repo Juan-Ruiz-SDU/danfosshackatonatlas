@@ -1,0 +1,207 @@
+{
+ "id": "standard-plate-heat-exchangers",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+ "copied": "2026-11-14T22:26:41",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Standard plate heat exchangers | Danfoss",
+  "description": "SONDEX® standard plate heat exchangers are customized to your exact specifications for the ultimate in heat transfer solutions.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Gasketed heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/"
+  ],
+  [
+   "Standard plate heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.76 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "135 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "28 (19 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "40 chars",
+   "status": "ok",
+   "note": "Standard plate heat exchangers | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "127 chars",
+   "status": "ok",
+   "note": "SONDEX® standard plate heat exchangers are customized to your exact specifications for the ultimate in heat transfer solutions."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/standard-plate-heat-exchangers/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "4 of 18",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "492 of 980",
+   "status": "warn",
+   "note": "Most of the text only appears after JavaScript runs: crawlers that do not run it (many AI search bots) miss it, and Googlebot reads it later"
+  }
+ ],
+ "claims": [],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Standard plate heat exchangers"
+  },
+  {
+   "level": 3,
+   "text": "Features and benefits"
+  },
+  {
+   "level": 3,
+   "text": "Applications"
+  },
+  {
+   "level": 3,
+   "text": "Technical specifications"
+  },
+  {
+   "level": 4,
+   "text": "SONDEX® Fishbone plates"
+  },
+  {
+   "level": 2,
+   "text": "Documents"
+  },
+  {
+   "level": 2,
+   "text": "Related products"
+  },
+  {
+   "level": 2,
+   "text": "Case stories"
+  },
+  {
+   "level": 2,
+   "text": "Service"
+  }
+ ],
+ "words_raw": 492,
+ "words_rendered": 980,
+ "links": [
+  "https://www.danfoss.com/en/contact-us/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/gasketed-heat-exchangers/plate-technology/fishbone-plates/",
+  "https://www.danfoss.com/en/products/dcs/heat-exchangers/plate-heat-exchangers/semi-welded-plate-heat-exchanger-industrial-refrigeration-ammonia-applications/",
+  "https://www.danfoss.com/en/service-and-support/case-stories/dcs/empowering-geothermal-expansion-in-zakopane-in-poland/",
+  "https://www.danfoss.com/en/service-and-support/case-stories/dhs/danfoss-ensured-the-right-pool-temperature-at-the-right-time/",
+  "https://www.danfoss.com/en/service-and-support/case-stories/dhs/sondex-raises-the-standard-in-brazil/",
+  "https://www.danfoss.com/en/service-and-support/case-stories/dhs/reduced-energy-consumption-with-new-optimized-heat-exchanger-plates/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/service-and-distribution/gasketed-plate-heat-exchanger-service/"
+ ]
+}

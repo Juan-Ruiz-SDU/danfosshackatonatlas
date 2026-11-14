@@ -99,15 +99,81 @@ def ask(prompt, model, key, retries=4):
                 continue
             raise RuntimeError(f"Network error: {e.reason}")
 
+    d = parse_grounding(data)
+    return d["answer"], d["search_queries"], [(s["uri"], s["title"], s["supports"]) for s in d["sources"]]
+
+
+def ask_detailed(prompt, model, key, retries=4):
+    """Like ask(), but keeps how much of the answer each source supports."""
+    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
+                       "tools": [{"google_search": {}}]}).encode()
+    req = urllib.request.Request(API.format(model=model), data=body, headers={
+        "Content-Type": "application/json", "x-goog-api-key": key})
+    wait = 15
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                return parse_grounding(json.loads(resp.read()))
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode(errors="replace")[:500]
+            if e.code in (429, 500, 502, 503, 504) and attempt < retries:
+                print(f"    busy ({e.code}), waiting {wait}s...", flush=True)
+                time.sleep(wait)
+                wait *= 2
+                continue
+            raise RuntimeError(f"Gemini error {e.code}: {msg}")
+        except urllib.error.URLError as e:
+            if attempt < retries:
+                print(f"    network error ({e.reason}), waiting {wait}s...", flush=True)
+                time.sleep(wait)
+                wait *= 2
+                continue
+            raise RuntimeError(f"Network error: {e.reason}")
+
+
+def parse_grounding(data):
+    """What Gemini says about its sources. Gemini does not rank documents with
+    BM25 and gives no score per document. What it does return is which pieces of
+    its answer each source supports (groundingSupports), sometimes with a
+    confidence. From that we compute each source's SHARE of the answer: the
+    characters of the answer it supports (a piece backed by two sources counts
+    half for each), divided by all supported characters."""
     cand = (data.get("candidates") or [{}])[0]
     text = "".join(p.get("text", "") for p in cand.get("content", {}).get("parts", []))
-    meta = cand.get("groundingMetadata", {})
-    chunks = meta.get("groundingChunks", [])
-    supports = collections.Counter(i for s in meta.get("groundingSupports", [])
-                                   for i in s.get("groundingChunkIndices", []))
-    found = [(c["web"].get("uri", ""), c["web"].get("title", ""), supports[i])
-             for i, c in enumerate(chunks) if c.get("web", {}).get("uri")]
-    return text.strip(), meta.get("webSearchQueries", []), found
+    meta = cand.get("groundingMetadata", {}) or {}
+    chunks = meta.get("groundingChunks", []) or []
+    supports = meta.get("groundingSupports", []) or []
+    per = collections.defaultdict(lambda: {"supports": 0, "chars": 0.0, "conf": [], "segments": []})
+    covered = set()
+    for s in supports:
+        seg = s.get("segment", {}) or {}
+        start, end = int(seg.get("startIndex", 0) or 0), int(seg.get("endIndex", 0) or 0)
+        idx = s.get("groundingChunkIndices", []) or []
+        conf = s.get("confidenceScores", []) or []
+        if not idx:
+            continue
+        covered.update(range(start, end))
+        for k, i in enumerate(idx):
+            e = per[i]
+            e["supports"] += 1
+            e["chars"] += max(0, end - start) / len(idx)
+            if k < len(conf):
+                e["conf"].append(conf[k])
+            e["segments"].append(seg.get("text", "")[:300])
+    total = sum(e["chars"] for e in per.values()) or 1.0
+    sources = []
+    for i, c in enumerate(chunks):
+        web = c.get("web", {}) or {}
+        if not web.get("uri"):
+            continue
+        e = per.get(i, {"supports": 0, "chars": 0.0, "conf": [], "segments": []})
+        sources.append({"uri": web.get("uri", ""), "title": web.get("title", ""), "rank": i + 1,
+                        "supports": e["supports"], "share": round(e["chars"] / total, 4),
+                        "confidence": round(sum(e["conf"]) / len(e["conf"]), 3) if e["conf"] else None,
+                        "segments": e["segments"][:8]})
+    return {"answer": text.strip(), "search_queries": meta.get("webSearchQueries", []) or [],
+            "sources": sources, "answer_chars": len(text),
+            "supported_chars": len(covered)}
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -185,20 +251,22 @@ def run_prompts(prompts, args, key):
         for n, prompt in enumerate(todo, len(done) + 1):
             print(f"[{n}/{len(prompts)}] {prompt}", flush=True)
             try:
-                answer, queries, found = ask(prompt, args.model, key)
+                d = ask_detailed(prompt, args.model, key)
             except RuntimeError as e:
                 print(f"\nStopped: {e}\nProgress is saved. Run the same command again to continue.")
                 sys.exit(1)
             sources = []
-            for uri, title, n_sup in found:
-                real = resolve(uri)
+            for s in d["sources"]:
+                real = resolve(s["uri"])
                 url = clean_url(real) if real else None
-                sources.append({"url": url, "title": title,
-                                "domain": domain_of(url) if url else title,
-                                "supports": n_sup})
+                sources.append({"url": url, "title": s["title"],
+                                "domain": domain_of(url) if url else s["title"],
+                                "supports": s["supports"], "share": s["share"], "rank": s["rank"],
+                                "confidence": s["confidence"], "segments": s["segments"]})
             row = {"prompt": prompt, "asked_at": datetime.datetime.now().isoformat(timespec="seconds"),
-                   "model": args.model, "search_queries": queries,
-                   "answer": answer, "sources": sources}
+                   "model": args.model, "search_queries": d["search_queries"],
+                   "answer": d["answer"], "answer_chars": d["answer_chars"],
+                   "supported_chars": d["supported_chars"], "sources": sources}
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             f.flush()
             done[prompt] = row

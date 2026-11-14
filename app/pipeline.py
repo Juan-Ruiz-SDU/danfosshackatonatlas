@@ -77,6 +77,12 @@ def run(job, slug, settings):
     fetch_fixed(job, p)
     discovery = discover(job, p, questions, s, out) if s["discovery"] else None
 
+    try:  # rebuild the reformatted website from the current wiki, so the test scores it as it is now
+        import website
+        if website.refresh(p, next((u for b, u in products.source_list(p) if b.lower() == TARGET), "")):
+            job.log("Website copy rebuilt from the current wiki")
+    except Exception as e:  # noqa: BLE001  (the copy is optional for a run)
+        job.log(f"Could not rebuild the website copy: {e}")
     pages = load_pages(p, s["max_words"])
     originals = [d for d in pages if d.brand.lower() == TARGET]
     competitors = [d for d in pages if d.brand.lower() != TARGET]
@@ -213,11 +219,15 @@ def load_pages(p, max_words):
 def write_variants(job, p, sheet, styles, s, out):
     kw = products.keyword(p, sheet)
     guidelines = products.guidelines(p)
+    raw_dir = REPO / p.get("raw_dir", "raw")
+    sources = gv.raw_context(raw_dir, f"{p['name']} {kw}")  # original passages, next to the wiki
+    if sources:
+        job.log(f"Writer also gets {len(sources.split())} words of original source passages from {raw_dir.name}/")
     variants = []
     for i, style in enumerate(styles):
         job.step("Writing the page in different styles", i, len(styles))
         prompt = gv.build_prompt(p["name"], s["words"], sheet,
-                                 gv.STYLES[style].format(keyword=kw), guidelines)
+                                 gv.STYLES[style].format(keyword=kw), guidelines, sources)
         allowed = gv.allowed_numbers(sheet, style)
         text, attempts = generate_page(job, s, prompt)
         path = out / "variants" / f"{style}.md"

@@ -1,0 +1,254 @@
+{
+ "id": "brazed-plate-heat-exchangers-for-cooling-and-heating-applications",
+ "url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+ "final_url": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+ "copied": "2026-11-14T22:26:29",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Brazed plate heat exchangers | Danfoss",
+  "description": "Our brazed plate heat exchangers (BPHE) offer a compact and flexible solution designed for ultra-efficient performance for your high-pressure or extreme-temperature applications.",
+  "canonical": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "Products",
+   "https://www.danfoss.com/en/products/"
+  ],
+  [
+   "Climate Solutions for heating",
+   "https://www.danfoss.com/en/products/dhs/"
+  ],
+  [
+   "Heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  ],
+  [
+   "Brazed heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/"
+  ],
+  [
+   "Brazed plate heat exchangers",
+   "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "Liquid to liquid brazed heat exchangers",
+  "Refrigerant to liquid brazed heat exchangers",
+  "Software"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.80 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "128 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "28 (19 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "38 chars",
+   "status": "ok",
+   "note": "Brazed plate heat exchangers | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "178 chars",
+   "status": "warn",
+   "note": "Our brazed plate heat exchangers (BPHE) offer a compact and flexible solution designed for ultra-efficient performance for your high-pressure or extreme-temperature applications."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 4,
+   "status": "warn",
+   "note": "Technical specification; Applications; Technical specification; Applications"
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 3,
+   "status": "bad",
+   "note": "Liquid to liquid brazed heat exchangers; Refrigerant to liquid brazed heat exchangers; Software — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 2,
+   "status": "warn",
+   "note": "Water cooling and heating; Heat recovery"
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "4 of 14",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "661 of 1236",
+   "status": "warn",
+   "note": "Most of the text only appears after JavaScript runs: crawlers that do not run it (many AI search bots) miss it, and Googlebot reads it later"
+  }
+ ],
+ "claims": [
+  {
+   "type": "unsupported superlative",
+   "match": "game changer",
+   "sentence": "Introduction to the concept and principle of the Micro Plate™ technology and Micro Plate™ Z-series - a game changer for heat pumps and chillers"
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Brazed plate heat exchangers"
+  },
+  {
+   "level": 2,
+   "text": "An innovative product portfolio for complete coverage of heating and cooling applications"
+  },
+  {
+   "level": 4,
+   "text": "What does that mean for you?"
+  },
+  {
+   "level": 3,
+   "text": "30 years of constant development"
+  },
+  {
+   "level": 3,
+   "text": "Micro Plate™ technology - ideal for district energy solutions and for use in heat pumps and chillers"
+  },
+  {
+   "level": 3,
+   "text": "Features and benefits"
+  },
+  {
+   "level": 2,
+   "text": "Brazed plate heat exchangers featuring the unique Micro Plate™ technology"
+  },
+  {
+   "level": 3,
+   "text": "Fishbone technology"
+  },
+  {
+   "level": 3,
+   "text": "Liquid to liquid brazed heat exchangers"
+  },
+  {
+   "level": 0,
+   "text": "Technical specification",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "Applications",
+   "pseudo": true
+  },
+  {
+   "level": 3,
+   "text": "Refrigerant to liquid brazed heat exchangers"
+  },
+  {
+   "level": 0,
+   "text": "Technical specification",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "Applications",
+   "pseudo": true
+  },
+  {
+   "level": 2,
+   "text": "Software"
+  },
+  {
+   "level": 2,
+   "text": "HEXSelector: Heat exchanger design software"
+  },
+  {
+   "level": 2,
+   "text": "Documents"
+  },
+  {
+   "level": 2,
+   "text": "Product range"
+  }
+ ],
+ "words_raw": 661,
+ "words_rendered": 1236,
+ "links": [
+  "https://www.danfoss.com/en/contact-us/",
+  "https://www.danfoss.com/en/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-plate-heat-exchangers-for-cooling-and-heating-applications/micro-plate-technology/",
+  "https://hexselector.com/",
+  "https://store.danfoss.com/en/Climate-Solutions-for-cooling/Heat-Exchangers/Plate-Heat-Exchangers/c/2080/",
+  "https://store.danfoss.com/en/Climate-Solutions-for-heating/Heat-Exchangers/c/4049/"
+ ]
+}

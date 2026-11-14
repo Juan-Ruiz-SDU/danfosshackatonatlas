@@ -3,6 +3,8 @@ How generated pages are built. These files are instructions, not facts: they are
 
 * [Page structure](page-structure.md) - One H1, one section per buyer topic, self-contained passages, specs in tables.
 * [Crawlability](crawlability.md) - What Googlebot and AI search need from the HTML: content in the first response, a fast and error-free server, clean metadata.
+* [Competitor training](competitor-training.md) - How the web pages take facts from this wiki (wiki blocks) and are improved against competitor pages, measured with BM25 and checked on holdout questions.
+* [Site structure](site-structure.md) - How pages are organised and linked so that Google finds every page, understands the catalog and passes authority from the strong pages to the product pages.
 * [Sitemap](sitemap.md) - Every published page is listed in an XML sitemap with its final address and the date it last changed, so Google finds it and reads it again after changes.
 * [Terminology](terminology.md) - Buyer wording and spelling variants that BM25 and search engines treat as different words.
 * [Evaluation hygiene](evaluation-hygiene.md) - Rules that keep the citation lab honest: no copying test questions, holdout questions, no keyword stuffing.

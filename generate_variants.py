@@ -79,11 +79,66 @@ so never take a number or claim from them):
 """
 
 
-def build_prompt(topic, words, wiki, style, guidelines=""):
+SOURCES_BLOCK = """
+ORIGINAL SOURCE PASSAGES (the Danfoss documents the fact sheet was compiled from).
+Use them only to get the details, conditions and caveats of FACT SHEET facts right
+(for example "in many systems", the model a figure belongs to). Do not add a fact,
+number or claim that is only here and not in the FACT SHEET. Never copy the [raw: ...] tags.
+{text}
+"""
+
+
+def build_prompt(topic, words, wiki, style, guidelines="", sources=""):
     """The writer prompt. `guidelines` is the text of the bundle's Guideline
-    concepts (load_guidelines), or empty."""
+    concepts (load_guidelines), or empty. `sources` is raw_context(): the
+    original passages that match the topic, or empty."""
     block = GUIDELINES_BLOCK.format(text=guidelines.strip()) if guidelines.strip() else ""
+    if sources.strip():
+        block += SOURCES_BLOCK.format(text=sources.strip())
     return PROMPT.format(topic=topic, words=words, wiki=wiki, style=style, guidelines=block)
+
+
+# --- original sources (raw/) ---------------------------------------------------
+def raw_passages(raw_dir):
+    """[(source id, passage heading, passage text)] of every document in raw/."""
+    raw_dir = pathlib.Path(raw_dir)
+    if not raw_dir.is_dir():
+        return []
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "lab"))
+    import experiment
+    out = []
+    for f in sorted(raw_dir.glob("*.md")):
+        if f.name.lower() == "readme.md":
+            continue
+        text = f.read_text(encoding="utf-8", errors="replace")
+        m = FRONTMATTER_RE.match(text)
+        body = text[m.end():] if m else text
+        for p in experiment.split_passages(body, 120):
+            out.append((f.stem, p["heading"], p["text"]))
+    return out
+
+
+def raw_context(raw_dir, query, words=900):
+    """The original passages that best match `query` (BM25), up to `words` words,
+    each tagged [raw: <source id>]: given to the writer next to the fact sheet,
+    because compiling the wiki loses detail."""
+    passages = raw_passages(raw_dir)
+    if not passages:
+        return ""
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "lab"))
+    import experiment
+
+    class P:
+        def __init__(self, i, sid, text):
+            self.i, self.sid, self.text = i, sid, text
+    docs = [P(i, sid, (head + "\n" + text).strip()) for i, (sid, head, text) in enumerate(passages)]
+    out, n = [], 0
+    for score, d in experiment.BM25(docs).rank(query):
+        if score <= 0 or n >= words:
+            break
+        out.append(f"[raw: {d.sid}] {' '.join(d.text.split())}")
+        n += len(d.text.split())
+    return "\n\n".join(out)
 
 NUM_RE = re.compile(r"\d[\d.,]*\d|\d")
 THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
@@ -302,6 +357,8 @@ def main():
     ap.add_argument("--temperature", type=float, default=0.3)
     ap.add_argument("--styles", default=",".join(STYLES), help="comma list")
     ap.add_argument("--out", default="variants")
+    ap.add_argument("--raw", default="raw", help="folder with the original source texts (lab/fetch_raw.py); "
+                    "'' to write from the wiki alone")
     args = ap.parse_args()
 
     wiki = load_okf_bundle(args.wiki)
@@ -313,6 +370,7 @@ def main():
                       re.DOTALL | re.MULTILINE)
         keyword = m.group(1).strip(" []") if m else args.topic
 
+    sources = raw_context(args.raw, f"{args.topic} {keyword}") if args.raw else ""
     out = pathlib.Path(args.out)
     out.mkdir(exist_ok=True)
     report_path = out / "report.json"
@@ -326,7 +384,7 @@ def main():
         allowed = allowed_numbers(wiki, style)
         for run in range(first, first + args.runs):
             prompt = build_prompt(args.topic, args.words, wiki,
-                                  STYLES[style].format(keyword=keyword), guidelines)
+                                  STYLES[style].format(keyword=keyword), guidelines, sources)
             print(f"Generating {style} #{run} ...", flush=True)
             page = call_ollama(args.host, args.model, prompt, args.temperature)
 

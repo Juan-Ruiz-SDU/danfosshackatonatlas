@@ -1,6 +1,8 @@
 # Directory Update Log
 
 ## 2026-11-14
+* **Creation**: `guidelines/competitor-training.md`. Web pages take product facts from this wiki through wiki blocks (`{{wiki: ...}}`), rebuilt on every view, save, Run and lab run, so wiki changes reach the web pages and the citation test. It also covers the training procedure against competitor pages, the first round on the Micro Plate page (BM25: holdout mean rank 3.80 to 2.20), and the facts still missing here: maintenance, lifetime, where to buy, efficiency figures.
+* **Creation**: `guidelines/site-structure.md`: a hub page per product family, categories and products linked both ways, at most 3 clicks deep, no orphan pages, descriptive link text, breadcrumbs, one topic per page, all text and links in the HTML. The Atlas Web page tab checks it on the copied website.
 * **Creation**: `guidelines/sitemap.md`: pages are listed in an XML sitemap with their final address and last change date; robots.txt declares it and lets Googlebot in. `guidelines/crawlability.md` now points to it and covers bot protection that must let crawlers through.
 * **Creation**: `guidelines/` (type `Guideline`): page structure, crawlability, terminology and evaluation hygiene, from the GEO research and the lab review. They are writing instructions, not facts: `generate_variants.py` keeps them out of the fact sheet and out of the allowed numbers, and `lab/review.py` leaves them out of the wiki check.
 * **Update**: `policies/never-claim.md`: generic environmental claims ("eco", "green", "environmentally friendly", "sustainable") are not allowed; only the specific environmental facts in this bundle may be repeated.

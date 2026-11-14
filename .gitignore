@@ -28,3 +28,8 @@ lab/discovered/explanations/
 
 # Citations tab: wiki suggestions made from a Gemini answer (decisions are in wiki/log.md)
 lab/discovered/suggestions/
+
+# Comparison links and downloaded pages stay on each laptop (not kept in git)
+products/*/sources.txt
+products/*/fixed/
+products/*/sources/

@@ -27,8 +27,13 @@ APP = pathlib.Path(__file__).resolve().parent
 TARGETS_FILE = APP / "targets.json"
 BUILTIN_TARGETS = {"cited_pct": 50, "first_count": 4}
 ANALYST = ("ollama", "qwen3:8b")
-NUM_CTX = 24576           # room for two pages, the per-question results and the wiki
-WIKI_BUDGET = 36000       # characters of wiki shown to the AI
+# The analysis uses the same context size as every other step (num_ctx in
+# providers.json, 16384): asking for a bigger one makes Ollama reload the model, which
+# can drop a request already running on the shared server. The prompt is trimmed to fit.
+ANSWER_TOKENS = 2500      # room left for the answer
+CHARS_PER_TOKEN = 3.0     # careful estimate for Markdown with many figures
+WIKI_BUDGET = 36000       # most characters of wiki shown to the AI
+PAGE_BUDGET = 4500        # characters of each page shown
 FILE_BUDGET = 5000        # per file
 SKIP_FILES = re.compile(r"(^|/)(index|log)\.md$|^experiments/")
 DANFOSS = "danfoss"
@@ -114,7 +119,7 @@ def wiki_files(p):
     return out
 
 
-def _wiki_for_prompt(files):
+def _wiki_for_prompt(files, budget=WIKI_BUDGET):
     # guidelines first: they decide how every page is written
     order = sorted(files, key=lambda r: (not r.startswith("guidelines/"), r))
     parts, used = [], 0
@@ -122,7 +127,7 @@ def _wiki_for_prompt(files):
         text = files[rel].read_text(encoding="utf-8", errors="replace").strip()
         if len(text) > FILE_BUDGET:
             text = text[:FILE_BUDGET] + "\n[... rest of the file not shown]"
-        if used + len(text) > WIKI_BUDGET:
+        if used + len(text) > budget:
             parts.append(f"=== FILE: {rel} ===\n[not shown: out of room]")
             continue
         used += len(text)
@@ -261,9 +266,15 @@ def _ask(job, provider, model, prompt):
         expected = max(expected, int(n * 1.1))
         job.step("Analysing the pages to improve the wiki", n, expected)
     job.step("Analysing the pages to improve the wiki", 0, expected)
-    text, _ = ai.ollama_stream(provider, model, "", prompt, temperature=0.2, fmt="json",
-                               on_token=on_token, cancel=job.cancelled, num_ctx=NUM_CTX)
-    return text
+    for attempt in range(2):
+        try:
+            text, _ = ai.ollama_stream(provider, model, "", prompt, temperature=0.2, fmt="json",
+                                       on_token=on_token, cancel=job.cancelled)
+            return text
+        except ai.ConnectionLost as e:
+            if attempt:
+                raise
+            job.log(f"  {e} Asking again ...")
 
 
 def _norm_file(name, files):
@@ -328,16 +339,22 @@ def analyse(job, p, out):
     except ValueError:
         allowed = frozenset()
 
-    prompt = PROMPT.format(
+    fields = dict(
         product=p["name"], cited_target=targets["cited_target"], first_target=targets["first_target"],
         check=check_text(targets), trials=stats[best]["trials"],
         best_name=names.get(best, best), best_cited=stats[best]["cited_count"],
-        best_first=stats[best]["first_count"], best_page=_page_text(p, out, best, rows)[:6000],
+        best_first=stats[best]["first_count"], best_page=_page_text(p, out, best, rows)[:PAGE_BUDGET],
         worst_name=names.get(worst, worst), worst_cited=stats[worst]["cited_count"],
-        worst_first=stats[worst]["first_count"], worst_page=_page_text(p, out, worst, rows)[:6000],
-        per_question=_per_question(rows, best, worst), wiki=_wiki_for_prompt(files))
-
+        worst_first=stats[worst]["first_count"], worst_page=_page_text(p, out, worst, rows)[:PAGE_BUDGET],
+        per_question=_per_question(rows, best, worst))
     provider, model = settings.get("analyst") or ANALYST[0], settings.get("analyst_model") or ANALYST[1]
+    pinfo = ai.providers().get(provider, {})
+    budget = WIKI_BUDGET
+    if pinfo.get("type") == "ollama":  # fit the prompt into the server's context size
+        room = (int(pinfo.get("num_ctx", 16384)) - ANSWER_TOKENS) * CHARS_PER_TOKEN
+        budget = int(min(WIKI_BUDGET, max(4000, room - len(PROMPT.format(**fields, wiki="")))))
+    prompt = PROMPT.format(**fields, wiki=_wiki_for_prompt(files, budget))
+
     job.log(f"Wiki analysis with {provider} {model}: best '{names.get(best, best)}' vs worst "
             f"'{names.get(worst, worst)}'")
     last = None

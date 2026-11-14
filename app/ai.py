@@ -3,10 +3,12 @@ Talking to AIs: the providers in providers.json (any OpenAI-compatible chat API)
 the API keys in .env, and Gemini with Google Search for source discovery.
 """
 import hashlib
+import http.client
 import json
 import os
 import pathlib
 import re
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -21,6 +23,48 @@ THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 class Cancelled(Exception):
     """The user pressed Stop."""
+
+
+class ConnectionLost(RuntimeError):
+    """The connection to the AI dropped in the middle of an answer."""
+
+
+# --- connections to Ollama -----------------------------------------------------------
+# While Ollama reads a long prompt on a CPU, nothing is sent back for many minutes.
+# Some networks (university or company Wi-Fi, routers) cut a connection that is silent
+# that long. TCP keep-alive packets every 30 s keep it alive.
+def _keepalive(sock):
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        if hasattr(socket, "SIO_KEEPALIVE_VALS"):  # Windows: on, after 30 s, every 10 s
+            sock.ioctl(socket.SIO_KEEPALIVE_VALS, (1, 30000, 10000))
+        else:
+            for opt, v in (("TCP_KEEPIDLE", 30), ("TCP_KEEPINTVL", 10), ("TCP_KEEPCNT", 6)):
+                if hasattr(socket, opt):
+                    sock.setsockopt(socket.IPPROTO_TCP, getattr(socket, opt), v)
+    except OSError:
+        pass
+
+
+class _KeepAliveConnection(http.client.HTTPConnection):
+    def connect(self):
+        super().connect()
+        _keepalive(self.sock)
+
+
+class _KeepAliveHandler(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(_KeepAliveConnection, req)
+
+
+OLLAMA = urllib.request.build_opener(_KeepAliveHandler)
+# a dropped connection: the server restarted or reloaded the model, or the network cut it
+DROPS = (ConnectionError, http.client.HTTPException)
+KEEP_LOADED = "30m"  # ask Ollama to keep the model in memory between steps
+
+
+def _dropped(e):
+    return isinstance(e, DROPS) or isinstance(getattr(e, "reason", None), ConnectionError)
 
 
 # --- keys (.env) ---------------------------------------------------------------
@@ -133,7 +177,10 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
     if is_ollama:
         # Ollama's own API: lets us raise the context size (its default silently cuts
         # long prompts) and switch off "thinking", which is very slow on a CPU.
+        # Every step uses the same context size (num_ctx in providers.json): a different
+        # size makes Ollama reload the model, which can drop a request already running.
         payload = {"model": model, "messages": messages, "stream": False,
+                   "keep_alive": p.get("keep_alive", KEEP_LOADED),
                    "options": {"temperature": temperature, "num_ctx": int(p.get("num_ctx", 16384))}}
         if "think" in p:
             payload["think"] = bool(p["think"])
@@ -148,7 +195,8 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
     headers = {"Content-Type": "application/json"}
     if key:
         headers["Authorization"] = f"Bearer {key}"
-    wait = 10
+    wait, drops = 10, 0
+    opener = OLLAMA if is_ollama else urllib.request.build_opener()
     for attempt in range(6):
         if cancel and cancel():
             raise Cancelled()
@@ -157,7 +205,7 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
         req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers)
         try:
             # 30 minutes: a long page on a shared CPU can take that long
-            with urllib.request.urlopen(req, timeout=1800) as resp:
+            with opener.open(req, timeout=1800) as resp:
                 data = json.loads(resp.read())
             raw = data["message"]["content"] if is_ollama else data["choices"][0]["message"].get("content")
             text = THINK_RE.sub("", raw or "").strip()
@@ -183,7 +231,18 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
                 wait = min(wait * 2, 120)
                 continue
             raise RuntimeError(f"{p['label']} error {e.code}: {detail}")
-        except (urllib.error.URLError, TimeoutError) as e:
+        except (urllib.error.URLError, TimeoutError, *DROPS) as e:
+            if is_ollama and _dropped(e) and drops < 2:
+                drops += 1
+                log(f"    the connection to {p['label']} dropped ({getattr(e, 'reason', e)}), "
+                    "asking again in 15 s ...")
+                time.sleep(15)
+                continue
+            if is_ollama and _dropped(e):
+                raise ConnectionLost(
+                    f"The connection to {p['label']} at {p['base_url']} kept dropping. Check that "
+                    "the server is on and nobody restarted it, then run again: finished steps "
+                    "are saved.")
             if is_ollama or "localhost" in p["base_url"] or "127.0.0.1" in p["base_url"]:
                 raise RuntimeError(
                     f"Cannot reach {p['label']} at {p['base_url']} ({getattr(e, 'reason', e)}). "
@@ -209,6 +268,7 @@ def ollama_stream(provider_id, model, system, user, temperature=0.1, fmt=None,
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": user}]
     payload = {"model": model, "messages": messages, "stream": True,
+               "keep_alive": p.get("keep_alive", KEEP_LOADED),
                "options": {"temperature": temperature,
                            "num_ctx": int(num_ctx or p.get("num_ctx", 16384))}}
     if "think" in p:
@@ -221,7 +281,7 @@ def ollama_stream(provider_id, model, system, user, temperature=0.1, fmt=None,
                                      headers={"Content-Type": "application/json"})
         try:
             parts, n, stats = [], 0, {}
-            with urllib.request.urlopen(req, timeout=1800) as resp:
+            with OLLAMA.open(req, timeout=1800) as resp:
                 if on_open:
                     on_open(resp)
                 for line in resp:  # one JSON object per line
@@ -260,9 +320,13 @@ def ollama_stream(provider_id, model, system, user, temperature=0.1, fmt=None,
                 raise Cancelled() from None  # Stop closed the connection
             if isinstance(e, ValueError) and not isinstance(e, json.JSONDecodeError):
                 raise
-            raise RuntimeError(
+            if isinstance(e, urllib.error.URLError) and not _dropped(e):
+                raise RuntimeError(
+                    f"Cannot reach {p['label']} at {p['base_url']} ({getattr(e, 'reason', e)}). "
+                    "Check that the server is on and you are on the same network.") from None
+            raise ConnectionLost(
                 f"Lost the connection to {p['label']} at {p['base_url']} ({getattr(e, 'reason', e)}). "
-                "Check that the server is on and you are on the same network.")
+                "Check that the server is on and you are on the same network.") from None
     raise RuntimeError(f"{p['label']} refused the request")
 
 

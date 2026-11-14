@@ -1,7 +1,7 @@
 ---
 type: Reference
 title: 'Danfoss eBrochure "Danfoss brazed plate heat exchangers"'
-description: The source document for every fact in this bundle (AD565353287087en-000101, 06-2026).
+description: The main source document of this bundle (AD565353287087en-000101, 06-2026).
 tags: [source, brochure]
 generated:
   by: claude-code/claude-opus-5-5
@@ -14,5 +14,5 @@ generated:
 - Date: (c) Danfoss 06-2026
 
 # Use
-- Every concept in this bundle takes its facts from this document.
+- The main source: most facts in this bundle come from this document. Facts from other Danfoss sources carry their own footnote (see [Single source of truth](/policies/source-of-truth.md)).
 - It is an external source that generated pages may cite.

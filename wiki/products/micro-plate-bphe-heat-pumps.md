@@ -7,6 +7,9 @@ sources:
   - id: ebrochure
     resource: /references/danfoss-bphe-ebrochure.md
     title: 'Danfoss eBrochure "Danfoss brazed plate heat exchangers", AD565353287087en-000101 (06-2026)'
+  - id: r290-news
+    resource: https://www.danfoss.com/en/about-danfoss/news/dcs/optimized-and-ultra-safe-brazed-plate-heat-exchangers-for-r290-from-danfoss-lower-refrigerant-charge-and-higher-heat-transfer/
+    title: 'danfoss.com news "Optimized R290 brazed plate heat exchangers: Lower charge and higher heat transfer" (2024-09-30)'
 generated:
   by: claude-code/claude-opus-5-5
   at: 2026-11-14T12:57:12Z
@@ -37,9 +40,11 @@ Only verifiable points: Danfoss offers two plate technologies. [Fishbone](/techn
 
 # Models and sizes
 See [Heat pump platforms](/platforms/heat-pump-platforms.md).
+- Max. working pressure depends on the model; see [Heat pump platforms](/platforms/heat-pump-platforms.md).[^r290-news]
 
 # Selection and testing
 - Selection: [HEXSelector](/services/hexselector.md) software.
 - Testing: [Application Development Centers](/services/application-development-centers.md).
 
 [^ebrochure]: Danfoss eBrochure "Danfoss brazed plate heat exchangers", document AD565353287087en-000101, (c) Danfoss 06-2026.
+[^r290-news]: danfoss.com news "Optimized R290 brazed plate heat exchangers: Lower charge and higher heat transfer", https://www.danfoss.com/en/about-danfoss/news/dcs/optimized-and-ultra-safe-brazed-plate-heat-exchangers-for-r290-from-danfoss-lower-refrigerant-charge-and-higher-heat-transfer/, published 2024-09-30, section "Product range" (max. working pressure given per model).

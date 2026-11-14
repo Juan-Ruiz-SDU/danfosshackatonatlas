@@ -7,6 +7,12 @@ sources:
   - id: ebrochure
     resource: /references/danfoss-bphe-ebrochure.md
     title: 'Danfoss eBrochure "Danfoss brazed plate heat exchangers", AD565353287087en-000101 (06-2026), heat pump table'
+  - id: r290-news
+    resource: https://www.danfoss.com/en/about-danfoss/news/dcs/optimized-and-ultra-safe-brazed-plate-heat-exchangers-for-r290-from-danfoss-lower-refrigerant-charge-and-higher-heat-transfer/
+    title: 'danfoss.com news "Optimized R290 brazed plate heat exchangers: Lower charge and higher heat transfer" (2024-09-30)'
+  - id: hdw44c-datasheet
+    resource: https://assets.danfoss.com/documents/latest/205036/AI356147463903en-000101.pdf
+    title: 'Danfoss data sheet "Micro plate heat exchanger, type HDW44-C", AI356147463903en-000101 (2022.07)'
 generated:
   by: claude-code/claude-opus-5-5
   at: 2026-11-14T12:57:12Z
@@ -33,6 +39,18 @@ All figures from the eBrochure heat pump table.[^ebrochure]
 | 118 | 186 x 613 | 30-130 | evaporators H118(L)-E, H118L-EZ; condensers H118(L)-C, H118L-CZ |
 | 129-D | 246 x 525 | 50-300 | evaporator H129L-EZD, condenser H129L-CZD |
 
+# Max. working pressure (per model, from Danfoss data)
+| Model | Platform | Refrigerant side | Water side |
+|---|---|---|---|
+| H39L-EZU | 39 | 49 bar (711 psi) | 25 bar (363 psi)[^r290-news] |
+| H62L-CZ | 62 | 49 bar (711 psi) | 25 bar (363 psi)[^r290-news] |
+| HDW30-C | 30 | 35 bar (508 psi) | 16 bar (232 psi)[^r290-news] |
+| HDW44-C | 44 | 35 bar (508 psi) | 16 bar (232 psi)[^hdw44c-datasheet][^r290-news] |
+
+Other models: no pressure data in our sources.
+
 Double wall models are described in [Double wall option](/technologies/double-wall-option.md).
 
 [^ebrochure]: Danfoss eBrochure "Danfoss brazed plate heat exchangers", document AD565353287087en-000101, (c) Danfoss 06-2026, heat pump table.
+[^r290-news]: danfoss.com news "Optimized R290 brazed plate heat exchangers: Lower charge and higher heat transfer", https://www.danfoss.com/en/about-danfoss/news/dcs/optimized-and-ultra-safe-brazed-plate-heat-exchangers-for-r290-from-danfoss-lower-refrigerant-charge-and-higher-heat-transfer/, published 2024-09-30, section "Product range".
+[^hdw44c-datasheet]: Danfoss data sheet "Micro plate heat exchanger, type HDW44-C", document AI356147463903en-000101, (c) Danfoss 2022.07, page 2, https://assets.danfoss.com/documents/latest/205036/AI356147463903en-000101.pdf.

@@ -1,0 +1,15 @@
+# Otro repositorio clonado dentro de esta carpeta
+AtlasHackaton/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secretos y entorno
+.env
+
+# Sistema / editor
+.DS_Store
+Thumbs.db

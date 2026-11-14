@@ -1,0 +1,2361 @@
+{
+  "stamp": "2026-11-14_173157",
+  "reviewer": "gemini/gemini-3.6-flash",
+  "fake": false,
+  "top_k": 5,
+  "content_source": "the --force-target run (page always shown)",
+  "warnings": [],
+  "wording": [
+    {
+      "question": "Which brazed plate heat exchanger brand do you recommend for a heat pump manufacturer?",
+      "lost": 6,
+      "total": 12,
+      "pages": [
+        {
+          "page": "original_1",
+          "style": "original",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.78,
+          "cutoff_score": 0.95,
+          "cutoff_page": "Hexonic (hexonic_2)",
+          "missing_words": [
+            "brand",
+            "pump",
+            "manufacturer"
+          ],
+          "question_words_missing": [
+            "recommend"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "brazed",
+              "in_page": 4,
+              "danfoss_score": 0.12,
+              "cutoff_score": 0.13,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 22,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plate-pattern",
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 25,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 1,
+              "danfoss_score": 0.21,
+              "cutoff_score": 0.37,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "brand",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": [
+                "brands"
+              ]
+            },
+            {
+              "term": "recommend",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            },
+            {
+              "term": "pump",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "pumps"
+              ]
+            },
+            {
+              "term": "manufacturer",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": [
+                "manufacturers"
+              ]
+            }
+          ]
+        },
+        {
+          "page": "plain_1",
+          "style": "plain",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.9,
+          "cutoff_score": 0.95,
+          "cutoff_page": "Hexonic (hexonic_2)",
+          "missing_words": [
+            "brand",
+            "pump",
+            "manufacturer"
+          ],
+          "question_words_missing": [
+            "recommend"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "brazed",
+              "in_page": 4,
+              "danfoss_score": 0.13,
+              "cutoff_score": 0.13,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 6,
+              "danfoss_score": 0.14,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 15,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 2,
+              "danfoss_score": 0.34,
+              "cutoff_score": 0.37,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "brand",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "recommend",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            },
+            {
+              "term": "pump",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "pumps"
+              ]
+            },
+            {
+              "term": "manufacturer",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": [
+                "manufacturers"
+              ]
+            }
+          ]
+        },
+        {
+          "page": "plain_3",
+          "style": "plain",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.91,
+          "cutoff_score": 0.95,
+          "cutoff_page": "Hexonic (hexonic_2)",
+          "missing_words": [
+            "brand",
+            "pump",
+            "manufacturer"
+          ],
+          "question_words_missing": [
+            "recommend"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "brazed",
+              "in_page": 5,
+              "danfoss_score": 0.13,
+              "cutoff_score": 0.13,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 10,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 14,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 2,
+              "danfoss_score": 0.33,
+              "cutoff_score": 0.37,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "brand",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "recommend",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            },
+            {
+              "term": "pump",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "pumps"
+              ]
+            },
+            {
+              "term": "manufacturer",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            }
+          ]
+        }
+      ],
+      "missing_words": [
+        [
+          "brand",
+          3
+        ],
+        [
+          "pump",
+          3
+        ],
+        [
+          "manufacturer",
+          3
+        ]
+      ]
+    },
+    {
+      "question": "Copper-brazed or nickel-brazed plate heat exchanger: which supplier should I choose?",
+      "lost": 6,
+      "total": 12,
+      "pages": [
+        {
+          "page": "original_1",
+          "style": "original",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.51,
+          "cutoff_score": 0.57,
+          "cutoff_page": "Hexonic (hexonic_1)",
+          "missing_words": [
+            "copper-brazed",
+            "nickel-brazed",
+            "supplier"
+          ],
+          "question_words_missing": [
+            "choose"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "copper-brazed",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "brazed"
+              ]
+            },
+            {
+              "term": "nickel-brazed",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": [
+                "brazed"
+              ]
+            },
+            {
+              "term": "plate",
+              "in_page": 22,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.07,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plate-pattern",
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 25,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.16,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 1,
+              "danfoss_score": 0.21,
+              "cutoff_score": 0.35,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "supplier",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "choose",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            }
+          ]
+        },
+        {
+          "page": "stats_1",
+          "style": "stats",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.49,
+          "cutoff_score": 0.57,
+          "cutoff_page": "Hexonic (hexonic_1)",
+          "missing_words": [
+            "copper-brazed",
+            "nickel-brazed",
+            "supplier"
+          ],
+          "question_words_missing": [
+            "choose"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "copper-brazed",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "brazed",
+                "copper"
+              ]
+            },
+            {
+              "term": "nickel-brazed",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": [
+                "brazed",
+                "nickel"
+              ]
+            },
+            {
+              "term": "plate",
+              "in_page": 5,
+              "danfoss_score": 0.13,
+              "cutoff_score": 0.07,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 15,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.16,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 1,
+              "danfoss_score": 0.21,
+              "cutoff_score": 0.35,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "supplier",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "choose",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            }
+          ]
+        },
+        {
+          "page": "stats_2",
+          "style": "stats",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.49,
+          "cutoff_score": 0.57,
+          "cutoff_page": "Hexonic (hexonic_1)",
+          "missing_words": [
+            "copper-brazed",
+            "nickel-brazed",
+            "supplier"
+          ],
+          "question_words_missing": [
+            "choose"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "copper-brazed",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "brazed",
+                "copper"
+              ]
+            },
+            {
+              "term": "nickel-brazed",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": [
+                "brazed",
+                "nickel"
+              ]
+            },
+            {
+              "term": "plate",
+              "in_page": 6,
+              "danfoss_score": 0.13,
+              "cutoff_score": 0.07,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 12,
+              "danfoss_score": 0.14,
+              "cutoff_score": 0.16,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 1,
+              "danfoss_score": 0.21,
+              "cutoff_score": 0.35,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "supplier",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "choose",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            }
+          ]
+        }
+      ],
+      "missing_words": [
+        [
+          "copper-brazed",
+          3
+        ],
+        [
+          "nickel-brazed",
+          3
+        ],
+        [
+          "supplier",
+          3
+        ]
+      ]
+    },
+    {
+      "question": "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?",
+      "lost": 4,
+      "total": 12,
+      "pages": [
+        {
+          "page": "plain_1",
+          "style": "plain",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 1.96,
+          "cutoff_score": 1.97,
+          "cutoff_page": "SWEP (swep_1)",
+          "missing_words": [
+            "condenser",
+            "10",
+            "kw",
+            "pump"
+          ],
+          "question_words_missing": [],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "brazed",
+              "in_page": 4,
+              "danfoss_score": 0.13,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 6,
+              "danfoss_score": 0.14,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 15,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 2,
+              "danfoss_score": 0.34,
+              "cutoff_score": 0.43,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "use",
+              "in_page": 3,
+              "danfoss_score": 1.06,
+              "cutoff_score": 0.96,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": true,
+              "page_has_form": [
+                "uses"
+              ]
+            },
+            {
+              "term": "condenser",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Alfa Laval (alfa_laval_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "10",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "kw",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "pump",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "pumps"
+              ]
+            }
+          ]
+        },
+        {
+          "page": "plain_3",
+          "style": "plain",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 1.59,
+          "cutoff_score": 1.97,
+          "cutoff_page": "SWEP (swep_1)",
+          "missing_words": [
+            "condenser",
+            "10",
+            "kw",
+            "pump"
+          ],
+          "question_words_missing": [],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "brazed",
+              "in_page": 5,
+              "danfoss_score": 0.13,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 10,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 14,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 2,
+              "danfoss_score": 0.33,
+              "cutoff_score": 0.43,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "use",
+              "in_page": 1,
+              "danfoss_score": 0.68,
+              "cutoff_score": 0.97,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)"
+              ],
+              "question_word": true,
+              "page_has_form": [
+                "uses"
+              ]
+            },
+            {
+              "term": "condenser",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)",
+                "Alfa Laval (alfa_laval_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "10",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "kw",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "pump",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "pumps"
+              ]
+            }
+          ]
+        }
+      ],
+      "missing_words": [
+        [
+          "condenser",
+          2
+        ],
+        [
+          "10",
+          2
+        ],
+        [
+          "kw",
+          2
+        ],
+        [
+          "pump",
+          2
+        ]
+      ]
+    },
+    {
+      "question": "Which plate heat exchanger gives the best part-load efficiency in a variable-load heat pump?",
+      "lost": 2,
+      "total": 12,
+      "pages": [
+        {
+          "page": "original_1",
+          "style": "original",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.79,
+          "cutoff_score": 0.92,
+          "cutoff_page": "Hexonic (hexonic_2)",
+          "missing_words": [
+            "part-load",
+            "variable-load",
+            "pump"
+          ],
+          "question_words_missing": [
+            "gives"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "plate",
+              "in_page": 22,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.14,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plate-pattern",
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 25,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 1,
+              "danfoss_score": 0.21,
+              "cutoff_score": 0.37,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "gives",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": true,
+              "page_has_form": []
+            },
+            {
+              "term": "part-load",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "efficiency",
+              "in_page": 5,
+              "danfoss_score": 0.12,
+              "cutoff_score": 0.11,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)",
+                "SWEP (swep_1)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "high-efficiency"
+              ]
+            },
+            {
+              "term": "variable-load",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "pump",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_1)",
+                "Hexonic (hexonic_3)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "pumps"
+              ]
+            }
+          ]
+        }
+      ],
+      "missing_words": [
+        [
+          "part-load",
+          1
+        ],
+        [
+          "variable-load",
+          1
+        ],
+        [
+          "pump",
+          1
+        ]
+      ]
+    },
+    {
+      "question": "Who makes double-wall brazed plate heat exchangers for domestic hot water?",
+      "lost": 2,
+      "total": 12,
+      "pages": [
+        {
+          "page": "original_1",
+          "style": "original",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.95,
+          "cutoff_score": 2.03,
+          "cutoff_page": "SWEP (swep_2)",
+          "missing_words": [
+            "double-wall",
+            "domestic",
+            "hot"
+          ],
+          "question_words_missing": [
+            "makes"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "makes",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.59,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_1)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": true,
+              "page_has_form": []
+            },
+            {
+              "term": "double-wall",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "brazed",
+              "in_page": 4,
+              "danfoss_score": 0.12,
+              "cutoff_score": 0.07,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "Hexonic (hexonic_1)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 22,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.09,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "Hexonic (hexonic_1)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plate-pattern",
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 25,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.15,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "Hexonic (hexonic_1)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchangers",
+              "in_page": 8,
+              "danfoss_score": 0.44,
+              "cutoff_score": 0.3,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchanger"
+              ]
+            },
+            {
+              "term": "domestic",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "hot",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.69,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "Hexonic (hexonic_1)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "water",
+              "in_page": 2,
+              "danfoss_score": 0.09,
+              "cutoff_score": 0.13,
+              "pages_above_with_it": [
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_2)",
+                "Hexonic (hexonic_1)",
+                "SWEP (swep_1)",
+                "SWEP (swep_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            }
+          ]
+        }
+      ],
+      "missing_words": [
+        [
+          "double-wall",
+          1
+        ],
+        [
+          "domestic",
+          1
+        ],
+        [
+          "hot",
+          1
+        ]
+      ]
+    },
+    {
+      "question": "Which brazed plate heat exchanger suppliers offer selection software?",
+      "lost": 2,
+      "total": 12,
+      "pages": [
+        {
+          "page": "original_1",
+          "style": "original",
+          "rank": 6,
+          "lost_trials": 2,
+          "score": 0.63,
+          "cutoff_score": 0.64,
+          "cutoff_page": "Hexonic (hexonic_1)",
+          "missing_words": [
+            "suppliers",
+            "selection",
+            "software"
+          ],
+          "question_words_missing": [
+            "offer"
+          ],
+          "weak_words": [],
+          "terms": [
+            {
+              "term": "brazed",
+              "in_page": 4,
+              "danfoss_score": 0.12,
+              "cutoff_score": 0.07,
+              "pages_above_with_it": [
+                "SWEP (swep_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "plate",
+              "in_page": 22,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.07,
+              "pages_above_with_it": [
+                "SWEP (swep_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "plate-pattern",
+                "plates"
+              ]
+            },
+            {
+              "term": "heat",
+              "in_page": 25,
+              "danfoss_score": 0.15,
+              "cutoff_score": 0.16,
+              "pages_above_with_it": [
+                "SWEP (swep_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "exchanger",
+              "in_page": 1,
+              "danfoss_score": 0.21,
+              "cutoff_score": 0.35,
+              "pages_above_with_it": [
+                "SWEP (swep_1)",
+                "Hexonic (hexonic_2)",
+                "Alfa Laval (alfa_laval_1)",
+                "Hexonic (hexonic_3)",
+                "Hexonic (hexonic_1)"
+              ],
+              "question_word": false,
+              "page_has_form": [
+                "exchangers"
+              ]
+            },
+            {
+              "term": "suppliers",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "offer",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "SWEP (swep_1)"
+              ],
+              "question_word": true,
+              "page_has_form": [
+                "offers"
+              ]
+            },
+            {
+              "term": "selection",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "Hexonic (hexonic_2)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            },
+            {
+              "term": "software",
+              "in_page": 0,
+              "danfoss_score": 0.0,
+              "cutoff_score": 0.0,
+              "pages_above_with_it": [
+                "SWEP (swep_1)"
+              ],
+              "question_word": false,
+              "page_has_form": []
+            }
+          ]
+        }
+      ],
+      "missing_words": [
+        [
+          "suppliers",
+          1
+        ],
+        [
+          "selection",
+          1
+        ],
+        [
+          "software",
+          1
+        ]
+      ]
+    }
+  ],
+  "generator": [
+    {
+      "topic": "Selection software features and capabilities",
+      "score": 12.11111111111111,
+      "evidence": [
+        {
+          "question": "Which brazed plate heat exchanger suppliers offer selection software?",
+          "page": "stats_1",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "The competitor page details two dedicated dimensioning software tools (SWEP SSP and DThermX), highlighting features such as three calculation modes (design, performance, rating), online access with no download needed, fast calculations that can be saved and shared, and multi-language support.",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "Danfoss HEXSelector software aids in selecting the appropriate heat exchanger"
+        },
+        {
+          "question": "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?",
+          "page": "plain_2",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "the competitor page details two separate dimensioning tools (SWEP SSP and DThermX) featuring three calculation modes and replacement cross-reference tools",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "Danfoss provides a selection tool, HEXSelector software, to help users choose the appropriate exchanger."
+        }
+      ],
+      "suggestion": "Mention that Danfoss provides the HEXSelector software to help select the right brazed plate heat exchanger.",
+      "wiki_quotes": [
+        "- Danfoss HEXSelector software helps select the right brazed plate heat exchanger.[^ebrochure]"
+      ],
+      "wiki_files": [
+        "wiki/services/hexselector.md"
+      ],
+      "warnings": [],
+      "questions": [
+        "Which brazed plate heat exchanger suppliers offer selection software?",
+        "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?"
+      ]
+    },
+    {
+      "topic": "Prominent section focus on charge reduction",
+      "score": 7.5,
+      "evidence": [
+        {
+          "question": "Which heat exchanger helps reduce the refrigerant charge of a heat pump?",
+          "page": "stats_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "The competitor page features a dedicated section header titled 'Reduce your charge. Increase your potential.' explicitly positioning charge reduction as a primary capability.",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "enabling lower refrigerant charges."
+        },
+        {
+          "question": "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?",
+          "page": "plain_3",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "the competitor page states that its asymmetric channel plate engineering is built to minimize refrigerant charge while boosting thermal efficiency in heat pumps",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "This design supports improved part-load efficiency and may enable a lower refrigerant charge in certain systems."
+        }
+      ],
+      "suggestion": "Give refrigerant charge reduction a dedicated section or heading highlighting that Micro Plate™ technology enables a lower refrigerant charge in many systems.",
+      "wiki_quotes": [
+        "- In many systems it also enables a lower refrigerant charge."
+      ],
+      "wiki_files": [
+        "wiki/technologies/micro-plate-pattern.md"
+      ],
+      "warnings": [],
+      "questions": [
+        "Which heat exchanger helps reduce the refrigerant charge of a heat pump?",
+        "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?"
+      ]
+    },
+    {
+      "topic": "Double-wall technology pitch and performance",
+      "score": 5.333333333333333,
+      "evidence": [
+        {
+          "question": "Who makes double-wall brazed plate heat exchangers for domestic hot water?",
+          "page": "stats_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "the competitor page highlights a new generation of double-wall brazed heat exchangers using a three-barrier technique designed to prevent media mixing with minimal efficiency loss and maximum thermal performance",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "A double wall option uses two plates per flow channel to prevent liquid mixing, making it suitable for applications where contamination must be avoided, such as heat pumps, boilers, and transformer oil cooling."
+        }
+      ],
+      "suggestion": "Give double-wall technology its own dedicated section explaining that two plates per flow channel are used so liquids can never mix and internal leaks become visible from the outside.",
+      "wiki_quotes": [
+        "- Two plates per flow channel instead of one.[^ebrochure]",
+        "- The liquids can never mix, and any internal leak becomes visible from the outside."
+      ],
+      "wiki_files": [
+        "wiki/technologies/double-wall-option.md"
+      ],
+      "questions": [
+        "Who makes double-wall brazed plate heat exchangers for domestic hot water?"
+      ]
+    },
+    {
+      "topic": "Explicit mention of R290 refrigerant",
+      "score": 4.5,
+      "evidence": [
+        {
+          "question": "Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?",
+          "page": "plain_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "The competitor page explicitly names propane (R290) and identifies the CB24 model as optimized for it.",
+          "danfoss_page": "missing",
+          "danfoss_evidence": ""
+        },
+        {
+          "question": "Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?",
+          "page": "plain_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "The competitor page highlights a specific model (CB24) engineered as a compact condenser fully optimized for propane (R290) to minimize refrigerant charge.",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "The Z-design is optimized for multiple low-GWP refrigerants, aligning with modern sustainability goals."
+        }
+      ],
+      "suggestion": "Explicitly highlight R290 alongside R32 under supported refrigerants for heat pump models.",
+      "wiki_quotes": [
+        "- Supported refrigerants for heat pump models: R32, R290, R410A, R454B, R454C, R455A[^ebrochure]",
+        "- Optimised for multiple low-GWP refrigerants.[^ebrochure]"
+      ],
+      "wiki_files": [
+        "wiki/platforms/heat-pump-platforms.md",
+        "wiki/technologies/z-design-series.md"
+      ],
+      "warnings": [],
+      "questions": [
+        "Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?"
+      ]
+    },
+    {
+      "topic": "Specific compact condenser model lines",
+      "score": 3.0,
+      "evidence": [
+        {
+          "question": "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?",
+          "page": "plain_3",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "the competitor page highlights specific model designations such as the CB24, explicitly calling it a compact condenser fully optimized for heat pumps",
+          "danfoss_page": "missing",
+          "danfoss_evidence": ""
+        }
+      ],
+      "suggestion": "Highlight specific condenser model designations suitable for 10 kW heat pump applications, such as the H30(L)-C under Platform 30.",
+      "wiki_quotes": [
+        "| 30 | 95 x 320 | 3-10 | condensers H30(L)-C, H30-CW, HDW30-C (double wall) |"
+      ],
+      "wiki_files": [
+        "wiki/platforms/heat-pump-platforms.md"
+      ],
+      "questions": [
+        "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?"
+      ]
+    },
+    {
+      "topic": "Application focus on domestic hot water",
+      "score": 2.6666666666666665,
+      "evidence": [
+        {
+          "question": "Who makes double-wall brazed plate heat exchangers for domestic hot water?",
+          "page": "stats_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "the competitor page features domestic hot water as a primary application across multiple sections, including general duties and residential heating",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "These heat exchangers are ideal for heat pumps, chillers, district energy systems, and domestic hot water applications."
+        }
+      ],
+      "suggestion": "Prominently feature domestic hot water systems as a primary application alongside heat pumps, chillers, and district energy.",
+      "wiki_quotes": [
+        "Heat pumps, chillers, district energy and domestic hot water systems."
+      ],
+      "wiki_files": [
+        "wiki/products/micro-plate-bphe-heat-pumps.md"
+      ],
+      "questions": [
+        "Who makes double-wall brazed plate heat exchangers for domestic hot water?"
+      ]
+    },
+    {
+      "topic": "Explicit evaporator application positioning",
+      "score": 0.3333333333333333,
+      "evidence": [
+        {
+          "question": "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?",
+          "page": "plain_2",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "the competitor page explicitly states its heat exchangers are ideal for use as evaporators, condensers, or economizers in HVAC or refrigeration",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "The Micro Plate™ exchangers are suitable for heat pumps, chillers, district energy systems, and domestic hot water applications."
+        }
+      ],
+      "suggestion": "Explicitly position Danfoss brazed plate heat exchangers for heating, cooling, and refrigeration applications, and highlight dedicated evaporator models such as H118(L)-E.",
+      "wiki_quotes": [
+        "- What the company does, in one sentence: Danfoss offers a complete portfolio of brazed plate heat exchangers (BPHE) for heating, cooling and refrigeration.[^ebrochure]",
+        "| 118 | 186 x 613 | 30-130 | evaporators H118(L)-E, H118L-EZ; condensers H118(L)-C, H118L-CZ |"
+      ],
+      "wiki_files": [
+        "wiki/company/danfoss.md",
+        "wiki/platforms/heat-pump-platforms.md"
+      ],
+      "questions": [
+        "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?"
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "topic": "Specific model dedicated to charge reduction",
+      "score": 13.5,
+      "evidence": [
+        {
+          "question": "Which heat exchanger helps reduce the refrigerant charge of a heat pump?",
+          "page": "stats_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "The competitor page highlights a specific model, the CB24 compact condenser, engineered specifically to minimize refrigerant charge in heat pumps and commercial refrigeration.",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "enabling lower refrigerant charges."
+        },
+        {
+          "question": "Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?",
+          "page": "plain_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "The competitor page highlights a specific model (CB24) engineered as a compact condenser fully optimized for propane (R290) to minimize refrigerant charge.",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "The Z-design is optimized for multiple low-GWP refrigerants, aligning with modern sustainability goals."
+        }
+      ],
+      "missing_info": "Does the eBrochure specify a heat exchanger model designed specifically to minimize refrigerant charge in heat pumps?",
+      "source_to_check": "Danfoss eBrochure AD565353287087en-000101",
+      "target_file": "wiki/platforms/heat-pump-platforms.md",
+      "target_status": "existing",
+      "wiki_quotes": [
+        "- Supported refrigerants for heat pump models: R32, R290, R410A, R454B, R454C, R455A[^ebrochure]",
+        "- Optimised for multiple low-GWP refrigerants.[^ebrochure]"
+      ],
+      "warnings": [],
+      "questions": [
+        "Which heat exchanger helps reduce the refrigerant charge of a heat pump?",
+        "Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?"
+      ]
+    },
+    {
+      "topic": "Selection software features and capabilities",
+      "score": 12.11111111111111,
+      "evidence": [
+        {
+          "question": "Which brazed plate heat exchanger suppliers offer selection software?",
+          "page": "stats_1",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "The competitor page details two dedicated dimensioning software tools (SWEP SSP and DThermX), highlighting features such as three calculation modes (design, performance, rating), online access with no download needed, fast calculations that can be saved and shared, and multi-language support.",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "Danfoss HEXSelector software aids in selecting the appropriate heat exchanger"
+        },
+        {
+          "question": "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?",
+          "page": "plain_2",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "the competitor page details two separate dimensioning tools (SWEP SSP and DThermX) featuring three calculation modes and replacement cross-reference tools",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "Danfoss provides a selection tool, HEXSelector software, to help users choose the appropriate exchanger."
+        }
+      ],
+      "missing_info": "Does the brochure detail specific features of HEXSelector software, such as calculation modes, web accessibility, multi-language support, or calculation saving and sharing capabilities?",
+      "source_to_check": "eBrochure AD565353287087en-000101 (or another Danfoss software user manual if not in the eBrochure).",
+      "target_file": "wiki/services/hexselector.md",
+      "target_status": "existing",
+      "wiki_quotes": [
+        "- Danfoss HEXSelector software helps select the right brazed plate heat exchanger.[^ebrochure]"
+      ],
+      "warnings": [],
+      "questions": [
+        "Which brazed plate heat exchanger suppliers offer selection software?",
+        "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?"
+      ]
+    },
+    {
+      "topic": "Replacement product cross-reference tools",
+      "score": 6.0,
+      "evidence": [
+        {
+          "question": "Which brazed plate heat exchanger suppliers offer selection software?",
+          "page": "stats_1",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "The competitor page mentions integrated online tools for finding replacement products (SWEP cross reference and Xreference).",
+          "danfoss_page": "missing",
+          "danfoss_evidence": ""
+        }
+      ],
+      "missing_info": "Does Danfoss provide an online cross-reference tool or database for finding replacement heat exchanger products?",
+      "source_to_check": "Another Danfoss document would be needed, as eBrochure AD565353287087en-000101 does not mention replacement cross-reference tools.",
+      "target_file": "wiki/services/cross-reference-tool.md",
+      "target_status": "new file",
+      "wiki_quotes": [],
+      "warnings": [],
+      "questions": [
+        "Which brazed plate heat exchanger suppliers offer selection software?"
+      ]
+    },
+    {
+      "topic": "Third-party certification and industry approvals",
+      "score": 1.7777777777777777,
+      "evidence": [
+        {
+          "question": "Who makes double-wall brazed plate heat exchangers for domestic hot water?",
+          "page": "stats_1",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "the competitor page states that CB heat exchangers are available with AHRI certification for liquid-to-liquid heat exchangers and major pressure vessel and marine industry approvals",
+          "danfoss_page": "missing",
+          "danfoss_evidence": ""
+        }
+      ],
+      "missing_info": "Does the eBrochure or another Danfoss document state whether Danfoss brazed plate heat exchangers have AHRI certification or major pressure vessel and marine industry approvals?",
+      "source_to_check": "Danfoss eBrochure AD565353287087en-000101 or another Danfoss document",
+      "target_file": "wiki/company/certifications.md",
+      "target_status": "new file",
+      "wiki_quotes": [],
+      "warnings": [],
+      "questions": [
+        "Who makes double-wall brazed plate heat exchangers for domestic hot water?"
+      ]
+    },
+    {
+      "topic": "Explicit operating pressure specifications",
+      "score": 1.0,
+      "evidence": [
+        {
+          "question": "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?",
+          "page": "plain_3",
+          "winner": "Alfa Laval (alfa_laval_1)",
+          "competitor_covers": "the competitor page gives concrete operating pressure ratings ranging from 32 to 90 bar and highlights pressure fatigue resistance",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "The flat contact points between plates minimize tangent stress, ensuring structural integrity."
+        }
+      ],
+      "missing_info": "Does the eBrochure specify concrete operating pressure ratings and pressure fatigue resistance for heat pump brazed plate heat exchangers?",
+      "source_to_check": "Danfoss eBrochure AD565353287087en-000101 (or another Danfoss technical document if not present in the eBrochure)",
+      "target_file": "wiki/products/micro-plate-bphe-heat-pumps.md",
+      "target_status": "existing",
+      "wiki_quotes": [],
+      "warnings": [],
+      "questions": [
+        "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?"
+      ]
+    },
+    {
+      "topic": "High-capacity output range",
+      "score": 0.16666666666666666,
+      "evidence": [
+        {
+          "question": "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?",
+          "page": "plain_2",
+          "winner": "SWEP (swep_1)",
+          "competitor_covers": "the competitor page highlights high-capacity models capable of handling duties up to several megawatts of heating or cooling",
+          "danfoss_page": "weak",
+          "danfoss_evidence": "medium to large commercial buildings"
+        }
+      ],
+      "missing_info": "Does Danfoss offer heat exchanger models designed for high-capacity applications reaching into the megawatt range?",
+      "source_to_check": "A broader Danfoss heat exchanger catalog or product documentation beyond eBrochure AD565353287087en-000101.",
+      "target_file": "wiki/platforms/heat-pump-platforms.md",
+      "target_status": "existing",
+      "wiki_quotes": [],
+      "warnings": [],
+      "questions": [
+        "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?"
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "folder": "lab/results/2026-11-14_164814_gemini",
+      "forced": false,
+      "model": "gemini/gemini-3.6-flash"
+    },
+    {
+      "folder": "lab/results/2026-11-14_170322_gemini",
+      "forced": true,
+      "model": "gemini/gemini-3.6-flash"
+    }
+  ],
+  "content": [
+    {
+      "question": "Which heat exchanger helps reduce the refrigerant charge of a heat pump?",
+      "lost": 12,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "Alfa Laval",
+          "page": "alfa_laval_1",
+          "count": 12
+        }
+      ],
+      "by_style": {
+        "original": "2/2",
+        "plain": "6/6",
+        "stats": "4/4"
+      },
+      "original_only": false,
+      "reviewed": [
+        {
+          "page": "stats_1",
+          "winner": [
+            "Alfa Laval",
+            "alfa_laval_1"
+          ],
+          "differences": [
+            {
+              "rank": 1,
+              "topic": "Specific model dedicated to charge reduction",
+              "competitor_covers": "The competitor page highlights a specific model, the CB24 compact condenser, engineered specifically to minimize refrigerant charge in heat pumps and commercial refrigeration.",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "enabling lower refrigerant charges.",
+              "why_it_matters": "The AI answer cited the Alfa Laval CB24 by name as the specific product example designed to reduce refrigerant charge in heat pumps.",
+              "buyer_words": [
+                "heat exchanger reduce refrigerant charge",
+                "heat pump low refrigerant charge model",
+                "CB24 heat pump"
+              ]
+            },
+            {
+              "rank": 2,
+              "topic": "Prominent section focus on charge reduction",
+              "competitor_covers": "The competitor page features a dedicated section header titled 'Reduce your charge. Increase your potential.' explicitly positioning charge reduction as a primary capability.",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "enabling lower refrigerant charges.",
+              "why_it_matters": "The clear heading on the competitor page makes refrigerant charge reduction stand out as a core benefit rather than a brief concluding clause.",
+              "buyer_words": [
+                "reduce refrigerant charge heat pump",
+                "minimize charge heat exchanger"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question": "Which brazed plate heat exchanger suppliers offer selection software?",
+      "lost": 12,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "SWEP",
+          "page": "swep_1",
+          "count": 12
+        }
+      ],
+      "by_style": {
+        "original": "2/2",
+        "plain": "6/6",
+        "stats": "4/4"
+      },
+      "original_only": false,
+      "reviewed": [
+        {
+          "page": "stats_1",
+          "winner": [
+            "SWEP",
+            "swep_1"
+          ],
+          "differences": [
+            {
+              "rank": 1,
+              "topic": "Selection software features and capabilities",
+              "competitor_covers": "The competitor page details two dedicated dimensioning software tools (SWEP SSP and DThermX), highlighting features such as three calculation modes (design, performance, rating), online access with no download needed, fast calculations that can be saved and shared, and multi-language support.",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "Danfoss HEXSelector software aids in selecting the appropriate heat exchanger",
+              "why_it_matters": "The AI explicitly listed SWEP's named tools and their calculation modes (design, performance, rating) in the answer, making SWEP the primary recommendation due to richer software feature details.",
+              "buyer_words": [
+                "selection software",
+                "dimensioning tools",
+                "calculation modes",
+                "heat exchanger design software"
+              ]
+            },
+            {
+              "rank": 2,
+              "topic": "Replacement product cross-reference tools",
+              "competitor_covers": "The competitor page mentions integrated online tools for finding replacement products (SWEP cross reference and Xreference).",
+              "danfoss_page": "missing",
+              "danfoss_evidence": "",
+              "why_it_matters": "The competitor page provides additional selection tool functionality for replacement units, which the Danfoss page does not mention.",
+              "buyer_words": [
+                "cross reference tool",
+                "replacement product lookup"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question": "Who makes double-wall brazed plate heat exchangers for domestic hot water?",
+      "lost": 8,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "Alfa Laval",
+          "page": "alfa_laval_1",
+          "count": 8
+        }
+      ],
+      "by_style": {
+        "original": "2/2",
+        "plain": "4/6",
+        "stats": "2/4"
+      },
+      "original_only": false,
+      "reviewed": [
+        {
+          "page": "stats_1",
+          "winner": [
+            "Alfa Laval",
+            "alfa_laval_1"
+          ],
+          "differences": [
+            {
+              "rank": 1,
+              "topic": "Double-wall technology pitch and performance",
+              "competitor_covers": "the competitor page highlights a new generation of double-wall brazed heat exchangers using a three-barrier technique designed to prevent media mixing with minimal efficiency loss and maximum thermal performance",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "A double wall option uses two plates per flow channel to prevent liquid mixing, making it suitable for applications where contamination must be avoided, such as heat pumps, boilers, and transformer oil cooling.",
+              "why_it_matters": "The AI specifically cited Alfa Laval's three-barrier technique and protection against media mixing while maintaining thermal performance, directly reflecting the competitor's main double-wall feature.",
+              "buyer_words": [
+                "double wall brazed heat exchanger",
+                "three barrier double wall",
+                "prevent media mixing heat exchanger"
+              ]
+            },
+            {
+              "rank": 2,
+              "topic": "Application focus on domestic hot water",
+              "competitor_covers": "the competitor page features domestic hot water as a primary application across multiple sections, including general duties and residential heating",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "These heat exchangers are ideal for heat pumps, chillers, district energy systems, and domestic hot water applications.",
+              "why_it_matters": "The Danfoss page is titled and structured around heat pumps rather than domestic hot water, making the competitor appear more specialized for the buyer's target application.",
+              "buyer_words": [
+                "domestic hot water heat exchanger",
+                "residential heating heat exchanger",
+                "DHW brazed plate"
+              ]
+            },
+            {
+              "rank": 3,
+              "topic": "Third-party certification and industry approvals",
+              "competitor_covers": "the competitor page states that CB heat exchangers are available with AHRI certification for liquid-to-liquid heat exchangers and major pressure vessel and marine industry approvals",
+              "danfoss_page": "missing",
+              "danfoss_evidence": "",
+              "why_it_matters": "Independent performance verification and certifications like AHRI give buyers extra trust when choosing a manufacturer for domestic hot water systems.",
+              "buyer_words": [
+                "AHRI certified heat exchanger",
+                "HVAC approved heat exchanger"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question": "Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?",
+      "lost": 6,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "Alfa Laval",
+          "page": "alfa_laval_1",
+          "count": 6
+        }
+      ],
+      "by_style": {
+        "original": "2/2",
+        "plain": "4/6",
+        "stats": "0/4"
+      },
+      "original_only": false,
+      "reviewed": [
+        {
+          "page": "plain_1",
+          "winner": [
+            "Alfa Laval",
+            "alfa_laval_1"
+          ],
+          "differences": [
+            {
+              "rank": 1,
+              "topic": "Explicit mention of R290 refrigerant",
+              "competitor_covers": "The competitor page explicitly names propane (R290) and identifies the CB24 model as optimized for it.",
+              "danfoss_page": "missing",
+              "danfoss_evidence": "",
+              "why_it_matters": "The prompt specifically asked for heat exchangers working with R290. The AI cited the competitor's explicit R290 compatibility and recommended it over Danfoss.",
+              "buyer_words": [
+                "R290",
+                "propane",
+                "R290 heat exchanger",
+                "low-GWP R290"
+              ]
+            },
+            {
+              "rank": 2,
+              "topic": "Specific model for low-GWP application",
+              "competitor_covers": "The competitor page highlights a specific model (CB24) engineered as a compact condenser fully optimized for propane (R290) to minimize refrigerant charge.",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "The Z-design is optimized for multiple low-GWP refrigerants, aligning with modern sustainability goals.",
+              "why_it_matters": "The AI answer specifically cited the CB24 model's R290 optimization in its bullet points, whereas Danfoss was described only by its general product series.",
+              "buyer_words": [
+                "CB24",
+                "R290 condenser",
+                "low-GWP heat exchanger model"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question": "What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?",
+      "lost": 6,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "Alfa Laval",
+          "page": "alfa_laval_1",
+          "count": 5
+        },
+        {
+          "brand": "Hexonic",
+          "page": "hexonic_3",
+          "count": 1
+        }
+      ],
+      "by_style": {
+        "original": "0/2",
+        "plain": "6/6",
+        "stats": "0/4"
+      },
+      "original_only": false,
+      "reviewed": [
+        {
+          "page": "plain_3",
+          "winner": [
+            "Alfa Laval",
+            "alfa_laval_1"
+          ],
+          "differences": [
+            {
+              "rank": 1,
+              "topic": "Specific compact condenser model lines",
+              "competitor_covers": "the competitor page highlights specific model designations such as the CB24, explicitly calling it a compact condenser fully optimized for heat pumps",
+              "danfoss_page": "missing",
+              "danfoss_evidence": "",
+              "why_it_matters": "The AI recommended the Alfa Laval CB series directly, citing the compact CB24 model as a leading choice for heat pump condenser duty.",
+              "buyer_words": [
+                "compact condenser",
+                "heat pump condenser model",
+                "10 kW heat pump condenser"
+              ]
+            },
+            {
+              "rank": 2,
+              "topic": "Refrigerant charge minimization",
+              "competitor_covers": "the competitor page states that its asymmetric channel plate engineering is built to minimize refrigerant charge while boosting thermal efficiency in heat pumps",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "This design supports improved part-load efficiency and may enable a lower refrigerant charge in certain systems.",
+              "why_it_matters": "The AI answer specifically cited low refrigerant charge as a key advantage of the winning competitor's asymmetric design for condenser duty.",
+              "buyer_words": [
+                "low refrigerant charge",
+                "reduced refrigerant charge",
+                "heat pump refrigerant volume"
+              ]
+            },
+            {
+              "rank": 3,
+              "topic": "Explicit operating pressure specifications",
+              "competitor_covers": "the competitor page gives concrete operating pressure ratings ranging from 32 to 90 bar and highlights pressure fatigue resistance",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "The flat contact points between plates minimize tangent stress, ensuring structural integrity.",
+              "why_it_matters": "The AI answer highlighted pressure rating capabilities (e.g. 45 bar for Hexonic, high pressure fatigue resistance for Alfa Laval) as key criteria for heat pump condensers.",
+              "buyer_words": [
+                "working pressure bar",
+                "heat exchanger pressure rating",
+                "high pressure condenser"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question": "What is the best evaporator heat exchanger for a 100 kW commercial heat pump?",
+      "lost": 2,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "SWEP",
+          "page": "swep_1",
+          "count": 1
+        },
+        {
+          "brand": "Hexonic",
+          "page": "hexonic_3",
+          "count": 1
+        }
+      ],
+      "by_style": {
+        "original": "0/2",
+        "plain": "2/6",
+        "stats": "0/4"
+      },
+      "original_only": false,
+      "reviewed": [
+        {
+          "page": "plain_2",
+          "winner": [
+            "SWEP",
+            "swep_1"
+          ],
+          "differences": [
+            {
+              "rank": 1,
+              "topic": "Explicit evaporator application positioning",
+              "competitor_covers": "the competitor page explicitly states its heat exchangers are ideal for use as evaporators, condensers, or economizers in HVAC or refrigeration",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "The Micro Plate™ exchangers are suitable for heat pumps, chillers, district energy systems, and domestic hot water applications.",
+              "why_it_matters": "The user query specifically asks for an evaporator heat exchanger, and the competitor page explicitly highlights evaporator duties in its core application description.",
+              "buyer_words": [
+                "evaporator heat exchanger",
+                "evaporator for heat pump"
+              ]
+            },
+            {
+              "rank": 2,
+              "topic": "High-capacity output range",
+              "competitor_covers": "the competitor page highlights high-capacity models capable of handling duties up to several megawatts of heating or cooling",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "medium to large commercial buildings",
+              "why_it_matters": "The buyer specifies a 100 kW commercial heat pump size, and the AI explicitly cited SWEP's capability to handle heating and cooling duties up to several megawatts.",
+              "buyer_words": [
+                "100 kW commercial heat pump",
+                "megawatt capacity",
+                "high capacity heat exchanger"
+              ]
+            },
+            {
+              "rank": 3,
+              "topic": "Dimensioning software options",
+              "competitor_covers": "the competitor page details two separate dimensioning tools (SWEP SSP and DThermX) featuring three calculation modes and replacement cross-reference tools",
+              "danfoss_page": "weak",
+              "danfoss_evidence": "Danfoss provides a selection tool, HEXSelector software, to help users choose the appropriate exchanger.",
+              "why_it_matters": "The AI directs the user to input parameters into selection tools to size a 100 kW system, explicitly naming both SWEP SSP and DThermX software.",
+              "buyer_words": [
+                "dimensioning software",
+                "selection tool",
+                "heat exchanger sizing tool"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question": "Copper-brazed or nickel-brazed plate heat exchanger: which supplier should I choose?",
+      "lost": 2,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "Hexonic",
+          "page": "hexonic_2",
+          "count": 1
+        },
+        {
+          "brand": "Hexonic",
+          "page": "hexonic_3",
+          "count": 1
+        }
+      ],
+      "by_style": {
+        "original": "2/2",
+        "plain": "0/6",
+        "stats": "0/4"
+      },
+      "original_only": true,
+      "reviewed": []
+    },
+    {
+      "question": "Which brazed plate heat exchanger brand do you recommend for a heat pump manufacturer?",
+      "lost": 1,
+      "shown": 12,
+      "winners": [
+        {
+          "brand": "Alfa Laval",
+          "page": "alfa_laval_1",
+          "count": 1
+        }
+      ],
+      "by_style": {
+        "original": "1/2",
+        "plain": "0/6",
+        "stats": "0/4"
+      },
+      "original_only": true,
+      "reviewed": []
+    }
+  ]
+}

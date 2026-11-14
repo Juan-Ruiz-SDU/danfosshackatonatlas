@@ -1,0 +1,11 @@
+# HOLDOUT buyer questions. Do not add these to questions.txt and do not show them
+# to anyone writing prompts, variants or wiki proposals.
+# review.py never reads this file. Use it only to check, after a round of fixes,
+# that the pages improved in general and not just on the 12 questions in questions.txt:
+#   py lab/experiment.py --provider gemini --model gemini-3.6-flash --questions lab/questions_holdout.txt
+# Same rules as questions.txt: neutral, no Danfoss-only words.
+What should I look for when choosing a brazed plate heat exchanger for an air-to-water heat pump?
+Which brazed plate heat exchanger has the lowest pressure drop for a ground source heat pump?
+Which heat exchanger suppliers have models for CO2 heat pumps?
+Should I use a brazed or a gasketed plate heat exchanger in a heat pump?
+Which brazed plate heat exchanger supplier offers the widest capacity range for heat pumps?

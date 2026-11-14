@@ -69,3 +69,37 @@ Useful options:
 
 When Manu and Juan generate new styles (`sources_1.md`, `stuffed_1.md`...), just run
 the experiment again: styles are read from the file names.
+
+## Review loop: why does Danfoss lose?
+
+After a normal run and a `--force-target` run, `review.py` works out why Danfoss
+lost and writes proposals for a person to approve:
+
+```bash
+py lab/review.py lab/results/<normal run> lab/results/<force-target run> --sleep 0
+```
+
+1. **Wording losses** (plain code): the Danfoss page never made BM25's top 5. Lists
+   the buyer words from the question that the page lacks, and which rival pages have them.
+2. **Content losses**: the page was shown (taken from the `--force-target` run) but a
+   competitor was preferred. A reviewer model ("JEV") compares the winning competitor
+   page with the Danfoss page and ranks the differences. It only describes differences
+   and never states Danfoss facts.
+3. **Wiki check**: for each difference, does the wiki already have the information?
+   Yes → a **generator problem** (fix `generate_variants.py`). No → a **wiki gap**,
+   proposed in `WIKI_PROPOSALS.md` and marked **NEEDS DANFOSS SOURCE**. The code checks
+   that every wiki line the model quotes really exists.
+
+Output goes to `lab/review/<date_time>/`: `REVIEW.md` (everything, ranked),
+`WIKI_PROPOSALS.md` (approve/reject one by one) and `review.json`. The script never
+edits the wiki. A person adds approved facts with their Danfoss source, following
+`wiki/policies/`. Then regenerate the variants and run the lab again.
+
+It reuses the provider options and answer cache of `experiment.py` (`--provider`,
+`--model`, `--host`, `--sleep`). By default it uses the model of the runs.
+`--provider fake` tests the plumbing offline.
+
+**Holdout:** `questions_holdout.txt` holds 5 questions the loop never sees. After a
+round of fixes, run the lab on them too (`--questions lab/questions_holdout.txt`). If
+Danfoss only improves on the 12 regular questions, the fixes are learning the test,
+not making better pages.

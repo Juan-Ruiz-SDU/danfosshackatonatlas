@@ -293,6 +293,16 @@
       <button id="imp-read" class="primary" disabled>Read the brochure</button>
     </div>
     <p class="hint" id="imp-status"></p>
+    <div id="imp-progress" class="hidden">
+      <div class="step" id="imp-step"></div>
+      <div class="bar"><div id="imp-bar"></div></div>
+      <div class="row between">
+        <span class="hint" id="imp-time"></span>
+        <button type="button" class="ghost danger" id="imp-stop">Stop</button>
+      </div>
+      <details><summary class="hint">What it is doing</summary><pre class="log" id="imp-log"></pre></details>
+    </div>
+    <div class="error hidden" id="imp-error"></div>
   </div>
   <form id="imp-step2" class="stack hidden">
     <p class="hint">Check everything. Pages will only use what is written here.</p>

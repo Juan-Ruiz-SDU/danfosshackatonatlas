@@ -24,6 +24,7 @@ REPO = APP.parent
 STATIC = APP / "static"
 sys.path.insert(0, str(APP))
 import ai  # noqa: E402
+import brochure  # noqa: E402
 import catalog  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
@@ -248,6 +249,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, state())
             if url.path == "/api/product":
                 return self.send(200, product_info(q.get("slug", "")))
+            if url.path == "/api/import/status":
+                return self.send(200, brochure.status())
             if url.path == "/api/job":
                 return self.send(200, JOB.as_dict() if JOB else None)
             if url.path.startswith("/files/"):
@@ -301,13 +304,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ai.update_provider(b["id"], base_url=b.get("base_url"))
             elif path == "/api/provider/remove":
                 ai.remove_provider(b["id"])
-            elif path == "/api/import/extract":
-                text = products.extract_text(b["filename"], base64.b64decode(b["data"]))
-                draft = products.draft_from_brochure(text, b.get("provider", "ollama"),
-                                                     b.get("model", "qwen3:8b"))
-                return self.send(200, {"draft": draft, "words": len(text.split())})
+            elif path == "/api/import/start":
+                # runs in the background: the page follows it with /api/import/status
+                brochure.start(b["filename"], base64.b64decode(b["data"]),
+                               b.get("provider") or "ollama", b.get("model") or "qwen3:8b")
+            elif path == "/api/import/stop":
+                brochure.stop()
+            elif path == "/api/import/clear":
+                brochure.clear()
             elif path == "/api/import/save":
-                return self.send(200, {"slug": products.create_product(b.get("draft", {}))})
+                slug = products.create_product(b.get("draft", {}))
+                brochure.clear()
+                return self.send(200, {"slug": slug})
             elif path == "/api/catalog/build":
                 return self.send(200, build_product_page(b))
             elif path == "/api/webpage/copy":

@@ -366,12 +366,19 @@ $("#prov-add").onsubmit = e => {
 
 // --- add product dialog -------------------------------------------------------------
 let upload = null;
-$("#open-import").onclick = () => {
+$("#open-import").onclick = async () => {
+  $("#import").showModal();
+  // a brochure may still be being read (dialog closed or page reloaded): pick it up again
+  const st = await api("/api/import/status").catch(() => null);
+  if (st && st.status !== "cancelled") return showImport(st);
+  resetImport();
+};
+function resetImport() {
   upload = null; $("#imp-file").value = ""; $("#drop-text").textContent = "Choose a PDF, Word or text file, or drop it here";
   $("#imp-read").disabled = true; $("#imp-status").textContent = "";
+  $("#imp-progress").classList.add("hidden"); $("#imp-error").classList.add("hidden");
   $("#imp-step1").classList.remove("hidden"); $("#imp-step2").classList.add("hidden");
-  $("#import").showModal();
-};
+}
 function takeFile(file) {
   if (!file) return;
   const r = new FileReader();
@@ -383,16 +390,46 @@ const drop = $("#drop");
 drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
 drop.ondragleave = () => drop.classList.remove("over");
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); takeFile(e.dataTransfer.files[0]); };
-$("#imp-read").onclick = () => safe(async () => {
-  $("#imp-read").disabled = true; $("#imp-status").textContent = "Reading the brochure and pulling out the facts… this can take a minute.";
-  try {
-    const r = await api("/api/import/extract", { ...upload, provider: $("#imp-provider").value, model: $("#imp-model").value });
+function mmss(t) { t = Math.max(0, Math.round(t)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; }
+let impPoll = null;
+function showImport(st) {
+  const busy = st.status === "running";
+  $("#imp-step1").classList.remove("hidden"); $("#imp-step2").classList.add("hidden");
+  $("#imp-progress").classList.toggle("hidden", !busy && st.status !== "error");
+  $("#imp-read").disabled = busy || !upload; $("#imp-stop").classList.toggle("hidden", !busy);
+  if (!busy) $("#imp-status").textContent = "";
+  $("#imp-step").textContent = st.step + (st.filename ? ` · ${st.filename}` : "");
+  $("#imp-bar").style.width = st.pct + "%";
+  $("#imp-time").textContent = `${Math.round(st.pct)}% · ${mmss(st.elapsed)} elapsed` +
+    (busy && st.left != null ? ` · about ${st.left >= 90 ? Math.round(st.left / 60) + " min" : mmss(st.left)} left` : "");
+  const log = $("#imp-log"); log.textContent = st.log.join("\n"); log.scrollTop = log.scrollHeight;
+  const err = $("#imp-error");
+  err.classList.toggle("hidden", st.status !== "error");
+  err.textContent = st.status === "error" ? "Could not read the brochure: " + st.error : "";
+  clearTimeout(impPoll);
+  if (busy) impPoll = setTimeout(followImport, 1000);
+  if (st.status === "done" && st.draft) {
     const f = $("#imp-step2");
-    for (const [k, v] of Object.entries(r.draft)) if (f.elements[k]) f.elements[k].value = v;
+    for (const [k, v] of Object.entries(st.draft)) if (f.elements[k]) f.elements[k].value = v;
     $("#imp-step1").classList.add("hidden"); f.classList.remove("hidden");
-  } finally { $("#imp-read").disabled = false; $("#imp-status").textContent = ""; }
+  }
+}
+async function followImport() {
+  try { showImport(await api("/api/import/status")); }
+  catch (e) { impPoll = setTimeout(followImport, 3000); }  // server busy for a moment: keep trying
+}
+$("#imp-read").onclick = () => safe(async () => {
+  $("#imp-read").disabled = true; $("#imp-error").classList.add("hidden");
+  $("#imp-status").textContent = "You can close this window: the brochure keeps being read, and reopening 'Add a product' shows it again.";
+  await api("/api/import/start", { ...upload, provider: $("#imp-provider").value, model: $("#imp-model").value })
+    .catch(e => { $("#imp-read").disabled = false; throw e; });
+  followImport();
 });
-$("#imp-back").onclick = () => { $("#imp-step2").classList.add("hidden"); $("#imp-step1").classList.remove("hidden"); };
+$("#imp-stop").onclick = () => safe(async () => {
+  await api("/api/import/stop", {}); clearTimeout(impPoll);
+  await api("/api/import/clear", {}); resetImport(); toast("Stopped");
+});
+$("#imp-back").onclick = () => safe(async () => { await api("/api/import/clear", {}); resetImport(); });
 $("#imp-step2").onsubmit = e => {
   e.preventDefault();
   const draft = Object.fromEntries(new FormData(e.target));

@@ -188,6 +188,75 @@ def chat(provider_id, model, system, user, temperature=0.3, cancel=None, use_cac
     raise RuntimeError(f"Gave up on {p['label']} after 6 attempts. Check your connection or quota.")
 
 
+def ollama_stream(provider_id, model, system, user, temperature=0.1, fmt=None,
+                  on_token=None, cancel=None, on_open=None):
+    """One Ollama answer, streamed so the caller can show progress and stop it.
+    fmt="json" makes Ollama only produce valid JSON. on_token(n) is called with the
+    number of tokens written so far. Returns (text, stats) where stats holds Ollama's
+    own timings: prompt_eval_count/duration, eval_count/duration, load_duration (ns).
+    on_open(resp) receives the open connection, so another thread can close it to stop."""
+    p = providers().get(provider_id)
+    if not p or p.get("type") != "ollama":
+        raise RuntimeError(f"'{provider_id}' is not an Ollama AI")
+    messages = ([{"role": "system", "content": system}] if system else []) + \
+               [{"role": "user", "content": user}]
+    payload = {"model": model, "messages": messages, "stream": True,
+               "options": {"temperature": temperature, "num_ctx": int(p.get("num_ctx", 16384))}}
+    if "think" in p:
+        payload["think"] = bool(p["think"])
+    if fmt:
+        payload["format"] = fmt
+    url = p["base_url"].rstrip("/") + "/api/chat"
+    for _ in range(2):
+        req = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json"})
+        try:
+            parts, n, stats = [], 0, {}
+            with urllib.request.urlopen(req, timeout=1800) as resp:
+                if on_open:
+                    on_open(resp)
+                for line in resp:  # one JSON object per line
+                    if cancel and cancel():
+                        raise Cancelled()  # closing the connection stops Ollama too
+                    if not line.strip():
+                        continue
+                    chunk = json.loads(line)
+                    if chunk.get("error"):
+                        raise RuntimeError(f"Ollama error: {chunk['error']}")
+                    piece = (chunk.get("message") or {}).get("content", "")
+                    if piece:
+                        parts.append(piece)
+                        n += 1
+                        if on_token:
+                            on_token(n)
+                    if chunk.get("done"):
+                        stats = {k: chunk.get(k) for k in ("prompt_eval_count", "prompt_eval_duration",
+                                                            "eval_count", "eval_duration", "load_duration")}
+            if cancel and cancel():
+                raise Cancelled()
+            if not stats:  # the stream ended without Ollama's final "done" message
+                raise ConnectionError("the answer was cut off")
+            return THINK_RE.sub("", "".join(parts)).strip(), stats
+        except urllib.error.HTTPError as e:
+            full = e.read().decode(errors="replace")
+            if e.code == 400 and "think" in payload and "think" in full.lower():
+                payload.pop("think")
+                continue
+            if e.code == 404:
+                raise RuntimeError(f"Model '{model}' is not installed on the Ollama server at "
+                                   f"{p['base_url']}. On that computer run:  ollama pull {model}")
+            raise RuntimeError(f"{p['label']} error {e.code}: {full[:400]}")
+        except (urllib.error.URLError, OSError, ValueError, AttributeError) as e:
+            if cancel and cancel():
+                raise Cancelled() from None  # Stop closed the connection
+            if isinstance(e, ValueError) and not isinstance(e, json.JSONDecodeError):
+                raise
+            raise RuntimeError(
+                f"Lost the connection to {p['label']} at {p['base_url']} ({getattr(e, 'reason', e)}). "
+                "Check that the server is on and you are on the same network.")
+    raise RuntimeError(f"{p['label']} refused the request")
+
+
 def gemini_key():
     load_env()
     key = os.environ.get("GEMINI_API_KEY")
@@ -201,4 +270,8 @@ def parse_json(text):
     m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
         raise ValueError("The AI did not return JSON")
-    return json.loads(m.group(0))
+    try:
+        # strict=False accepts raw line breaks inside strings, which small models often write
+        return json.loads(m.group(0), strict=False)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"The AI's answer was not valid JSON ({e.msg})") from None

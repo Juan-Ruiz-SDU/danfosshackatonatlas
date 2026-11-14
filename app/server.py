@@ -24,8 +24,10 @@ REPO = APP.parent
 STATIC = APP / "static"
 sys.path.insert(0, str(APP))
 import ai  # noqa: E402
+import catalog  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
+import webpage  # noqa: E402
 
 
 # --- the one background run -----------------------------------------------------
@@ -131,12 +133,69 @@ def product_info(slug):
                 runs.append({"run": d.name, "unfinished": True})
     return {
         "product": {k: p.get(k, "") for k in ("slug", "name", "product_type", "application", "keyword")},
+        "danfoss_url": danfoss_url(p),
         "questions": products.questions(p), "fact_sheet": sheet, "fact_sheet_error": sheet_error,
         "pages": {"danfoss": sum(d.brand.lower() == "danfoss" for d in pages),
                   "competitors": sum(d.brand.lower() != "danfoss" for d in pages),
                   "fixed_links": len(products.source_list(p))},
         "runs": runs[:20],
     }
+
+
+def danfoss_url(p):
+    """The product's current Danfoss page: the first Danfoss link of its fixed list."""
+    return next((u for b, u in products.source_list(p) if b.lower() == "danfoss"), "")
+
+
+def page_context(slug):
+    """Product, ticked questions and competitor pages, for the Web page tabs."""
+    p = products.get(slug)
+    questions = [q["text"] for q in products.questions(p) if q["enabled"]]
+    if not questions:
+        raise ValueError("Tick at least one buyer question in the Run tab.")
+    competitors = [d for d in pipeline.load_pages(p, pipeline.DEFAULTS["max_words"])
+                   if d.brand.lower() != pipeline.TARGET]
+    if not competitors:
+        raise ValueError("No competitor pages saved yet: run once with 'Find fresh sources' on.")
+    return p, questions, competitors
+
+
+def analyze_page(slug):
+    """The Web page tab, from the saved copy (never downloads)."""
+    p, questions, competitors = page_context(slug)
+    try:
+        allowed = pipeline.gv.allowed_numbers(products.fact_sheet(p))
+    except ValueError:
+        allowed = frozenset()
+    return webpage.analyze(p, questions, competitors, allowed)
+
+
+def copy_page(b):
+    """Reverse-engineer the current page once (download, or a saved .html file),
+    then show the analysis. `replace` also overwrites the edited copy."""
+    p = products.get(b.get("slug", ""))
+    url = (b.get("url") or danfoss_url(p)).strip()
+    raw = None
+    if b.get("data"):
+        raw = base64.b64decode(b["data"]).decode("utf-8", errors="replace")
+    elif not url.startswith(("http://", "https://")):
+        raise ValueError("Give the address of the current Danfoss page (https://...).")
+    wrote = webpage.create_copy(p, url, bool(b.get("replace")), raw, b.get("filename", ""))
+    return {**analyze_page(p["slug"]), "copy_written": wrote}
+
+
+def save_page(b):
+    p = products.get(b.get("slug", ""))
+    webpage.save_copy(p, str(b.get("text", "")))
+    return analyze_page(p["slug"])
+
+
+def build_product_page(b):
+    p, questions, competitors = page_context(b.get("slug", ""))
+    version = "ai" if b.get("version") == "ai" else "template"
+    return catalog.build(p, str(b.get("id", "")), questions, competitors, version,
+                         b.get("provider") or "gemini", b.get("model") or "gemini-2.5-flash",
+                         fresh=bool(b.get("fresh")))
 
 
 def update_product(slug, fields):
@@ -185,6 +244,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, JOB.as_dict() if JOB else None)
             if url.path.startswith("/files/"):
                 return self.file(urllib.parse.unquote(url.path[len("/files/"):]), q.get("download") == "1")
+            if url.path == "/api/webpage":
+                return self.send(200, analyze_page(q.get("slug", "")))
+            if url.path == "/api/catalog":
+                return self.send(200, catalog.catalog(products.get(q.get("slug", ""))))
+            if url.path.startswith("/pages/"):
+                return self.page(urllib.parse.unquote(url.path[len("/pages/"):]), q.get("download") == "1")
             self.send(404, {"error": "Not found"})
         except (ValueError, RuntimeError) as e:
             self.send(400, {"error": str(e)})
@@ -233,6 +298,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, {"draft": draft, "words": len(text.split())})
             elif path == "/api/import/save":
                 return self.send(200, {"slug": products.create_product(b.get("draft", {}))})
+            elif path == "/api/catalog/build":
+                return self.send(200, build_product_page(b))
+            elif path == "/api/webpage/copy":
+                return self.send(200, copy_page(b))
+            elif path == "/api/webpage/save":
+                return self.send(200, save_page(b))
             else:
                 return self.send(404, {"error": "Not found"})
             self.send(200, {"ok": True})
@@ -250,6 +321,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if ctype.startswith("text/") or ctype.endswith("javascript"):
             ctype += "; charset=utf-8"
         self.send(200, path.read_bytes(), ctype)
+
+    def page(self, rel, download):
+        """Generated web pages: /pages/<product>/<file under its webpage/ folder>.
+        The downloaded original (cache/) is not served."""
+        slug, _, name = rel.partition("/")
+        root = webpage.store_paths(products.get(slug))["folder"].resolve()
+        path = (root / name).resolve()
+        types = {".html": "text/html", ".xml": "application/xml", ".md": "text/plain"}
+        if (root not in path.parents or path.suffix not in types or not path.is_file()
+                or "cache" in path.relative_to(root).parts):
+            return self.send(404, {"error": "Page not found"})
+        disp = ("attachment" if download else "inline") + f'; filename="{slug}_{path.name}"'
+        self.send(200, path.read_bytes(), types[path.suffix] + "; charset=utf-8",
+                  {"Content-Disposition": disp})
 
     def file(self, rel, download):
         """Files of a run: /files/<product>/<run>/<file>. Nothing outside products/runs."""

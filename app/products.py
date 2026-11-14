@@ -9,6 +9,7 @@ A product is a folder products/<slug>/ with:
   fixed/           those pages, downloaded
   sources/         pages found by source discovery
   runs/<date>/     every run: variants, lab results, the final page and report
+  webpage/         Web page tab: the reformatted current page, product pages, cache/
 
 Standard questions (questions/standard.json) are shared by every product. They can
 use {product}, {a_product} (with a/an) and {application}, filled from product.json.
@@ -82,6 +83,17 @@ def fact_sheet(p):
         raise ValueError(str(e))
 
 
+def guidelines(p):
+    """The bundle's writing guidelines (wiki/guidelines/) for the writer prompt, or ''."""
+    path = wiki_dir(p)
+    if not path.is_dir():
+        return ""
+    try:
+        return generate_variants.load_guidelines(path)
+    except SystemExit as e:
+        raise ValueError(str(e))
+
+
 def keyword(p, sheet):
     if p.get("keyword"):
         return p["keyword"]
@@ -93,6 +105,8 @@ def page_dirs(p):
     """Folders with comparison pages: fixed list, discovered sources, and extras."""
     dirs = [p["folder"] / "fixed", p["folder"] / "sources"]
     dirs += [REPO / d for d in p.get("extra_page_dirs", [])]
+    # the reformatted current page from the Web page tab, where the lab reads it
+    dirs.append(REPO / p["restructured_dir"] if p.get("restructured_dir") else p["folder"] / "webpage")
     return [d for d in dirs if d.is_dir()]
 
 

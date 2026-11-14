@@ -12,3 +12,4 @@ generated:
 - any percentage improvement in efficiency, pressure drop or refrigerant charge (no figures are given)
 - any price
 - any certification, award or customer name not listed in this bundle
+- generic environmental claims such as "eco", "green", "environmentally friendly" or "sustainable": only repeat the specific environmental facts in this bundle (for example the Z-design statement on fewer plates), word for word

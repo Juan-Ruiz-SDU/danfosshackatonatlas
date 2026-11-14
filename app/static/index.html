@@ -19,8 +19,14 @@
 </header>
 
 <main>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" data-tab="run" aria-selected="true">Run</button>
+    <button role="tab" data-tab="web" aria-selected="false">Web page</button>
+    <button role="tab" data-tab="catalog" aria-selected="false">Product by product</button>
+  </nav>
   <div id="banner"></div>
 
+  <div id="tab-run" class="tab">
   <!-- 1. Product -->
   <section class="card" id="card-product">
     <h2><span class="num">1</span> Product</h2>
@@ -104,6 +110,11 @@
         <label>Repeats per question <input type="number" id="s-repeats" min="1" max="5"></label>
         <label>Search results the AI sees <input type="number" id="s-topk" min="2" max="10"></label>
         <label>Retries if the length is off <input type="number" id="s-retries" min="0" max="6"></label>
+        <label>Search ranking
+          <select id="s-retrieval">
+            <option value="page">Whole pages (the original lab)</option>
+            <option value="passage">Passages, like AI search</option>
+          </select></label>
       </div>
       <label class="check"><input type="checkbox" id="s-fresh"> Write brand-new pages (otherwise pages already written with the same settings are reused, which is free)</label>
     </details>
@@ -138,6 +149,104 @@
       <ul id="runs"></ul>
     </details>
   </section>
+  </div>
+
+  <!-- Web page: the current Danfoss page, reformatted (format only) -->
+  <div id="tab-web" class="tab hidden">
+    <section class="card">
+      <h2><span class="num">1</span> Copy of the current page <span class="count product-name"></span></h2>
+      <p class="hint">Atlas reverse-engineers Danfoss's page <b>once</b>: it reads it the way a crawler does (without
+        running JavaScript) and saves a snapshot as the reference, plus <b>your own copy</b>, already laid out for
+        crawlers (one H1, real headings, lists, tables). From then on everything works on your copy: Danfoss's
+        site is not downloaded again.</p>
+      <p id="web-copyinfo" class="hint"></p>
+      <form id="web-form" class="row">
+        <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/..." aria-label="Current Danfoss page">
+        <button class="primary" id="web-copy-btn">Make the copy</button>
+      </form>
+      <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copy (otherwise only the reference snapshot is renewed)</label>
+      <details><summary>The site blocks the download? Import the page from your browser</summary>
+        <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, and pick the file here.</p>
+        <input type="file" id="web-import" accept=".html,.htm">
+      </details>
+      <p class="hint" id="web-status"></p>
+    </section>
+    <section class="card hidden" id="web-edit">
+      <h2><span class="num">2</span> Your copy</h2>
+      <p class="hint">Adapt the page here (or in <code>products/&lt;product&gt;/webpage/page.md</code>). Markdown:
+        <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>, <code>- list</code>,
+        <code>| table |</code>, <code>[link](https://...)</code>. The lines between <code>---</code> at the top are the
+        page's title, description and address. Facts must come from the wiki: the check below compares your copy
+        with Danfoss's page and flags new numbers that are not in the wiki.</p>
+      <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy (Markdown)"></textarea>
+      <div class="row between">
+        <span class="hint" id="web-saved"></span>
+        <button class="primary" id="web-save">Save and check</button>
+      </div>
+    </section>
+    <div id="web-out" class="stackcards hidden">
+      <section class="card">
+        <h2>Changes compared to Danfoss's page</h2>
+        <div id="web-check"></div>
+        <div class="downloads" id="web-files"></div>
+      </section>
+      <section class="card">
+        <h2>Headings: before and after</h2>
+        <p class="hint">AI search cuts pages into passages at the headings. Bold text that only looks like a heading does not count.</p>
+        <div class="grid2" id="web-outline"></div>
+        <details><summary>Preview the reformatted page</summary>
+          <iframe id="web-frame" class="preview" sandbox title="Reformatted page preview"></iframe></details>
+      </section>
+      <section class="card">
+        <h2>Crawler checks</h2>
+        <p class="hint">What Google lists as crawl factors: how fast the server answers Googlebot, server errors, content quality and other signals; plus what a crawler can read.</p>
+        <div id="web-audit"></div>
+      </section>
+      <section class="card">
+        <h2>What Googlebot sees</h2>
+        <div id="web-gbot"></div>
+      </section>
+      <section class="card">
+        <h2>BM25 per question</h2>
+        <div id="web-bm25"></div>
+      </section>
+      <section class="card">
+        <h2>Never-claim screen</h2>
+        <p class="hint">Sentences that the wiki's never-claim policy would not allow. Danfoss's page has them; your copy keeps them until you change them.</p>
+        <div id="web-claims"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Product by product -->
+  <div id="tab-catalog" class="tab hidden">
+    <section class="card">
+      <h2>Products <span class="count product-name"></span></h2>
+      <p class="hint" id="cat-hint">One page per product, built only from the fact sheet. Pick a product.</p>
+      <div id="cat-list"></div>
+    </section>
+    <section class="card hidden" id="cat-page">
+      <h2 id="cat-title"></h2>
+      <div class="row">
+        <button id="cat-template">Page from the fact sheet</button>
+        <button id="cat-ai" class="primary">Rewrite with the writer AI</button>
+        <label class="check"><input type="checkbox" id="cat-fresh"> new text</label>
+      </div>
+      <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this product's facts.</p>
+      <div id="cat-out" class="hidden">
+        <div id="cat-flags"></div>
+        <div class="downloads" id="cat-files"></div>
+        <details open><summary>Preview</summary>
+          <iframe id="cat-frame" class="preview" sandbox title="Product page preview"></iframe></details>
+        <h3>Crawler checks</h3>
+        <div id="cat-audit"></div>
+        <h3>What Googlebot sees</h3>
+        <div id="cat-gbot"></div>
+        <h3>BM25 per question</h3>
+        <div id="cat-bm25"></div>
+      </div>
+    </section>
+  </div>
 </main>
 
 <!-- Settings -->

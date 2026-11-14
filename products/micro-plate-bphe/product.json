@@ -5,5 +5,6 @@
   "keyword": "",
   "wiki": "wiki",
   "source_list": "lab/sources.txt",
-  "extra_page_dirs": ["lab/corpus/competitors", "lab/corpus/danfoss_original"]
+  "extra_page_dirs": ["lab/corpus/competitors", "lab/corpus/danfoss_original"],
+  "restructured_dir": "lab/corpus/danfoss_restructured"
 }

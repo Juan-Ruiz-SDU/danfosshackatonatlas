@@ -40,6 +40,67 @@ https://aistudio.google.com/apikey. The key is saved in `.env`, which is never c
 Answers are saved in `app/cache/`. If a run stops because of the free daily limit, press Run again
 the next day and it continues where it stopped, without spending the quota again.
 
+## Web page tab: your own copy of the Danfoss page
+
+1. **Make the copy (once).** Atlas reverse-engineers the current Danfoss page, from the first Danfoss
+   link of the product. It reads the page the way a crawler does, without running JavaScript, and saves:
+   - `webpage/original.md` and `original.json`: a snapshot of the page as it was (the reference), with
+     the crawler checks of the live page. These include status, redirects, response time, robots.txt
+     and sitemap.
+   - `webpage/page.md`: **your copy**, already laid out for crawlers:
+     - one H1
+     - real headings instead of bold text and skipped levels
+     - lists and tables
+     - title, description and address in the lines between `---` at the top
+   Headings with nothing under them in the HTML are left out and listed. On the live page a script
+   fills them.
+   After this, Danfoss's site is not downloaded again. If its bot protection blocks the download,
+   Atlas says so and keeps your copy. You can also save the page from your browser (Ctrl+S) and
+   import the file.
+2. **Adapt your copy** in the tab's editor, or in `page.md` directly. Atlas compares it with Danfoss's
+   page and lists the words and numbers you added or removed. It warns about new numbers that are not
+   in the wiki.
+3. On every save Atlas writes:
+   - `rebuilt.html`: your copy as a light static page with Product and breadcrumb JSON-LD and no
+     scripts;
+   - `sitemap.xml` (see `wiki/guidelines/sitemap.md`);
+   - the citation test copy, style `restructured`. It is extracted the same way as Danfoss's page,
+     so every run in the Run tab also scores it.
+4. It shows, side by side with Danfoss's page:
+   - the headings
+   - crawler checks
+   - what Googlebot sees: the passages AI search would cut, and which one answers each question
+   - BM25 per question: whole page and best passage
+   - the never-claim screen
+
+Committed: `original.md`, `original.json`, `page.md`, `rebuilt.html`, `sitemap.xml`.
+Not committed: `cache/` (the downloaded HTML). Copy again only to renew the reference. Tick
+"Also replace my edited copy" only to start your copy over.
+
+## Product by product tab
+
+The product list is the first table in the fact sheet with a "Models" column. For Micro Plate that is
+the 11 heat pump platforms. Rows of other tables with the same first column, such as the per-model
+pressure table, are added to the matching product. Pick a product to build its page:
+
+- **Page from the fact sheet**: every sentence is copied from the wiki and laid out by
+  `wiki/guidelines/page-structure.md`. Nothing can be invented.
+- **Rewrite with the writer AI**: the AI chosen in the Run tab rewrites that product's facts. Atlas flags
+  numbers that are not in the product's facts and never-claim words.
+
+Each page gets the same crawler checks, Googlebot view and BM25 table. Files:
+`products/<name>/webpage/products/<product>.html`.
+
+## Search ranking: whole pages or passages
+
+Under **More options**, *Search ranking* chooses how the citation test picks the top results.
+
+- **Whole pages**: the original lab. The AI sees each page's first words.
+- **Passages**: like AI search. Pages are cut at their headings, a page ranks by its best passage,
+  and the AI sees its best passages.
+
+Scores from the two settings are not comparable.
+
 ## Adding another AI
 
 Open **Settings > Add an AI**. Any service with an OpenAI-compatible chat API works: OpenAI, Mistral,
@@ -55,5 +116,7 @@ Source discovery always uses Gemini, because it reports which Google Search page
 | `products/<name>/questions.json` | Questions switched off for this product, and its own questions |
 | `products/<name>/sources/`, `fixed/` | Comparison pages: discovered, and from the fixed link list |
 | `products/<name>/runs/<date>/` | Each run's results (not committed) |
+| `products/<name>/webpage/` | Web page tabs: `page.md` (your copy), `original.md/.json` (reference), `rebuilt.html`, `sitemap.xml`, `products/*.html`, `cache/` (not committed) |
+| `wiki/guidelines/` | How pages are written and laid out. Instructions for the writer, not facts |
 | `questions/standard.json` | Standard questions for all products |
 | `app/providers.json` | The AIs the app can use |

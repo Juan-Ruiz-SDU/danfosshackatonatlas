@@ -96,6 +96,7 @@ function gather() {
     words: +$("#s-words").value || 400, repeats: +$("#s-repeats").value || 1,
     top_k: +$("#s-topk").value || 5, fresh_pages: $("#s-fresh").checked,
     retries: $("#s-retries").value === "" ? 3 : +$("#s-retries").value,
+    retrieval: $("#s-retrieval").value || "page",
   };
 }
 let restoring = false;
@@ -113,9 +114,10 @@ function applySettings(s) {
   $("#s-words").value = s.words; $("#s-repeats").value = s.repeats; $("#s-topk").value = s.top_k;
   $("#s-fresh").checked = !!s.fresh_pages;
   $("#s-retries").value = s.retries ?? 3;
+  $("#s-retrieval").value = s.retrieval === "passage" ? "passage" : "page";
 }
 function saveSettings() { if (restoring) return; store("settings", gather()); estimate(); }
-["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-words", "#s-repeats", "#s-topk", "#s-fresh", "#s-retries"]
+["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-words", "#s-repeats", "#s-topk", "#s-fresh", "#s-retries", "#s-retrieval"]
   .forEach(s => $(s).addEventListener("change", saveSettings));
 
 function estimate() {
@@ -151,6 +153,7 @@ async function loadProduct(slug) {
   renderQuestions();
   renderResults();
   estimate();
+  resetPageTabs();
 }
 $("#product-select").onchange = e => safe(() => loadProduct(e.target.value));
 for (const [id, key] of [["#f-type", "product_type"], ["#f-app", "application"]]) {
@@ -364,4 +367,223 @@ $("#imp-step2").onsubmit = e => {
   });
 };
 
-safe(loadState);
+// --- tabs -----------------------------------------------------------------------------
+function showTab(name) {
+  $$(".tabs [role=tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  $$(".tab").forEach(t => t.classList.toggle("hidden", t.id !== "tab-" + name));
+  store("tab", name);
+  if (name === "catalog" && P && !CAT) safe(loadCatalog);
+  if (name === "web" && P && !WEB) safe(loadWeb);
+}
+$$(".tabs [role=tab]").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+let WEB = null, CAT = null, CATSEL = null;
+function resetPageTabs() {
+  WEB = null; CAT = null; CATSEL = null;
+  $$(".product-name").forEach(e => e.textContent = P.product.name);
+  if (!$("#web-url").value || $("#web-url").dataset.auto === "1") {
+    $("#web-url").value = P.danfoss_url || ""; $("#web-url").dataset.auto = "1";
+  }
+  $("#web-out").classList.add("hidden"); $("#web-edit").classList.add("hidden");
+  $("#web-status").textContent = ""; $("#web-md").value = "";
+  $("#cat-page").classList.add("hidden"); $("#cat-list").innerHTML = "";
+  if (!$("#tab-catalog").classList.contains("hidden")) safe(loadCatalog);
+  if (!$("#tab-web").classList.contains("hidden")) safe(loadWeb);
+}
+$("#web-url").addEventListener("input", e => e.target.dataset.auto = "0");
+
+const STATUS_ICON = { ok: "✔", warn: "▲", bad: "✖" };
+const VERSION_NAME = { original: "Danfoss's page", rebuilt: "Your copy", template: "From the fact sheet", ai: "AI rewrite" };
+
+// Crawler checks: one row per check, one column per version
+function renderAudit(el, audits) {
+  const names = Object.keys(audits);
+  const checks = [];
+  for (const n of names) for (const a of audits[n]) if (!checks.includes(a.check)) checks.push(a.check);
+  el.innerHTML = `<div class="tablewrap"><table class="data"><thead><tr><th>Check</th>${names.map(n => `<th>${esc(VERSION_NAME[n] || n)}</th>`).join("")}</tr></thead><tbody>` +
+    checks.map(c => `<tr><td>${esc(c)}</td>${names.map(n => {
+      const a = audits[n].find(x => x.check === c);
+      return a ? `<td class="st-${a.status}" title="${esc(a.note)}"><span class="icon">${STATUS_ICON[a.status]}</span> ${esc(a.value)}${a.note && a.status !== "ok" ? `<div class="tiny hint">${esc(a.note.slice(0, 160))}</div>` : ""}</td>` : "<td class='hint'>–</td>";
+    }).join("")}</tr>`).join("") + "</tbody></table></div>";
+}
+
+// What Googlebot sees: the passages, and which one answers each question
+function renderGooglebot(el, views) {
+  const names = Object.keys(views);
+  const qs = [...new Set(names.flatMap(n => Object.keys(views[n].best)))];
+  const state = { side: names[names.length - 1], q: qs[0] || "" };
+  const draw = () => {
+    const v = views[state.side];
+    const best = v.best[state.q];
+    el.innerHTML = `<div class="row">
+        <div class="seg">${names.map(n => `<button type="button" data-side="${esc(n)}" class="${n === state.side ? "on" : ""}">${esc(VERSION_NAME[n] || n)}</button>`).join("")}</div>
+        <select class="qsel" aria-label="Question">${qs.map(q => `<option ${q === state.q ? "selected" : ""}>${esc(q)}</option>`).join("")}</select></div>
+      <p class="hint">${v.words} words a crawler can read, cut into <b>${v.passages.length} passages</b> at the headings (about 200 words each, like AI search).
+        ${best ? `The question matches passage <b>#${best.index + 1}</b> best (BM25 ${best.score}).` : "No passage matches this question."}</p>
+      <ol class="passages">${v.passages.map(p => `<li class="${best && best.index === p.index ? "best" : ""}">
+        <div class="crumb">${esc(p.heading || "(no heading)")} <span class="hint">· ${p.words} words</span></div>
+        <div class="ptext">${esc(p.text.length > 600 ? p.text.slice(0, 600) + " …" : p.text)}</div></li>`).join("")}</ol>`;
+    $$("[data-side]", el).forEach(b => b.onclick = () => { state.side = b.dataset.side; draw(); });
+    $(".qsel", el).onchange = e => { state.q = e.target.value; draw(); };
+    const b = $(".passages .best", el); if (b) b.scrollIntoView({ block: "nearest" });
+  };
+  draw();
+}
+
+// BM25 per question: rank among the competitor pages, whole page and best passage
+function renderBm25(el, bm) {
+  const names = Object.keys(bm.rows[0]?.versions || {});
+  const two = names.length === 2;
+  const cell = (v, kind) => {
+    const r = v[kind + "_rank"], top = v[kind + "_top"];
+    return `<span class="${top ? "good" : "badtxt"}">#${r}</span> <span class="hint">(${v[kind + "_score"]})</span>`;
+  };
+  const delta = (a, b, kind) => {
+    const d = a[kind + "_rank"] - b[kind + "_rank"];
+    return d > 0 ? `<span class="good">▲${d}</span>` : d < 0 ? `<span class="badtxt">▼${-d}</span>` : `<span class="hint">=</span>`;
+  };
+  el.innerHTML = `<p class="hint">Rank of the Danfoss page among ${bm.pages} pages (the saved competitor pages + this one). Green = in the top ${bm.top_k}, so the AI would see it.
+      <b>Whole page</b> is the lab's default ranking; <b>best passage</b> ranks each page by its best passage, like AI search.</p>
+    <div class="tablewrap"><table class="data"><thead><tr><th>Question</th>${names.map(n => `<th>${esc(VERSION_NAME[n] || n)}<br><small>whole page · best passage</small></th>`).join("")}${two ? "<th>Change<br><small>page · passage</small></th>" : ""}</tr></thead><tbody>` +
+    bm.rows.map(r => `<tr><td>${esc(r.question)}</td>${names.map(n => `<td>${cell(r.versions[n], "page")} · ${cell(r.versions[n], "passage")}<div class="tiny hint">${esc((r.versions[n].best_heading || "").split(" > ").slice(-1)[0])}</div></td>`).join("")}
+      ${two ? `<td>${delta(r.versions[names[0]], r.versions[names[1]], "page")} · ${delta(r.versions[names[0]], r.versions[names[1]], "passage")}</td>` : ""}</tr>`).join("") +
+    "</tbody></table></div>";
+}
+
+function pageUrl(file, dl) { return `/pages/${encodeURIComponent(P.product.slug)}/${file.split("/").map(encodeURIComponent).join("/")}${dl ? "?download=1" : ""}`; }
+
+// --- Web page tab ---------------------------------------------------------------------------
+async function loadWeb() {
+  $("#web-status").textContent = "";
+  WEB = await api("/api/webpage?slug=" + encodeURIComponent(P.product.slug));
+  if (!WEB.copy) {
+    $("#web-copyinfo").innerHTML = "No copy yet. Check the address and press <b>Make the copy</b>.";
+    $("#web-copy-btn").textContent = "Make the copy";
+    $("#web-edit").classList.add("hidden"); $("#web-out").classList.add("hidden");
+    return;
+  }
+  renderWeb();
+}
+
+function webCall(path, body, msg) {
+  const btns = [$("#web-copy-btn"), $("#web-save")]; btns.forEach(b => b.disabled = true);
+  $("#web-status").textContent = msg;
+  return safe(async () => {
+    try {
+      WEB = await api(path, { slug: P.product.slug, ...body });
+      renderWeb();
+      $("#web-status").textContent = WEB.copy_written === false
+        ? "Reference snapshot renewed. Your edited copy was kept (tick “Also replace” to start over)." : "";
+      return true;
+    } catch (err) { $("#web-status").textContent = ""; throw err; } finally { btns.forEach(b => b.disabled = false); }
+  });
+}
+
+$("#web-form").onsubmit = e => {
+  e.preventDefault();
+  if (!P) return;
+  if (WEB?.copy && $("#web-replace").checked && !confirm("Replace your edited copy with a fresh copy of Danfoss's page?")) return;
+  webCall("/api/webpage/copy", { url: $("#web-url").value.trim(), replace: $("#web-replace").checked },
+    "Reading Danfoss's page and making the copy… (a few seconds)");
+};
+$("#web-import").onchange = e => {
+  const file = e.target.files[0];
+  if (!file || !P) return;
+  if (WEB?.copy && $("#web-replace").checked && !confirm("Replace your edited copy with this file?")) return;
+  const r = new FileReader();
+  r.onload = () => webCall("/api/webpage/copy", {
+    url: $("#web-url").value.trim(), replace: $("#web-replace").checked,
+    filename: file.name, data: String(r.result).split(",")[1],
+  }, "Reading the saved page…").finally(() => { e.target.value = ""; });
+  r.readAsDataURL(file);
+};
+$("#web-save").onclick = () => {
+  if (!P) return;
+  webCall("/api/webpage/save", { text: $("#web-md").value }, "Saving your copy and checking it…")
+    .then(ok => ok && toast("Copy saved"));
+};
+
+function renderWeb() {
+  const w = WEB, c = w.changes, cp = w.copy;
+  $("#web-copy-btn").textContent = "Copy the page again";
+  $("#web-copyinfo").innerHTML = `Copy made ${esc(cp.copied.replace("T", " "))} from ${cp.imported ? `the saved file <b>${esc(cp.imported)}</b>` : `<a href="${esc(cp.final_url)}" target="_blank" rel="noopener">${esc(cp.final_url)}</a>`}.`;
+  $("#web-edit").classList.remove("hidden");
+  if ($("#web-md").value !== cp.text) $("#web-md").value = cp.text;
+  $("#web-saved").textContent = `Last saved ${cp.changed.replace("T", " ")}`;
+  $("#web-out").classList.remove("hidden");
+  const list = (a) => a.map(esc).join(" ");
+  $("#web-check").innerHTML = (c.same
+      ? `<div class="okbox">✔ Same content as Danfoss's page: only the format changed (${c.words_after} words, numbers identical).</div>`
+      : `<div class="warnbox">✎ Your copy changes the content: ${c.words_before} words in Danfoss's page, ${c.words_after} in your copy.</div>
+         ${c.added.length ? `<p class="hint"><b>Added words:</b> ${list(c.added)}</p>` : ""}
+         ${c.removed.length ? `<p class="hint"><b>Removed words:</b> ${list(c.removed)}</p>` : ""}
+         ${c.numbers_added.length ? `<p class="hint"><b>New numbers:</b> ${list(c.numbers_added)}</p>` : ""}
+         ${c.numbers_removed.length ? `<p class="hint"><b>Numbers removed:</b> ${list(c.numbers_removed)}</p>` : ""}`)
+    + (c.numbers_not_in_wiki.length ? `<div class="warnbox">⚠ New numbers that are not in the wiki: <b>${list(c.numbers_not_in_wiki)}</b>. Every fact must come from the wiki: add it there with its Danfoss source, or remove it.</div>` : "")
+    + (c.removed_empty_sections.length ? `<p class="hint">Left out when copying: headings with nothing under them in the HTML (a script fills them on the live page, so a crawler sees them empty): <b>${esc(c.removed_empty_sections.join(", "))}</b>.</p>` : "")
+    + `<p class="hint">Your copy is in the citation test as <code>${esc(w.files.lab)}</code> (style “restructured”), extracted the same way as Danfoss's page.</p>`;
+  $("#web-files").innerHTML = `<a class="dl main" href="${pageUrl(w.files.rebuilt, 1)}">⬇ Your page (HTML)</a>
+    <a class="dl" href="${pageUrl(w.files.rebuilt)}" target="_blank" rel="noopener">Open it in a new tab</a>
+    <a class="dl" href="${pageUrl(w.files.sitemap)}" target="_blank" rel="noopener">sitemap.xml</a>
+    <a class="dl" href="${esc(cp.final_url)}" target="_blank" rel="noopener">Danfoss's page</a>`;
+  const outline = (list, title) => `<div><h3>${title}</h3><ul class="outline">${list.map(h => h.pseudo && !h.level ? `<li class="pseudo">bold text: ${esc(h.text)}</li>`
+      : `<li class="lv${h.level}${h.pseudo ? " fixed" : ""}"><b>H${h.level}</b> ${esc(h.text)}${h.pseudo ? " <small>(was bold text)</small>" : ""}</li>`).join("")}</ul></div>`;
+  $("#web-outline").innerHTML = outline(w.outline.original, "Danfoss's page") + outline(w.outline.rebuilt, "Your copy");
+  $("#web-frame").src = pageUrl(w.files.rebuilt) + "?t=" + Date.now();
+  renderAudit($("#web-audit"), w.audit);
+  renderGooglebot($("#web-gbot"), w.googlebot);
+  renderBm25($("#web-bm25"), w.bm25);
+  const claims = (fs) => fs.length ? `<ul class="claims">${fs.map(f => `<li><span class="tag">${esc(f.type)}</span> “${esc(f.match)}” — <span class="hint">${esc(f.sentence)}</span></li>`).join("")}</ul>` : `<p class="okbox">✔ None found.</p>`;
+  $("#web-claims").innerHTML = `<div class="grid2"><div><h3>Danfoss's page</h3>${claims(w.claims.original)}</div><div><h3>Your copy</h3>${claims(w.claims.copy)}</div></div>`;
+}
+
+// --- Product by product tab ---------------------------------------------------------------
+async function loadCatalog() {
+  CAT = await api("/api/catalog?slug=" + encodeURIComponent(P.product.slug));
+  if (!CAT.items.length) {
+    $("#cat-hint").textContent = CAT.note || "No product list in this fact sheet.";
+    $("#cat-list").innerHTML = ""; return;
+  }
+  $("#cat-hint").innerHTML = `${CAT.items.length} products, from the fact sheet table “${esc(CAT.source)}”. Pick one to build its page.`;
+  $("#cat-list").innerHTML = `<div class="tablewrap"><table class="data pick"><thead><tr>${CAT.columns.map(c => `<th>${esc(c)}</th>`).join("")}<th></th></tr></thead><tbody>` +
+    CAT.items.map(it => `<tr data-id="${esc(it.id)}" class="${it.id === CATSEL ? "sel" : ""}">${it.cells.map(c => `<td>${esc(c)}</td>`).join("")}<td>${it.extra.length ? `<span class="tag">+ ${it.extra.map(x => esc(x.title || "data")).join(", ")}</span>` : ""}</td></tr>`).join("") + "</tbody></table></div>";
+  $$("#cat-list tr[data-id]").forEach(tr => tr.onclick = () => pickProduct(tr.dataset.id));
+}
+
+function pickProduct(id) {
+  CATSEL = id;
+  $$("#cat-list tr[data-id]").forEach(tr => tr.classList.toggle("sel", tr.dataset.id === id));
+  $("#cat-page").classList.remove("hidden");
+  $("#cat-title").textContent = `${CAT.key} ${id}`;
+  $("#cat-out").classList.add("hidden");
+  buildProduct("template");
+  $("#cat-page").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function buildProduct(version) {
+  const s = gather();
+  const btns = [$("#cat-template"), $("#cat-ai")]; btns.forEach(b => b.disabled = true);
+  $("#cat-status").textContent = version === "ai" ? `Rewriting with ${S.providers[s.writer]?.label || s.writer} (${s.writer_model})… this can take a minute.` : "Building the page from the fact sheet…";
+  safe(async () => {
+    try {
+      const r = await api("/api/catalog/build", { slug: P.product.slug, id: CATSEL, version, provider: s.writer, model: s.writer_model, fresh: $("#cat-fresh").checked });
+      $("#cat-out").classList.remove("hidden");
+      const f = r.flags;
+      $("#cat-flags").innerHTML = version === "ai"
+        ? (f.numbers_not_in_facts.length || f.claims.length
+          ? `<div class="warnbox">⚠ Check before use:${f.numbers_not_in_facts.length ? ` numbers not in this product's facts: <b>${esc(f.numbers_not_in_facts.join(", "))}</b>.` : ""}${f.claims.length ? ` Never-claim words: ${f.claims.map(c => `“${esc(c.match)}”`).join(", ")}.` : ""}</div>`
+          : `<div class="okbox">✔ No numbers outside this product's facts and no never-claim words found. Still read it before use.</div>`)
+        : `<div class="okbox">✔ Every sentence comes from the fact sheet (${r.words} words).</div>`;
+      $("#cat-files").innerHTML = `<a class="dl main" href="${pageUrl(r.file, 1)}">⬇ Page (HTML)</a><a class="dl" href="${pageUrl(r.file)}" target="_blank" rel="noopener">Open in a new tab</a>`;
+      $("#cat-frame").src = pageUrl(r.file) + "?t=" + Date.now();
+      renderAudit($("#cat-audit"), { [version]: r.audit });
+      renderGooglebot($("#cat-gbot"), { [version]: r.googlebot });
+      renderBm25($("#cat-bm25"), r.bm25);
+      $("#cat-status").textContent = version === "ai" ? "AI rewrite ready." : "Page from the fact sheet ready.";
+    } catch (err) { $("#cat-status").textContent = ""; throw err; } finally { btns.forEach(b => b.disabled = false); }
+  });
+}
+$("#cat-template").onclick = () => CATSEL && buildProduct("template");
+$("#cat-ai").onclick = () => CATSEL && buildProduct("ai");
+
+safe(async () => { await loadState(); showTab(recall("tab", "run")); });

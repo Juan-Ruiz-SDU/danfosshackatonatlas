@@ -20,3 +20,4 @@ lab/cache/
 # Atlas app
 app/cache/
 products/*/runs/
+products/*/webpage/cache/

@@ -43,6 +43,7 @@ STYLE_NAMES = {
     "sources": "Fact-dense with sources",
     "stuffed": "Keyword-stuffed (test only)",
     "original": "Danfoss's current page",
+    "restructured": "Danfoss's current page, reformatted (same content)",
 }
 DEFAULTS = {
     "discovery": False, "search_model": "gemini-2.5-flash",
@@ -50,6 +51,7 @@ DEFAULTS = {
     "judge": "gemini", "judge_model": "gemini-2.5-flash",
     "styles": ["plain", "stats", "sources"], "words": 400, "repeats": 1,
     "top_k": 5, "max_words": 700, "fresh_pages": False, "retries": 3,
+    "retrieval": "page",
 }
 
 
@@ -78,8 +80,8 @@ def run(job, slug, settings):
     pages = load_pages(p, s["max_words"])
     originals = [d for d in pages if d.brand.lower() == TARGET]
     competitors = [d for d in pages if d.brand.lower() != TARGET]
-    for d in originals:
-        d.style = "original"
+    for d in originals:  # the reformatted page keeps its own name in the scores
+        d.style = "restructured" if d.style == "restructured" else "original"
     job.log(f"Comparison pages: {len(competitors)} competitor, {len(originals)} current Danfoss")
     if len(competitors) < 2:
         raise ValueError(
@@ -210,12 +212,13 @@ def load_pages(p, max_words):
 # --- 3. writing -----------------------------------------------------------------
 def write_variants(job, p, sheet, styles, s, out):
     kw = products.keyword(p, sheet)
-    allowed = gv.norm_numbers(sheet)
+    guidelines = products.guidelines(p)
     variants = []
     for i, style in enumerate(styles):
         job.step("Writing the page in different styles", i, len(styles))
-        prompt = gv.PROMPT.format(topic=p["name"], words=s["words"], wiki=sheet,
-                                  style=gv.STYLES[style].format(keyword=kw))
+        prompt = gv.build_prompt(p["name"], s["words"], sheet,
+                                 gv.STYLES[style].format(keyword=kw), guidelines)
+        allowed = gv.allowed_numbers(sheet, style)
         text, attempts = generate_page(job, s, prompt)
         path = out / "variants" / f"{style}.md"
         path.write_text(text + "\n", encoding="utf-8")
@@ -274,9 +277,19 @@ def citation_test(job, targets, competitors, questions, s, out):
     rows, done = [], 0
     raw = (out / "citation_test.jsonl").open("w", encoding="utf-8")
     for target in targets:
-        bm25 = lab.BM25(competitors + [target])  # one Danfoss page at a time vs the same rivals
+        corpus = competitors + [target]  # one Danfoss page at a time vs the same rivals
+        if s.get("retrieval") == "passage":  # rank passages, show each page's best ones
+            ranker = lab.PassageRanker(corpus)
+
+            def page_text(d, q):
+                return ranker.context(d, q, 3, s["max_words"])
+        else:
+            ranker = lab.BM25(corpus)
+
+            def page_text(d, q):
+                return d.text
         for qi, q in enumerate(questions):
-            ranked = bm25.rank(q)
+            ranked = ranker.rank(q)
             rank = next(i for i, (_, d) in enumerate(ranked) if d is target) + 1
             top = [d for _, d in ranked[:s["top_k"]]]
             retrieved = target in top
@@ -286,7 +299,8 @@ def citation_test(job, targets, competitors, questions, s, out):
                 shown = top[:]
                 random.Random(seed).shuffle(shown)
                 id_to_doc = {f"D{i + 1}": d for i, d in enumerate(shown)}
-                results = "\n\n".join(f"[{i}] Source: {d.brand}\n{d.text}" for i, d in id_to_doc.items())
+                results = "\n\n".join(f"[{i}] Source: {d.brand}\n{page_text(d, q)}"
+                                      for i, d in id_to_doc.items())
                 text = ai.chat(s["judge"], s["judge_model"], lab.SYSTEM,
                                lab.USER.format(question=q, results=results),
                                temperature=0.2, cancel=job.cancelled, log=job.log, salt=seed)

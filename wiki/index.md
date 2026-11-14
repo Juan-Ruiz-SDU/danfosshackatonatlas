@@ -10,3 +10,4 @@ okf_version: "0.2"
 * [services](services/index.md) - Selection software and application testing offered by Danfoss.
 * [references](references/index.md) - External sources the facts come from and that pages may link to.
 * [experiments](experiments/index.md) - Parameters used only for lab test variants, never for publication.
+* [guidelines](guidelines/index.md) - How generated pages are written and laid out (structure, crawlability, terminology, test hygiene). Instructions, not facts.

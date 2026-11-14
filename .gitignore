@@ -22,3 +22,8 @@ app/cache/
 products/*/runs/
 products/*/webpage/cache/
 products/*/fixed/_failed.json
+
+# Comparison links and downloaded pages stay on each laptop (not kept in git)
+products/*/sources.txt
+products/*/fixed/
+products/*/sources/

@@ -94,15 +94,15 @@ class ImportJob:
                     raise ai.Cancelled()
                 if attempt > 1:
                     self.log(f"Asking again ({last})")
-                if p.get("type") == "ollama":
-                    answer = self._ollama(p, prompt, attempt)
-                else:
-                    answer = self._other(p, prompt)
                 try:
+                    if p.get("type") == "ollama":
+                        answer = self._ollama(p, prompt, attempt)
+                    else:
+                        answer = self._other(p, prompt)
                     self.draft = products.clean_draft(ai.parse_json(answer))
                     break
-                except ValueError as e:
-                    last = str(e)
+                except (ValueError, ai.ConnectionLost) as e:  # bad answer or dropped line
+                    last = str(e).rstrip(".")
             else:
                 raise RuntimeError(f"{last}. Try again, or pick a bigger model in the list.")
             self.pct, self.left, self.step = 100.0, 0, "Done: check the facts below"

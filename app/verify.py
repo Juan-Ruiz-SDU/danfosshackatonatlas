@@ -60,6 +60,21 @@ def _norm(s):
     return re.sub(r"\s+", " ", re.sub(r"[^\w%.,-]+", " ", (s or "").lower())).strip()
 
 
+STOP = set("the a an and or of for to in on with by is are be as at it its this that these those from our their "
+           "which who what how can will up into than more most also such per".split())
+
+
+def _content(s):
+    return {w for w in re.findall(r"[a-z0-9]+", (s or "").lower()) if w not in STOP and len(w) > 2}
+
+
+def quote_supports(quote, claim):
+    """A checker's quote must be about the claim, not just any sentence of the evidence:
+    it shares at least a quarter of the claim's content words (and at least 2)."""
+    cw, qw = _content(claim), _content(quote)
+    return bool(cw) and len(cw & qw) >= max(2, round(0.25 * len(cw)))
+
+
 def _numbers(s):
     return {re.sub(r"[.,]", "", n) for n in NUM_RE.findall(s or "")}
 
@@ -192,6 +207,8 @@ def check_claim(c, units, backend, label, provider, model, norm_units=None, bm25
         note = str(d.get("reason", "") or "")
         if verdict in ("supported", "partly") and (not quote or _norm(quote) not in _norm(ev_text)):
             verdict, note = "unsupported", "the checker could not quote the evidence: " + note
+        elif verdict in ("supported", "partly") and not quote_supports(quote, c):
+            verdict, note = "unsupported", "the checker's quote is not about this claim: " + note
     return {"claim": c, "verdict": verdict if verdict in ("supported", "partly", "unsupported") else "unsupported",
             "method": "model", "quote": quote, "note": note, "evidence": evidence}
 

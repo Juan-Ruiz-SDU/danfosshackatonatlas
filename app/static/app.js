@@ -28,7 +28,8 @@ async function safe(fn) { try { return await fn(); } catch (e) { toast(e.message
 async function loadState() {
   S = await api("/api/state");
   const sel = $("#product-select");
-  const want = recall("product", S.products[0]?.slug);
+  const linked = location.hash.split(":")[1];  // /#how:micro-plate-bphe opens that product
+  const want = S.products.some(p => p.slug === linked) ? linked : recall("product", S.products[0]?.slug);
   sel.innerHTML = S.products.map(p => `<option value="${esc(p.slug)}">${esc(p.name)}</option>`).join("");
   if (S.products.some(p => p.slug === want)) sel.value = want;
   fillProviders();
@@ -1092,4 +1093,8 @@ function buildProduct(version) {
 $("#cat-template").onclick = () => CATSEL && buildProduct("template");
 $("#cat-ai").onclick = () => CATSEL && buildProduct("ai");
 
-safe(async () => { await loadState(); showTab(recall("tab", "run")); });
+safe(async () => {
+  await loadState();
+  const fromUrl = location.hash.slice(1).split(":")[0];  // e.g. /#how opens the How it works tab
+  showTab($(`.tabs [data-tab="${CSS.escape(fromUrl)}"]`) ? fromUrl : recall("tab", "run"));
+});

@@ -55,21 +55,27 @@ function renderCitChart() {
     svgEl("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: "grid" }, svg);
     svgEl("text", { x: m.l - 8, y: y(v) + 4, class: "axis", "text-anchor": "end" }, svg).textContent = v + "%";
   }
-  const days = [...new Set(all.map(p => p.date.slice(0, 10)))];
-  const step = Math.ceil(days.length / 5);
-  days.forEach((d, i) => { if (i % step === 0) svgEl("text", { x: x(d + " 12:00"), y: H - 8, class: "axis", "text-anchor": "middle" }, svg).textContent = d.slice(5); });
-  if (tg.cited_pct != null) {
-    svgEl("line", { x1: m.l, x2: W - m.r, y1: y(tg.cited_pct), y2: y(tg.cited_pct), class: "goal" }, svg);
-    svgEl("text", { x: W - m.r + 6, y: y(tg.cited_pct) + 4, class: "axis" }, svg).textContent = `goal ${tg.cited_pct}%`;
-  }
+  // one date label per day, under that day's first point (never outside the plot)
+  const firstOfDay = {};
+  all.slice().sort((a, b) => time(a.date) - time(b.date)).forEach(p => { firstOfDay[p.date.slice(0, 10)] ??= p.date; });
+  const days = Object.keys(firstOfDay), step = Math.ceil(days.length / 5);
+  days.forEach((d, i) => { if (i % step === 0) svgEl("text", { x: x(firstOfDay[d]), y: H - 8, class: "axis", "text-anchor": "middle" }, svg).textContent = d.slice(5); });
+  // labels on the right edge: series values and the goal, pushed apart so they never overlap
+  const labels = [];
   for (const s of series) {
     const pts = s.pts.slice().sort((a, b) => time(a.date) - time(b.date));
     if (pts.length > 1) svgEl("polyline", { points: pts.map(p => `${x(p.date)},${y(p.v)}`).join(" "), class: `line ${s.cls}` }, svg);
     pts.forEach(p => svgEl("circle", { cx: x(p.date), cy: y(p.v), r: 4.5, class: `dot ${s.cls}` }, svg));
-    const lp = pts[pts.length - 1];  // direct label at the latest point
-    svgEl("text", { x: W - m.r + 6, y: y(lp.v) + (s.key === "gem" ? -6 : 12), class: "lbl" }, svg).textContent =
-      `${s.key === "gem" ? "Gemini" : "Lab"} ${Math.round(lp.v)}%`;
+    const lp = pts[pts.length - 1];
+    labels.push({ y: y(lp.v), text: `${s.key === "gem" ? "Gemini" : "Lab"} ${Math.round(lp.v)}%`, cls: "lbl" });
   }
+  if (tg.cited_pct != null) {
+    svgEl("line", { x1: m.l, x2: W - m.r, y1: y(tg.cited_pct), y2: y(tg.cited_pct), class: "goal" }, svg);
+    labels.push({ y: y(tg.cited_pct), text: `goal ${tg.cited_pct}%`, cls: "axis" });
+  }
+  labels.sort((a, b) => a.y - b.y);
+  labels.forEach((l, i) => { if (i && l.y - labels[i - 1].y < 14) l.y = labels[i - 1].y + 14; });
+  labels.forEach(l => { svgEl("text", { x: W - m.r + 8, y: l.y + 4, class: l.cls }, svg).textContent = l.text; });
   // hover: crosshair on the nearest update, a tooltip with every series at that moment
   const cross = svgEl("line", { y1: m.t, y2: H - m.b, class: "cross", visibility: "hidden" }, svg);
   const hit = svgEl("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }, svg);
@@ -134,6 +140,7 @@ async function loadHow(run = "") {
   HOW = await api("/api/process?" + new URLSearchParams({ slug: P.product.slug, run }));
   $("#how-run").innerHTML = HOW.runs.map(r => `<option ${r === HOW.run ? "selected" : ""}>${esc(r)}</option>`).join("");
   const has = !!HOW.process;
+  $("#how-run").closest("label").classList.toggle("hidden", !HOW.runs.length);
   $("#how-body").classList.toggle("hidden", !has);
   $("#how-empty").innerHTML = has ? "" : `No run with the section writer yet for this product. In the Run tab, tick <b>“Section by section, verified citations”</b> and start a run.`;
   if (!has) return;

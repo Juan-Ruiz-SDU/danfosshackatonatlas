@@ -50,8 +50,10 @@ Rules:
 - Use ONLY the evidence below. Never add a fact, figure, model name, certification or
   claim that is not in it. If the evidence only partly answers, say only that part.
 - After EVERY sentence that states a fact, put the id of the evidence it comes from in
-  square brackets, e.g. "... up to 10 bar [w3]." Only use the ids listed below.
-- At most {words} words. Plain and specific. No superlatives ("best", "leading").
+  square brackets at the END of the sentence, e.g. "... up to 10 bar [w3]." Only use the ids
+  listed below. Never mention the evidence in the text ("according to [r4]", "as stated in").
+- At most {words} words. Plain and specific. No superlatives ("best", "leading", "game changer"),
+  even if the evidence uses them.
 {guidelines}
 EVIDENCE:
 {evidence}
@@ -255,6 +257,8 @@ def check_section(md, ev, writer, model, log, cancel):
             cited_text = verify._norm(" ".join(ev[i].text for i in r["cites"]))
             if v in ("supported", "partly") and (not quote or verify._norm(quote) not in cited_text):
                 v, note = "unsupported", "the checker could not quote the cited evidence"
+            elif v in ("supported", "partly") and not verify.quote_supports(quote, r["claim"]):
+                v, note = "unsupported", f'the checker\'s quote is not about this sentence: "{quote[:80]}"'
             else:
                 note = f'quote: "{quote[:120]}"' if quote else ""
             r.update(verdict=v if v in ("supported", "partly", "unsupported") else "unsupported",
@@ -270,7 +274,10 @@ def _drop(md, sentences):
     for s in sentences:
         md = md.replace(s, "")
     md = re.sub(r"[ \t]{2,}", " ", md)
-    lines = [l.rstrip() for l in md.splitlines() if not re.fullmatch(r"\s*[-*>]\s*", l)]  # emptied bullets
+    # emptied bullets, and lines left with nothing but citations
+    lines = [l.strip() if l.startswith(" ") and not l.lstrip().startswith(("-", "*")) else l.rstrip()
+             for l in md.splitlines()
+             if not re.fullmatch(r"\s*[-*>]?\s*(?:\[[wr]\d+(?:\s*,\s*[wr]\d+)*\]\s*[.,]?\s*)*", l) or not l.strip()]
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
 
 
@@ -294,9 +301,17 @@ def _write_checked(prompt, ev_units, topic, writer, model, log, cancel, fresh, s
 
 
 # --- 5. the page ------------------------------------------------------------------------------
+CITE = r"\[(?:[wr]\d+)(?:\s*,\s*[wr]\d+)*\]"
+SOURCE_TALK_RE = re.compile(  # "According to [r45], ..." / "..., as stated in [r45] and [r46]."
+    rf"(,\s*)?\b(?:according to|as (?:stated|mentioned|described|noted|shown) in|as per|per)\s+{CITE}(?:\s*(?:,|and)\s*{CITE})*\s*,?\s*", re.I)
+
+
 def clean(md):
     """The page without [id] citations, for publishing and the citation test."""
+    md = SOURCE_TALK_RE.sub(lambda m: " " if m.group(1) else "", md)
     md = CITE_RE.sub("", md)
+    md = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), md, flags=re.M)
+    md = re.sub(r",\s*([.;:])", r"\1", md)
     return re.sub(r"[ \t]+([.,;:])", r"\1", md)
 
 

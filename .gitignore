@@ -25,3 +25,6 @@ products/*/fixed/_failed.json
 
 # Citations tab: cached AI reviewer answers
 lab/discovered/explanations/
+
+# Citations tab: wiki suggestions made from a Gemini answer (decisions are in wiki/log.md)
+lab/discovered/suggestions/

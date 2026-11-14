@@ -34,9 +34,10 @@ PRODUCTS = {
         "--wiki": "wiki",
         "--topic": "Danfoss Micro Plate brazed plate heat exchangers for heat pumps",
         "--out": "variants ManuJuan",
+        "--raw": "raw",
     },
     "motorprotector": {
-        "--wiki": "wiki_motor_protector.md",
+        "--wiki": "products/int69-g-motor-protector-with-ptc-sensors/wiki",
         "--topic": "Danfoss INT69 G motor protector",
         "--out": "variants MotorProtector",
     },

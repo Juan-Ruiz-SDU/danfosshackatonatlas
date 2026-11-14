@@ -5,7 +5,11 @@
   "keyword": "",
   "wiki": "wiki",
   "source_list": "lab/sources.txt",
-  "extra_page_dirs": ["lab/corpus/competitors", "lab/corpus/danfoss_original"],
+  "extra_page_dirs": [
+    "lab/corpus/competitors",
+    "lab/corpus/danfoss_original"
+  ],
   "restructured_dir": "lab/corpus/danfoss_restructured",
-  "site_start": "https://www.danfoss.com/en/products/dhs/heat-exchangers/"
+  "site_start": "https://www.danfoss.com/en/products/dhs/heat-exchangers/",
+  "raw_dir": "raw"
 }

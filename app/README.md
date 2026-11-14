@@ -37,8 +37,12 @@ above the Run button includes this. Tick fewer questions for a quick run.
 3. **Find fresh sources** is off by default, so runs are faster and use the comparison pages saved
    earlier. When it's on, Atlas asks Gemini with Google Search every question and imports the pages
    it cites as the competition.
-4. Atlas writes the page in each style (plain, fact-dense, with sources) from the fact sheet, and
-   flags any number that isn't in the fact sheet.
+4. Atlas writes the page in each style (plain, fact-dense, with sources, and section by section with
+   verified citations) from the fact sheet, and flags any number that isn't in the fact sheet.
+
+Competitor links pasted under **Comparison pages** are downloaded once. A page that has almost no text
+without JavaScript is opened in Edge or Chrome without a window before it is rejected; a site that
+answers with a bot check (captcha, "access denied") gets a clear message to pick another page.
 5. Every version competes with the competitor pages and Danfoss's current page. A search ranking
    picks the top results, then an AI answers like Google's AI Overview and cites its sources.
 6. The version with the highest citation share wins. You can download:
@@ -106,11 +110,11 @@ Files in `products/<name>/webpage/`:
   rendered page), `sitemap.xml`;
 - not committed: `cache/` (downloaded HTML).
 
-## Product by product tab
+## Model by model tab
 
-The product list is the first table in the fact sheet with a "Models" column. For Micro Plate that is
+A product family (the product picked at the top, e.g. Micro Plate) has several models. The model list is the first table in the fact sheet with a "Models" column. For Micro Plate that is
 the 11 heat pump platforms. Rows of other tables with the same first column, such as the per-model
-pressure table, are added to the matching product. Pick a product to build its page:
+pressure table, are added to the matching model. Pick a model to build its page:
 
 - **Page from the fact sheet**: every sentence is copied from the wiki and laid out by
   `wiki/guidelines/page-structure.md`. Nothing can be invented.
@@ -146,12 +150,48 @@ citations change.
   with brand names hidden and the order shuffled, so markdown and length cannot count. The reviewer's
   totals are compared with Gemini's real shares (rank correlation), so you can see whether the reviewer
   judges like the engine.
+- **Suggest wiki changes** turns that explanation into wiki changes, in the same accept/decline cards as
+  the Run tab's suggestions. Nothing changes until someone accepts; accepted changes are noted in
+  `wiki/log.md`.
+- **Targets and chart.** The product's citation targets (cited in X % of answers, cited first N times)
+  are checked on Gemini's real answers too. The chart shows, over time, the share of Gemini's answers
+  that cite Danfoss and the lab test's best version from each Run, with the goal line.
 - AI Overviews has no public API. Reading it needs a paid search-results service (for example SerpApi or
   DataForSEO).
 
+## Section by section, verified citations
+
+A page version (tick it under "Page versions to write and test") written the way grounded writing is
+done in 2026, see `app/sections.py`:
+1. **Sub-queries.** The searches Gemini really ran (Citations tab) first, then the buyer questions, then
+   searches the writer AI adds if there are too few. Near-duplicates are merged.
+2. **Evidence.** Every wiki fact line is `[w12]`, every passage of `raw/` is `[r7]`. For each sub-query:
+   BM25 (exact words) + embeddings (meaning) fused with RRF, then a reranker grades the top ones 0–3
+   (`app/retrieval.py`). A sub-query with no evidence gets no section: it is reported as a missing fact.
+3. **Writing.** One section per sub-query, with only its evidence. The heading matches the search, the
+   first sentence answers it, every factual sentence cites its `[id]` as it is written.
+4. **Verification.** Every sentence is checked against the evidence it cites (copied → numbers →
+   MiniCheck or a quoted AI check). Unsupported sentences get one rewrite with feedback; what still fails
+   is removed.
+5. The run keeps `sections_cited.md` (with `[id]`s), the clean page in `variants/sections.md` and
+   `process.json`, which the **How it works** tab draws: the flow with counts, the sub-queries, each
+   candidate passage's rank in BM25 / embeddings / RRF / reranker, every sentence's verdict, and a 2-D
+   embedding map (PCA) of the evidence, competitor passages, our sections and the sub-queries.
+
+Embeddings need an embedding model on the Ollama server: `ollama pull nomic-embed-text`. Without it the
+writer uses BM25 only, and says so in the log. The reranker is the writer AI unless the settings name
+another (`reranker`, `reranker_model`).
+
+## Assistant
+
+**💬 Assistant** (top right) opens a chat docked on the right. It talks to the Ollama server set in
+Settings (the team server's address) and lets you pick any chat model installed there. It knows what the
+app does, which tab you are on and the facts of the product picked, and answers in your language. Nothing
+is stored on the server; the conversation stays in your browser.
+
 ## Fact check
 
-**Check every claim** (Web page tab) and **Fact check this page** (Product by product) check each sentence,
+**Check every claim** (Web page tab) and **Fact check this page** (Model by model) check each sentence,
 list item and table row. The sources are the wiki, the original documents in `raw/` and Danfoss's page
 snapshots. The checks run in this order:
 1. A claim copied from a source passes at once.

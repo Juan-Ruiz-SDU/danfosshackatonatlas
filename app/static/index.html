@@ -15,15 +15,19 @@
       <div class="tag">Find the version of your product page that AI search cites first</div>
     </div>
   </div>
-  <button class="ghost" id="open-settings">⚙ Settings</button>
+  <div class="row">
+    <button class="ghost" id="open-chat" aria-controls="chat" aria-expanded="false">💬 Assistant</button>
+    <button class="ghost" id="open-settings">⚙ Settings</button>
+  </div>
 </header>
 
 <main>
   <nav class="tabs" role="tablist" aria-label="Views">
     <button role="tab" data-tab="run" aria-selected="true">Run</button>
     <button role="tab" data-tab="web" aria-selected="false">Web page</button>
-    <button role="tab" data-tab="catalog" aria-selected="false">Product by product</button>
+    <button role="tab" data-tab="catalog" aria-selected="false">Model by model</button>
     <button role="tab" data-tab="citations" aria-selected="false">Citations</button>
+    <button role="tab" data-tab="how" aria-selected="false">How it works</button>
   </nav>
   <div id="banner"></div>
 
@@ -321,6 +325,8 @@
       <h2><span class="num">2</span> How the citations change</h2>
       <p class="hint">One line per update. <b>Share</b> = the part of Gemini's answers a site supports, on average per prompt.
         Gemini gives no score per page: this share, measured from its answer, is the closest real number.</p>
+      <div id="cit-targets"></div>
+      <div id="cit-chart" class="chart"></div>
       <div id="cit-history"></div>
       <div id="cit-sites"></div>
     </section>
@@ -351,15 +357,20 @@
         <label class="check"><input type="checkbox" id="cit-fresh"> ask again</label>
         <span class="hint" id="cit-explain-status"></span></div>
       <div id="cit-why"></div>
+      <div id="cit-sugg-row" class="row hidden">
+        <button id="cit-suggest">Suggest wiki changes</button>
+        <span class="hint" id="cit-suggest-status">From this explanation: changes to the wiki so the next pages answer these searches. Nothing changes until you accept.</span>
+      </div>
+      <div id="cit-sugg"></div>
       <details><summary>Gemini's answer</summary><pre id="cit-answer"></pre></details>
     </section>
   </div>
 
-  <!-- Product by product -->
+  <!-- Model by model -->
   <div id="tab-catalog" class="tab hidden">
     <section class="card">
-      <h2>Products <span class="count product-name"></span></h2>
-      <p class="hint" id="cat-hint">One page per product, built only from the fact sheet. Pick a product.</p>
+      <h2>Models <span class="count product-name"></span></h2>
+      <p class="hint" id="cat-hint">One page per model of this product family, built only from the fact sheet. Pick a model.</p>
       <div id="cat-list"></div>
     </section>
     <section class="card hidden" id="cat-page">
@@ -369,7 +380,7 @@
         <button id="cat-ai" class="primary">Rewrite with the writer AI</button>
         <label class="check"><input type="checkbox" id="cat-fresh"> new text</label>
       </div>
-      <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this product's facts.</p>
+      <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this model's facts.</p>
       <div id="cat-out" class="hidden">
         <div id="cat-flags"></div>
         <div class="row"><button id="cat-verify">Fact check this page</button><span class="hint" id="cat-verify-status"></span></div>
@@ -386,7 +397,64 @@
       </div>
     </section>
   </div>
+  <!-- How it works: the section writer, step by step -->
+  <div id="tab-how" class="tab hidden">
+    <section class="card">
+      <h2>How a page is refined <span class="count product-name"></span></h2>
+      <p class="hint">What the <b>“Section by section, verified citations”</b> version did in a run: the searches it answers,
+        the evidence each section got (BM25 + embeddings, then a reranker), and every sentence checked against the
+        evidence it cites. Tick that version under “Page versions to write and test” in the Run tab to make one.</p>
+      <div class="row"><label class="inline">Run <select id="how-run"></select></label></div>
+      <div id="how-empty" class="hint"></div>
+    </section>
+    <div id="how-body" class="hidden">
+      <section class="card">
+        <h2><span class="num">1</span> The process</h2>
+        <div id="how-flow" class="flow"></div>
+        <div id="how-metrics"></div>
+      </section>
+      <section class="card">
+        <h2><span class="num">2</span> Sub-queries: what the page must answer</h2>
+        <p class="hint">Gemini's real searches come first (Citations tab), then the buyer questions, then searches the
+          writer AI adds. A search with no evidence in the wiki gets no section: it is a fact to find, not text to pad.</p>
+        <div id="how-queries"></div>
+      </section>
+      <section class="card">
+        <h2><span class="num">3</span> Evidence for one section</h2>
+        <p class="hint">Each candidate passage with its rank in each step. BM25 finds the exact words, the embeddings find
+          the meaning, RRF fuses both ranks, the reranker grades how well it answers (0–3). The chosen ones (✔) are the only
+          text the writer sees for this section.</p>
+        <div class="row"><label class="inline">Section <select id="how-sec"></select></label></div>
+        <div id="how-cands"></div>
+        <h3>The section, sentence by sentence</h3>
+        <div id="how-checks"></div>
+      </section>
+      <section class="card">
+        <h2><span class="num">4</span> The embedding map</h2>
+        <p class="hint">Every passage turned into a vector by the embedding model, flattened to 2-D (PCA). Close points mean
+          similar meaning. Stars are the sub-queries; lines join each one to the evidence its section used.
+          Competitor passages near a star are what we compete with for that search.</p>
+        <div class="row"><button id="how-map-btn">Draw the map</button><span class="hint" id="how-map-status"></span></div>
+        <div id="how-map" class="chart"></div>
+      </section>
+    </div>
+  </div>
 </main>
+
+<aside id="chat" class="chat" aria-label="Assistant" hidden>
+  <div class="chat-head">
+    <b>Assistant</b>
+    <select id="chat-model" aria-label="Model"></select>
+    <button class="ghost" id="chat-clear" title="New conversation">New</button>
+    <button class="ghost" id="chat-close" aria-label="Close the assistant">✕</button>
+  </div>
+  <p class="hint tiny" id="chat-where"></p>
+  <div id="chat-log" class="chat-log" aria-live="polite"></div>
+  <form id="chat-form" class="chat-form">
+    <textarea id="chat-input" rows="2" placeholder="Ask about the results, the product or the app…" aria-label="Message"></textarea>
+    <button class="primary" id="chat-send">Send</button>
+  </form>
+</aside>
 
 <!-- Settings -->
 <dialog id="settings">
@@ -474,5 +542,6 @@
 
 <div id="toast"></div>
 <script src="/static/app.js"></script>
+<script src="/static/how.js"></script>
 </body>
 </html>

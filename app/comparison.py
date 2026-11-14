@@ -116,15 +116,18 @@ def saved_pages(p):
 def friendly(err):
     e = str(err)
     low = e.lower()
+    if "captcha" in low or "access denied" in low or "bot check" in low:
+        return ("This site answered with a bot check (captcha or 'access denied') instead of the page. "
+                "Use a page from another competitor instead.")
     if "403" in e or "401" in e or "429" in e:
         return "This site blocks automatic downloads. Use a page from another competitor instead."
     if "404" in e or "410" in e:
         return "Page not found. Open the link in your browser and copy the address again."
     if "certificate" in low or "ssl" in low:
         return "This site's security certificate cannot be checked from this network. Use another page."
-    if "almost no text" in low:
-        return ("The page shows almost no text without JavaScript, so the app cannot read it. "
-                "Use another page from this competitor or another one.")
+    if "almost no text" in low or "needs javascript" in low:
+        return ("The page shows almost no text, even after opening it in a browser, so the app "
+                "cannot read it. Use another page from this competitor or another one.")
     if "timed out" in low or "timeout" in low or "getaddrinfo" in low or "urlopen error" in low:
         return "The site did not answer. Check the link, or try again later."
     return f"Could not download it ({e[:120]})."
@@ -185,9 +188,15 @@ def fetch_missing(p, log=print, step=None, cancelled=None):
             step("Downloading the comparison pages", i, len(todo))
         name = f"{re.sub(r'[^a-z0-9]+', '_', brand.lower()).strip('_')}_{hashlib.sha1(key(url).encode()).hexdigest()[:8]}.md"
         try:
-            text = disc.download(url)
+            try:
+                text = disc.download(url)
+            except Exception as e:  # noqa: BLE001
+                if "javascript" not in str(e).lower():
+                    raise
+                text = ""  # a "please enable JavaScript" page: the browser may still read it
             if len(text.split()) < 80:
-                raise ValueError("almost no text")
+                log(f"  {url}: little text without JavaScript, opening it in a browser ...")
+                text = with_browser(url)
         except (Exception, SystemExit) as e:  # noqa: BLE001  (the lab's downloader exits on errors)
             failed[key(url)] = friendly(e)
             log(f"  could not download {url}: {failed[key(url)]}")
@@ -198,6 +207,27 @@ def fetch_missing(p, log=print, step=None, cancelled=None):
         log(f"  saved {brand}: {url} ({len(text.split())} words)")
     FETCHING.pop(p["slug"], None)
     _failed_file(p).write_text(json.dumps(failed, indent=1), encoding="utf-8")
+
+
+def with_browser(url):
+    """The page's text after its JavaScript ran (the same headless browser as the Web page
+    tab). Raises if there is no browser, the site shows a bot check, or there is still
+    almost no text."""
+    import website
+    from fetch_sources import html_to_text
+    browser = website.find_browser()
+    if not browser:
+        raise ValueError("almost no text (needs JavaScript, and no Edge or Chrome was found)")
+    import shutil
+    import tempfile
+    profile = tempfile.mkdtemp(prefix="atlas-browser-")
+    try:
+        text = html_to_text(website.render_with_browser(browser, url, profile))
+    finally:
+        shutil.rmtree(profile, ignore_errors=True)
+    if len(text.split()) < 80:
+        raise ValueError("almost no text")
+    return text
 
 
 def start_fetch(p):

@@ -369,6 +369,89 @@ def analyse(job, p, out):
     return data
 
 
+# --- suggestions from a real Gemini answer (Citations tab) -------------------------------
+CITATION_PROMPT = """You improve a product wiki so that the web pages an AI writes from it get cited
+by Google's AI. Gemini (with Google Search) answered a real buyer question and cited other pages
+more than ours.
+
+PRODUCT: {product}
+QUESTION: {question}
+SEARCHES GEMINI RAN FOR IT: {searches}
+
+A reviewer compared short passages of the cited pages and of ours (same length, plain text,
+brands hidden, so length and formatting could not count) on this rubric (0-2 per signal):
+{scores}
+Reviewer's explanation: {why}
+What the weakest passage lacks: {missing}
+
+SEARCHES WHERE OUR PAGE IS NOT THE BEST MATCH (our rank among the cited pages, and the leader):
+{lost}
+
+OUR PAGE (best passages):
+{ours}
+
+THE WIKI (every file a change may edit):
+{wiki}
+
+YOUR TASK: propose changes to the wiki so the next pages answer these searches as directly and
+specifically as the cited pages do: a section whose heading and first sentence answer each lost
+search, with the wiki's figures and model names.
+
+RULES:
+- Only use facts that are already in the wiki. Never invent figures, models, certifications,
+  quotes, prices or claims. Never copy anything from competitors.
+- Prefer changes to guideline files (how to write) and making existing facts clearer or easier
+  to find. A change is "replace" (exact current text in "find", new text in "text") or "add"
+  (new text at the end of the file; leave "find" empty). "file" must be one of the files above.
+- If a search needs a fact the wiki does not have, list it in "missing_facts" (a person must
+  find a Danfoss source). Do not write it into a change.
+- Give 2 to 5 changes, most useful first.
+
+Return ONLY a JSON object:
+{{"diagnosis": "two or three sentences on why Gemini preferred the other pages",
+  "changes": [{{"file": "...", "action": "add or replace", "find": "", "text": "...",
+               "why": "what this changes in the next pages"}}],
+  "missing_facts": ["..."]}}
+"""
+
+
+def suggest_from_citations(p, folder, label, ctx, provider, model, log=print, cancel=None):
+    """Wiki suggestions from one Gemini answer and the reviewer's explanation. Saved in
+    `folder` in the same format as a run's suggestions, so they are accepted or declined
+    the same way (decide) and accepted ones are noted in wiki/log.md."""
+    files = wiki_files(p)
+    if not files:
+        raise ValueError("No wiki files found for this product")
+    try:
+        import pipeline
+        allowed = pipeline.gv.allowed_numbers(products.fact_sheet(p))
+    except ValueError:
+        allowed = frozenset()
+    prompt = CITATION_PROMPT.format(product=p["name"], wiki=_wiki_for_prompt(files), **ctx)
+    last = None
+    for attempt in range(2):
+        text = ai.chat(provider, model, "", prompt, temperature=0.2, json_mode=True, use_cache=False,
+                       cancel=cancel, log=log)
+        try:
+            d = ai.parse_json(text)
+            changes = _clean_changes(d.get("changes"), files, allowed)
+            if not changes:
+                raise ValueError("no usable changes (each needs a wiki file name and a text)")
+            break
+        except ValueError as e:
+            last = str(e)
+    else:
+        raise RuntimeError(f"The AI's suggestions could not be used: {last}")
+    strings = lambda v: [str(x).strip() for x in v if str(x).strip()] if isinstance(v, list) else []  # noqa: E731
+    data = {"status": "ready", "source": "citations", "run": label, "question": ctx["question"],
+            "analyst": f"{provider} {model}", "diagnosis": str(d.get("diagnosis") or "").strip(),
+            "best_does": [], "worst_misses": [], "missing_facts": strings(d.get("missing_facts")),
+            "suggestions": changes}
+    folder.mkdir(parents=True, exist_ok=True)
+    save(folder, data)
+    return data
+
+
 # --- saving, accepting, declining ---------------------------------------------------------
 def load(out):
     f = out / "wiki_suggestions.json"
@@ -382,9 +465,13 @@ def save(out, data):
 
 
 def markdown(d):
-    L = [f"# Wiki suggestions · run {d['run']}", "", check_text(d["check"]), "",
-         f"Compared: best version **{d['best']['name']}** with worst **{d['worst']['name']}** "
-         f"(analysis by {d['analyst']}).", "", d["diagnosis"], ""]
+    if d.get("source") == "citations":
+        L = [f"# Wiki suggestions · {d['run']}", "", f"From Gemini's answer to: {d['question']} "
+             f"(suggestions by {d['analyst']}).", "", d["diagnosis"], ""]
+    else:
+        L = [f"# Wiki suggestions · run {d['run']}", "", check_text(d["check"]), "",
+             f"Compared: best version **{d['best']['name']}** with worst **{d['worst']['name']}** "
+             f"(analysis by {d['analyst']}).", "", d["diagnosis"], ""]
     if d["best_does"]:
         L += ["**The best page:**"] + [f"- {x}" for x in d["best_does"]] + [""]
     if d["worst_misses"]:

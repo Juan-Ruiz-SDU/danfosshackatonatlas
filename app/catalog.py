@@ -1,5 +1,5 @@
 """
-The "Product by product" tab: the list of products inside a product family, and
+The "Model by model" tab: the list of products inside a product family, and
 one web page per product, built only from the fact sheet.
 
 The list comes from the fact sheet itself: the first Markdown table with a

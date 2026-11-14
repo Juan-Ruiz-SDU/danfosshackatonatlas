@@ -1,5 +1,5 @@
 """
-Web page tools for the Atlas app's "Web page" and "Product by product" tabs.
+Web page tools for the Atlas app's "Web page" and "Model by model" tabs.
 
   fetch()          download a page the way a crawler does (no JavaScript), timing it
   parse_page()     the page's content blocks (headings, paragraphs, list items, tables)
@@ -1008,7 +1008,7 @@ def store_paths(p):
       webpage/page.md         YOUR copy: edit it to adapt the page
       webpage/rebuilt.html    your copy as a crawler-friendly HTML page
       webpage/sitemap.xml     the pages made here, with dates
-      webpage/products/       product pages (Product by product tab)
+      webpage/products/       product pages (Model by model tab)
       webpage/cache/          the downloaded HTML (not committed)
       restructured_dir/restructured_1.md   rebuilt.html as the citation lab reads it"""
     folder = p["folder"] / "webpage"

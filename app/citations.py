@@ -100,24 +100,42 @@ def history():
         if not rows:
             continue
         sites = collections.Counter()
-        dshare, dcited = 0.0, 0
+        dshare, dcited, dfirst = 0.0, 0, 0
         for r in rows:
             for s in r["sources"]:
                 sites[s.get("domain") or "?"] += _share(s, r)
             ds = sum(_share(s, r) for s in r["sources"] if is_target(s))
             dshare += ds
             dcited += ds > 0
+            dfirst += any(is_target(s) for s in r["sources"] if s.get("rank") == 1)
         n = len(rows)
         runs.append({"run": path.name, "date": rows[0].get("asked_at", path.stem)[:16].replace("T", " "),
                      "model": rows[0].get("model", ""), "prompts": n,
                      "sources": len({s.get("url") for r in rows for s in r["sources"] if s.get("url")}),
-                     "danfoss_answers": dcited, "danfoss_share": round(dshare / n, 4),
+                     "danfoss_answers": dcited, "danfoss_first": dfirst, "danfoss_share": round(dshare / n, 4),
                      "top_sites": [(d, round(v / n, 4)) for d, v in sites.most_common(6)],
                      "has_shares": any(s.get("share") is not None for r in rows for s in r["sources"])})
         for d, v in sites.items():
             site_share[d][path.name] = round(v / n, 4)
     top = sorted(site_share, key=lambda d: -sum(site_share[d].values()))[:10]
     return {"runs": runs[::-1], "sites": [{"site": d, "by_run": site_share[d]} for d in top]}
+
+
+def lab_history(p):
+    """The Run tab's citation tests over time (simulated engine): the best version's
+    citation rate per run, with the product's targets."""
+    out = []
+    for f in sorted((p["folder"] / "runs").glob("*/result.json")):
+        try:
+            r = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        tg = r.get("targets") or {}
+        out.append({"run": r.get("run", f.parent.name), "date": f.parent.name[:10] + " " + f.parent.name[11:13] + ":" + f.parent.name[13:15],
+                    "style": r["winner"]["name"], "cited_pct": round(100 * r["winner"]["cited"], 1),
+                    "share_pct": round(100 * r["winner"]["share"], 1),
+                    "first_count": tg.get("first_count"), "trials": tg.get("trials"), "met": tg.get("met")})
+    return out
 
 
 def run_summary(name):
@@ -353,6 +371,42 @@ def explain(row, ours, provider, model, words=150, max_docs=4, fresh=False):
     EXPLAIN_CACHE.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps(result, indent=1, ensure_ascii=False), encoding="utf-8")
     return result
+
+
+# --- from the explanation to wiki suggestions (Natalia's accept/decline flow) ----------------
+SUGGEST_DIR = OUT / "suggestions"
+
+
+def suggestion_folder(run, i, ours_id):
+    key = re.sub(r"[^A-Za-z0-9_-]+", "_", f"{pathlib.Path(run).stem}_{i}_{ours_id}")
+    return SUGGEST_DIR / key
+
+
+def suggest(p, run, i, ours, explanation, provider, model, log=print):
+    """Wiki changes that would make our next pages answer this prompt's searches the way
+    the cited pages do. Uses the reviewer's explanation and the per-search comparison."""
+    import analysis
+    row = load_run(run)[i]
+    cmp = compare(row, ours)
+    lost = [f"- \"{q['query']}\": ours {q['our_rank']}/{q['of']}, leader {q['leader']}"
+            for q in cmp["queries"] if not q["answered"]]
+    scores = "\n".join(
+        f"- {r['name']} (Gemini share {r['gemini_share']:.0%}): total {r['total']}/12, "
+        + ", ".join(f"{k} {v}" for k, v in r["scores"].items()) for r in explanation.get("rows", []))
+    queries = [row["prompt"]] + row.get("search_queries", [])[:4]
+    ctx = {"question": row["prompt"], "searches": "; ".join(row.get("search_queries", [])) or "none recorded",
+           "scores": scores or "(no reviewer scores)", "why": explanation.get("why", ""),
+           "missing": "; ".join(explanation.get("missing", [])) or "-",
+           "lost": "\n".join(lost) or "(none: our page is the best match for every search)",
+           "ours": _excerpt(_Doc("ours", "Danfoss", ours["text"]), queries, 400)}
+    label = f"citations {pathlib.Path(run).stem} · prompt {i + 1}"
+    return analysis.suggest_from_citations(p, suggestion_folder(run, i, ours["id"]), label, ctx,
+                                           provider, model, log=log)
+
+
+def load_suggestions(run, i, ours_id):
+    import analysis
+    return analysis.load(suggestion_folder(run, i, ours_id))
 
 
 # --- running an update from the app ---------------------------------------------------------

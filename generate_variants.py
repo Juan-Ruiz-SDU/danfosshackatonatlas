@@ -6,7 +6,7 @@ fact sheet (possible hallucination).
 
 The fact sheet (--wiki) is either an Open Knowledge Format (OKF v0.2) bundle,
 a folder of Markdown concept files with YAML frontmatter (see wiki/index.md),
-or a single Markdown fact sheet file (e.g. wiki_motor_protector.md).
+or a single Markdown fact sheet file (e.g. fact_sheet.md).
 
 Only uses the Python standard library: no pip install needed.
 
@@ -415,7 +415,7 @@ def main():
     ap.add_argument("--temperature", type=float, default=0.3)
     ap.add_argument("--styles", default=",".join(STYLES), help="comma list")
     ap.add_argument("--out", default="variants")
-    ap.add_argument("--raw", default="raw", help="folder with the original source texts (lab/fetch_raw.py); "
+    ap.add_argument("--raw", default="", help="folder with the original source texts (lab/fetch_raw.py); "
                     "'' to write from the wiki alone")
     args = ap.parse_args()
 

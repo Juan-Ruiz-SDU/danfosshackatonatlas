@@ -30,8 +30,11 @@ import catalog  # noqa: E402
 import citations  # noqa: E402
 import comparison  # noqa: E402
 import verify  # noqa: E402
+import chat  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
+import retrieval  # noqa: E402
+import sections  # noqa: E402
 import webpage  # noqa: E402
 import website  # noqa: E402
 
@@ -134,7 +137,7 @@ def state():
             "default_targets": analysis.default_targets(),
             "styles": [{"id": k, "name": pipeline.STYLE_NAMES.get(k, k),
                         "publishable": k in pipeline.PUBLISHABLE}
-                       for k in pipeline.gv.STYLES],
+                       for k in [*pipeline.gv.STYLES, pipeline.SECTIONS]],
             "job": JOB.as_dict() if JOB else None}
 
 
@@ -284,7 +287,13 @@ def citations_state(slug):
     runs = citations.list_runs()
     latest = runs[-1].name if runs else None
     ai.load_env()
-    return {"history": citations.history(), "sections": {k: len(v) for k, v in citations.prompt_sections().items()},
+    hist = citations.history()
+    targets = analysis.product_targets(p)
+    for r in hist["runs"]:  # the same targets as the Run tab, on Gemini's real answers
+        r["targets"] = analysis.check({"trials": r["prompts"], "cited_count": r["danfoss_answers"],
+                                       "first_count": r["danfoss_first"]}, targets)
+    return {"history": hist, "targets": targets, "lab": citations.lab_history(p),
+            "sections": {k: len(v) for k, v in citations.prompt_sections().items()},
             "latest": latest, "summary": citations.run_summary(latest) if latest else [],
             "ours": [{"id": o["id"], "label": o["label"]} for o in citations.our_pages(p, danfoss_url(p))],
             "has_key": ai.has_key("GEMINI_API_KEY"),
@@ -400,6 +409,72 @@ def citations_explain(b):
                              fresh=bool(b.get("fresh")))
 
 
+def citations_suggest(b):
+    """Explanation (cached) -> wiki suggestions, accepted or declined like a run's."""
+    p = products.get(b.get("slug", ""))
+    ours = next((o for o in citations.our_pages(p, danfoss_url(p)) if o["id"] == b.get("ours")), None)
+    if not ours:
+        raise ValueError("Pick one of our pages to compare.")
+    explanation = citations_explain({**b, "fresh": False})
+    return citations.suggest(p, b.get("run", ""), int(b.get("i", 0)), ours, explanation,
+                             b.get("provider") or "ollama", b.get("model") or "qwen3:8b")
+
+
+def citations_decide(b):
+    p = products.get(b.get("slug", ""))
+    folder = citations.suggestion_folder(b.get("run", ""), int(b.get("i", 0)), b.get("ours", ""))
+    return analysis.decide(p, folder, b.get("id"), b.get("decision"), b.get("text"))
+
+
+# --- How it works tab: what the section writer did -------------------------------------------
+def process_runs(p):
+    runs = sorted((p["folder"] / "runs").glob("*/process.json"), reverse=True)
+    return [r.parent.name for r in runs]
+
+
+def process_state(slug, run=""):
+    p = products.get(slug)
+    runs = process_runs(p)
+    run = run if run in runs else (runs[0] if runs else "")
+    proc = sections.load_process(p["folder"] / "runs" / run / "process.json") if run else None
+    return {"runs": runs, "run": run, "process": proc,
+            "has_map": bool(run) and (p["folder"] / "runs" / run / "process_map.json").is_file()}
+
+
+def process_map(b):
+    """2-D map of the embeddings: evidence, sub-queries, competitor passages and our sections."""
+    p = products.get(b.get("slug", ""))
+    run = b.get("run", "")
+    if run not in process_runs(p):
+        raise ValueError("No section-writer run to draw.")
+    folder = p["folder"] / "runs" / run
+    cache = folder / "process_map.json"
+    if cache.is_file() and not b.get("fresh"):
+        return json.loads(cache.read_text(encoding="utf-8"))
+    ok, msg = retrieval.embed_status()
+    if not ok:
+        raise ValueError(msg)
+    proc = sections.load_process(folder / "process.json")
+    queries = [c["query"] for c in proc["subqueries"]]
+    extra = [("ours", f"S{k + 1}", sections.clean(s["final"])) for k, s in enumerate(proc["sections"])
+             if not s.get("empty") and s["final"].strip()]
+    comps = [d for d in pipeline.load_pages(p, 2000) if d.brand.lower() != "danfoss"]
+    if comps:  # the competitor passages that best match the sub-queries
+        ranker = pipeline.lab.PassageRanker(comps, 120)
+        seen = set()
+        for q in queries:  # the 4 best competitor passages per sub-query
+            for s, ps in ranker.scores(q)[:4]:
+                if s > 0 and id(ps) not in seen:
+                    seen.add(id(ps))
+                    extra.append(("competitor", ps.doc.brand, (ps.heading + ": " + ps.body)[:1200]))
+    sheet = products.fact_sheet(p)
+    data = {"points": sections.unit_map(p, sheet, queries, extra), "queries": queries,
+            "chosen": {f"q{k + 1}": next((s["evidence"] for s in proc["sections"] if s["query"] == q), [])
+                       for k, q in enumerate(queries)}}
+    cache.write_text(json.dumps(data), encoding="utf-8")
+    return data
+
+
 def build_product_page(b):
     p, questions, competitors = page_context(b.get("slug", ""))
     version = "ai" if b.get("version") == "ai" else "template"
@@ -472,6 +547,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, citations.run_summary(q.get("run", "")))
             if url.path == "/api/citations/prompt":
                 return self.send(200, citations_prompt(q))
+            if url.path == "/api/citations/suggestions":
+                return self.send(200, citations.load_suggestions(q.get("run", ""), int(q.get("i", 0)), q.get("ours", "")))
+            if url.path == "/api/process":
+                return self.send(200, process_state(q.get("slug", ""), q.get("run", "")))
+            if url.path == "/api/chat/status":
+                return self.send(200, chat.status())
+            if url.path == "/api/chat/poll":
+                return self.send(200, chat.poll(q.get("id", "")))
             if url.path == "/api/verify/job":
                 return self.send(200, verify_state())
             if url.path == "/api/catalog":
@@ -566,6 +649,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 start_citations_update(b)
             elif path == "/api/citations/explain":
                 return self.send(200, citations_explain(b))
+            elif path == "/api/citations/suggest":
+                return self.send(200, citations_suggest(b))
+            elif path == "/api/citations/suggestion":
+                return self.send(200, citations_decide(b))
+            elif path == "/api/process/map":
+                return self.send(200, process_map(b))
+            elif path == "/api/chat":
+                return self.send(200, chat.start(b.get("messages") or [], b.get("slug", ""), b.get("tab", ""),
+                                                 b.get("model", "")))
+            elif path == "/api/chat/stop":
+                chat.stop(b.get("id", ""))
             elif path == "/api/verify":
                 start_verify(b)
             elif path == "/api/verify/stop":

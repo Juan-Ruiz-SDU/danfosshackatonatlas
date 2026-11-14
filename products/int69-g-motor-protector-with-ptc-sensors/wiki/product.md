@@ -3,6 +3,8 @@ type: Product
 title: 'INT69 G motor protector with PTC sensors'
 description: 'motor protector for electrical machines'
 ---
+Source of every fact below: Danfoss data sheet "INT69 G", document AI450535997377en-000201 (2023.06).
+
 # What it is
 The INT69 G is a motor protector based on PTC sensors that provides effective and reliable protection against thermal overload of electrical machines.
 

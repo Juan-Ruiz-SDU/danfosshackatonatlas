@@ -88,7 +88,7 @@ def evidence_units(p):
         s = s.lstrip("-*# ").strip()
         if len(s.split()) >= 3:
             units.append(_Unit(f"wiki: {title}", s))
-    for sid, head, text in gv.raw_passages(REPO / p.get("raw_dir", "raw")):
+    for sid, head, text in (gv.raw_passages(REPO / p["raw_dir"]) if p.get("raw_dir") else []):
         units.append(_Unit(f"raw: {sid}", (head + " " + text).strip()))
     site = p["folder"] / "webpage" / "site"
     if site.is_dir():
@@ -133,12 +133,14 @@ def claims(md):
 
 
 # --- the check -------------------------------------------------------------------------
+def ollama_base():
+    """The Ollama server set in Settings (your computer or the team server)."""
+    p = ai.providers().get("ollama") or {}
+    return (p.get("base_url") or "http://localhost:11434/").rstrip("/")
+
+
 def ollama_models():
-    try:
-        with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=3) as r:
-            return [m["name"] for m in json.loads(r.read()).get("models", [])]
-    except Exception:  # noqa: BLE001
-        return []
+    return ai.ollama_status(ollama_base())[1]
 
 
 def backend_name(provider, model):
@@ -149,11 +151,59 @@ def backend_name(provider, model):
 def _minicheck(model, evidence, claim):
     body = json.dumps({"model": model, "prompt": f"Document: {evidence}\nClaim: {claim}",
                        "stream": False, "options": {"temperature": 0}}).encode()
-    req = urllib.request.Request("http://localhost:11434/api/generate", data=body,
+    req = urllib.request.Request(ollama_base() + "/api/generate", data=body,
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=300) as r:
         ans = json.loads(r.read()).get("response", "").strip().lower()
     return ("supported" if ans.startswith("yes") else "unsupported"), "", "MiniCheck: " + (ans[:20] or "no answer")
+
+
+def check_claim(c, units, backend, label, provider, model, norm_units=None, bm25=None, use_model=True):
+    """One claim through the cascade (copied, evidence, numbers, model) against `units`."""
+    norm_units = norm_units if norm_units is not None else [_norm(u.text) for u in units]
+    nc = _norm(c)
+    hit = next((i for i, u in enumerate(norm_units) if nc and nc in u), None)
+    if hit is not None:
+        return {"claim": c, "verdict": "supported", "method": "copied from a source",
+                "evidence": [{"source": units[hit].source, "text": units[hit].text[:300]}]}
+    bm25 = bm25 or lab.BM25(units)
+    top = [u for s, u in bm25.rank(c)[:3] if s > 0]
+    ev_text = "\n".join(u.text for u in top)
+    evidence = [{"source": u.source, "text": u.text[:300]} for u in top]
+    missing = sorted(_numbers(c) - _numbers(ev_text), key=len)
+    if missing:
+        return {"claim": c, "verdict": "unsupported", "method": "numbers",
+                "note": "number(s) not in the best-matching sources: " + ", ".join(missing), "evidence": evidence}
+    if not top:
+        return {"claim": c, "verdict": "unsupported", "method": "no matching source", "evidence": []}
+    if not use_model:
+        return {"claim": c, "verdict": "not checked", "method": "limit reached", "evidence": evidence}
+    if backend == "minicheck":
+        verdict, quote, note = _minicheck(label, ev_text, c)
+    else:
+        text = ai.chat(provider, model, CHECK_SYSTEM, f"EVIDENCE:\n{ev_text}\n\nCLAIM: {c}",
+                       temperature=0.0, json_mode=True)
+        try:
+            d = ai.parse_json(text)
+        except (ValueError, json.JSONDecodeError):
+            d = {"verdict": "unsupported", "quote": "", "reason": "the checker's answer could not be read"}
+        verdict = str(d.get("verdict", "unsupported")).lower()
+        quote = str(d.get("quote", "") or "")
+        note = str(d.get("reason", "") or "")
+        if verdict in ("supported", "partly") and (not quote or _norm(quote) not in _norm(ev_text)):
+            verdict, note = "unsupported", "the checker could not quote the evidence: " + note
+    return {"claim": c, "verdict": verdict if verdict in ("supported", "partly", "unsupported") else "unsupported",
+            "method": "model", "quote": quote, "note": note, "evidence": evidence}
+
+
+def summarise(results, model_calls, label):
+    counts = {k: sum(r["verdict"] == k for r in results) for k in ("supported", "partly", "unsupported", "not checked")}
+    checked = counts["supported"] + counts["partly"] + counts["unsupported"]
+    order = {"unsupported": 0, "partly": 1, "not checked": 2, "supported": 3}
+    results = sorted(results, key=lambda r: order.get(r["verdict"], 4))
+    return {"backend": label, "summary": {**counts, "claims": len(results), "model_calls": model_calls,
+                                          "supported_ratio": round(counts["supported"] / checked, 3) if checked else None},
+            "claims": results}
 
 
 def check_page(p, md, provider, model, log=lambda m: None, cancelled=lambda: False, max_model=60):
@@ -169,49 +219,10 @@ def check_page(p, md, provider, model, log=lambda m: None, cancelled=lambda: Fal
     for n, c in enumerate(claims(md), 1):
         if cancelled():
             break
-        nc = _norm(c)
-        hit = next((i for i, u in enumerate(norm_units) if nc and nc in u), None)
-        if hit is not None:
-            results.append({"claim": c, "verdict": "supported", "method": "copied from a source",
-                            "evidence": [{"source": units[hit].source, "text": units[hit].text[:300]}]})
-            continue
-        top = [u for s, u in bm25.rank(c)[:3] if s > 0]
-        ev_text = "\n".join(u.text for u in top)
-        evidence = [{"source": u.source, "text": u.text[:300]} for u in top]
-        missing = sorted(_numbers(c) - _numbers(ev_text), key=len)
-        if missing:
-            results.append({"claim": c, "verdict": "unsupported", "method": "numbers",
-                            "note": "number(s) not in the best-matching sources: " + ", ".join(missing),
-                            "evidence": evidence})
-            continue
-        if not top:
-            results.append({"claim": c, "verdict": "unsupported", "method": "no matching source", "evidence": []})
-            continue
-        if model_calls >= max_model:
-            results.append({"claim": c, "verdict": "not checked", "method": "limit reached", "evidence": evidence})
-            continue
-        model_calls += 1
-        log(f"  [{n}] model check: {c[:70]}")
-        if backend == "minicheck":
-            verdict, quote, note = _minicheck(label, ev_text, c)
-        else:
-            text = ai.chat(provider, model, CHECK_SYSTEM, f"EVIDENCE:\n{ev_text}\n\nCLAIM: {c}",
-                           temperature=0.0, json_mode=True)
-            try:
-                d = ai.parse_json(text)
-            except (ValueError, json.JSONDecodeError):
-                d = {"verdict": "unsupported", "quote": "", "reason": "the checker's answer could not be read"}
-            verdict = str(d.get("verdict", "unsupported")).lower()
-            quote = str(d.get("quote", "") or "")
-            note = str(d.get("reason", "") or "")
-            if verdict in ("supported", "partly") and (not quote or _norm(quote) not in _norm(ev_text)):
-                verdict, note = "unsupported", "the checker could not quote the evidence: " + note
-        results.append({"claim": c, "verdict": verdict if verdict in ("supported", "partly", "unsupported") else "unsupported",
-                        "method": "model", "quote": quote, "note": note, "evidence": evidence})
-    counts = {k: sum(r["verdict"] == k for r in results) for k in ("supported", "partly", "unsupported", "not checked")}
-    checked = counts["supported"] + counts["partly"] + counts["unsupported"]
-    order = {"unsupported": 0, "partly": 1, "not checked": 2, "supported": 3}
-    results.sort(key=lambda r: order.get(r["verdict"], 4))
-    return {"backend": label, "summary": {**counts, "claims": len(results), "model_calls": model_calls,
-                                          "supported_ratio": round(counts["supported"] / checked, 3) if checked else None},
-            "claims": results}
+        r = check_claim(c, units, backend, label, provider, model, norm_units, bm25,
+                        use_model=model_calls < max_model)
+        if r["method"] == "model":
+            model_calls += 1
+            log(f"  [{n}] model check: {c[:70]}")
+        results.append(r)
+    return summarise(results, model_calls, label)

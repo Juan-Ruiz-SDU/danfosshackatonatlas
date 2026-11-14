@@ -418,17 +418,7 @@ function renderSuggestions() {
   const open = d.suggestions.filter(x => !x.decision).length;
   const accepted = d.suggestions.filter(x => x.decision === "accepted").length;
   const list = items => items.length ? `<ul>${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
-  const card = x => `<div class="sugg ${x.decision || ""}" data-id="${esc(x.id)}">
-      <div><b>${esc(x.id)}.</b> <span class="file">${esc(x.file)}</span> · ${x.action === "replace" ? "replace text" : "add at the end"}</div>
-      <div>${esc(x.why)}</div>
-      ${x.note ? `<div class="hint">${esc(x.note)}</div>` : ""}
-      ${x.find ? `<div class="hint">Replaces:</div><blockquote>${esc(x.find)}</blockquote><div class="hint">With:</div>` : ""}
-      ${x.decision
-        ? `<blockquote>${esc(x.text)}</blockquote><div class="done">${x.decision === "accepted" ? "✔ Accepted: written to the wiki" : "Declined"}</div>`
-        : `<textarea aria-label="Suggested text">${esc(x.text)}</textarea>
-           ${x.unknown_numbers?.length ? `<div class="warnbox">⚠ Numbers not in the wiki: ${esc(x.unknown_numbers.join(", "))}. Check them before accepting.</div>` : ""}
-           <div class="row"><button class="primary" data-act="accept">Accept</button><button class="ghost" data-act="decline">Decline</button></div>`}
-    </div>`;
+  const card = suggCard;
   box.innerHTML = `<h3>Wiki suggestions to reach the targets</h3>
     <p class="hint">Best version <b>${esc(d.best.name)}</b> (cited ${d.best.cited_count}/${d.best.trials}, first ${d.best.first_count})
       compared with the worst, <b>${esc(d.worst.name)}</b> (cited ${d.worst.cited_count}/${d.worst.trials}, first ${d.worst.first_count}) · by ${esc(d.analyst)}</p>
@@ -443,19 +433,39 @@ function renderSuggestions() {
         ? "The next pages will be written from the updated wiki."
         : "Nothing changed in the wiki, so the same pages would be written again unless you tick “Write brand-new pages” under More options."}
       <p><button class="primary" id="next-run">Write a new set of pages</button></p></div>`}`;
-  $$("#suggestions .sugg [data-act]").forEach(b => b.onclick = () => {
-    const c = b.closest(".sugg");
-    safe(async () => {
-      P.suggestions = await api("/api/suggestion", { slug: P.product.slug, run: d.run, id: c.dataset.id,
-        decision: b.dataset.act, text: $("textarea", c)?.value });
-      renderSuggestions();
-      toast(b.dataset.act === "accept" ? "Written to the wiki" : "Declined");
-      if (b.dataset.act === "accept")
+  bindSuggCards(box, (id, decision, text) => api("/api/suggestion", { slug: P.product.slug, run: d.run, id, decision, text }),
+    async (nd, act) => {
+      P.suggestions = nd; renderSuggestions();
+      if (act === "accept")
         $("#fact-sheet").textContent = (await api("/api/product?slug=" + encodeURIComponent(P.product.slug))).fact_sheet;
     });
-  });
   const next = $("#next-run");
   if (next) next.onclick = () => { $("#run").click(); $("#card-progress").scrollIntoView({ behavior: "smooth" }); };
+}
+
+// One wiki suggestion (Run tab analysis or Citations tab): accept, edit or decline.
+const suggCard = x => `<div class="sugg ${x.decision || ""}" data-id="${esc(x.id)}">
+      <div><b>${esc(x.id)}.</b> <span class="file">${esc(x.file)}</span> · ${x.action === "replace" ? "replace text" : "add at the end"}</div>
+      <div>${esc(x.why)}</div>
+      ${x.note ? `<div class="hint">${esc(x.note)}</div>` : ""}
+      ${x.find ? `<div class="hint">Replaces:</div><blockquote>${esc(x.find)}</blockquote><div class="hint">With:</div>` : ""}
+      ${x.decision
+        ? `<blockquote>${esc(x.text)}</blockquote><div class="done">${x.decision === "accepted" ? "✔ Accepted: written to the wiki" : "Declined"}</div>`
+        : `<textarea aria-label="Suggested text">${esc(x.text)}</textarea>
+           ${x.unknown_numbers?.length ? `<div class="warnbox">⚠ Numbers not in the wiki: ${esc(x.unknown_numbers.join(", "))}. Check them before accepting.</div>` : ""}
+           <div class="row"><button class="primary" data-act="accept">Accept</button><button class="ghost" data-act="decline">Decline</button></div>`}
+    </div>`;
+
+// Accept/decline buttons of suggestion cards. decide(id, decision, text) returns the updated set.
+function bindSuggCards(box, decide, after) {
+  $$(".sugg [data-act]", box).forEach(b => b.onclick = () => {
+    const c = b.closest(".sugg");
+    safe(async () => {
+      const d = await decide(c.dataset.id, b.dataset.act, $("textarea", c)?.value);
+      toast(b.dataset.act === "accept" ? "Written to the wiki" : "Declined");
+      await after(d, b.dataset.act);
+    });
+  });
 }
 
 // --- settings dialog ----------------------------------------------------------------
@@ -594,12 +604,15 @@ function showTab(name) {
   if (name === "catalog" && P && !CAT) safe(loadCatalog);
   if (name === "web" && P && !SITE) safe(loadWeb);
   if (name === "citations" && P && !CIT) safe(loadCitations);
+  if (name === "how" && P && !HOW) safe(loadHow);
+  if (typeof chatContext === "function") chatContext();
 }
 $$(".tabs [role=tab]").forEach(b => b.onclick = () => showTab(b.dataset.tab));
 
 let WEB = null, CAT = null, CATSEL = null, CATFILE = null;
 function resetPageTabs() {
-  WEB = null; SITE = null; PAGESEL = null; CAT = null; CATSEL = null; WIKIBLOCKS = null; CIT = null; CITROW = null;
+  WEB = null; SITE = null; PAGESEL = null; CAT = null; CATSEL = null; WIKIBLOCKS = null; CIT = null; CITROW = null; HOW = null;
+  if (!$("#tab-how").classList.contains("hidden")) safe(loadHow);
   $$(".product-name").forEach(e => e.textContent = P.product.name);
   if (!$("#web-url").value || $("#web-url").dataset.auto === "1") {
     $("#web-url").value = P.danfoss_url || ""; $("#web-url").dataset.auto = "1";
@@ -860,7 +873,7 @@ function renderPage() {
 }
 
 // --- Citations tab: what Gemini with Google Search cites ------------------------------------
-let CIT = null, CITROW = null, citPoll = null;
+let CIT = null, CITROW = null, citPoll = null, HOW = null;
 
 async function loadCitations() {
   CIT = await api("/api/citations?slug=" + encodeURIComponent(P.product.slug));
@@ -920,6 +933,7 @@ function shareBar(x, danfoss) {
 
 function renderCitHistory() {
   const h = CIT.history;
+  if (typeof renderCitChart === "function") renderCitChart();
   if (!h.runs.length) {
     $("#cit-history").innerHTML = `<p class="hint">No update yet. Press <b>Update citations</b> (needs a Gemini key). A first test with “At most 3” takes about a minute.</p>`;
     $("#cit-sites").innerHTML = ""; return;
@@ -967,6 +981,8 @@ async function openCitPrompt(i) {
     + (c.docs.length ? `<details><summary>The passage of each cited page that best matches what Gemini took from it</summary>${c.docs.map(x => `<p><b>${esc(x.site)}</b> (${pct(x.share)}): <span class="hint">${esc(x.likely_passage || "—")}</span></p>`).join("")}</details>` : "")
     + (c.not_imported.length ? `<p class="hint tiny">Not imported (blocked or no text): ${c.not_imported.map(x => esc(x.site)).join(", ")}</p>` : "");
   $("#cit-why").innerHTML = ""; $("#cit-explain-status").textContent = "";
+  $("#cit-sugg-row").classList.add("hidden"); $("#cit-sugg").innerHTML = "";
+  loadCitSugg();
 }
 
 $("#cit-explain").onclick = () => {
@@ -985,6 +1001,7 @@ $("#cit-explain").onclick = () => {
         `<p class="hint">Agreement with Gemini's shares (rank correlation, −1 to 1): <b>${r.agreement ?? "not enough pages"}</b>. Each passage was ${r.words_per_passage} words. Reviewer: ${esc(r.model)}.</p>` +
         `<details><summary>The passages the reviewer saw</summary>${r.rows.map(x => `<p><b>${esc(x.label)} · ${esc(x.name)}</b>: <span class="hint">${esc(x.excerpt)}</span></p>`).join("")}</details>`;
       $("#cit-explain-status").textContent = "";
+      $("#cit-sugg-row").classList.remove("hidden");
     } catch (e) { $("#cit-explain-status").textContent = ""; throw e; } finally { btn.disabled = false; }
   });
 };
@@ -1025,14 +1042,14 @@ function factCheck(kind, ref, out, status, btn) {
 $("#web-verify").onclick = () => PAGESEL && factCheck("site", PAGESEL, $("#web-verify-out"), $("#web-verify-status"), $("#web-verify"));
 $("#cat-verify").onclick = () => CATFILE && factCheck("product", CATFILE, $("#cat-verify-out"), $("#cat-verify-status"), $("#cat-verify"));
 
-// --- Product by product tab ---------------------------------------------------------------
+// --- Model by model tab ---------------------------------------------------------------
 async function loadCatalog() {
   CAT = await api("/api/catalog?slug=" + encodeURIComponent(P.product.slug));
   if (!CAT.items.length) {
-    $("#cat-hint").textContent = CAT.note || "No product list in this fact sheet.";
+    $("#cat-hint").textContent = CAT.note || "No model list in this fact sheet.";
     $("#cat-list").innerHTML = ""; return;
   }
-  $("#cat-hint").innerHTML = `${CAT.items.length} products, from the fact sheet table “${esc(CAT.source)}”. Pick one to build its page.`;
+  $("#cat-hint").innerHTML = `${CAT.items.length} models, from the fact sheet table “${esc(CAT.source)}”. Pick one to build its page.`;
   $("#cat-list").innerHTML = `<div class="tablewrap"><table class="data pick"><thead><tr>${CAT.columns.map(c => `<th>${esc(c)}</th>`).join("")}<th></th></tr></thead><tbody>` +
     CAT.items.map(it => `<tr data-id="${esc(it.id)}" class="${it.id === CATSEL ? "sel" : ""}">${it.cells.map(c => `<td>${esc(c)}</td>`).join("")}<td>${it.extra.length ? `<span class="tag">+ ${it.extra.map(x => esc(x.title || "data")).join(", ")}</span>` : ""}</td></tr>`).join("") + "</tbody></table></div>";
   $$("#cat-list tr[data-id]").forEach(tr => tr.onclick = () => pickProduct(tr.dataset.id));

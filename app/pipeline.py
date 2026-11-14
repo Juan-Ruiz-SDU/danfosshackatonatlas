@@ -36,9 +36,11 @@ import analysis  # noqa: E402
 import comparison  # noqa: E402
 import products  # noqa: E402
 import report  # noqa: E402
+import sections  # noqa: E402
 
 TARGET = "danfoss"
-PUBLISHABLE = ["plain", "stats", "sources"]
+PUBLISHABLE = ["plain", "stats", "sources", "sections"]
+SECTIONS = "sections"  # written by app/sections.py, not by one prompt
 STYLE_NAMES = {
     "plain": "Plain description",
     "stats": "Fact-dense (figures)",
@@ -46,6 +48,7 @@ STYLE_NAMES = {
     "stuffed": "Keyword-stuffed (test only)",
     "original": "Danfoss's current page",
     "restructured": "Danfoss's current page, reformatted (same content)",
+    "sections": "Section by section, verified citations",
 }
 DEFAULTS = {
     "discovery": False, "search_model": "gemini-2.5-flash",
@@ -54,6 +57,8 @@ DEFAULTS = {
     "styles": ["plain", "stats", "sources"], "words": 400, "repeats": 1,
     "top_k": 5, "max_words": 700, "fresh_pages": False, "retries": 3,
     "retrieval": "page",
+    # section writer: evidence search (BM25 + embeddings + reranker); reranker = writer AI if empty
+    "embeddings": True, "embed_model": "nomic-embed-text", "reranker": "", "reranker_model": "",
     # when the best page misses the product's citation targets, this AI proposes wiki changes
     "analysis": True, "analyst": "ollama", "analyst_model": "qwen3:8b",
 }
@@ -66,7 +71,7 @@ def run(job, slug, settings):
     questions = [q["text"] for q in products.questions(p) if q["enabled"]]
     if not questions:
         raise ValueError("Select at least one question.")
-    styles = [x for x in s["styles"] if x in gv.STYLES]
+    styles = [x for x in s["styles"] if x in gv.STYLES or x == SECTIONS]
     if not any(x in PUBLISHABLE for x in styles):
         raise ValueError("Pick at least one style that can be published (not only keyword-stuffed).")
 
@@ -99,7 +104,7 @@ def run(job, slug, settings):
             "Paste competitor links under 'Comparison pages' in the Product card and press "
             "'Save and download'.")
 
-    variants = write_variants(job, p, sheet, styles, s, out)
+    variants = write_variants(job, p, sheet, styles, s, out, questions)
     rows, summary = citation_test(job, variants + originals, competitors, questions, s, out)
     return finish(job, p, s, out, questions, variants, originals, competitors, rows, summary, discovery)
 
@@ -208,20 +213,27 @@ def load_pages(p, max_words):
 
 
 # --- 3. writing -----------------------------------------------------------------
-def write_variants(job, p, sheet, styles, s, out):
+def write_variants(job, p, sheet, styles, s, out, questions=()):
     kw = products.keyword(p, sheet)
     guidelines = products.guidelines(p)
-    raw_dir = REPO / p.get("raw_dir", "raw")
-    sources = gv.raw_context(raw_dir, f"{p['name']} {kw}")  # original passages, next to the wiki
+    raw_dir = REPO / p["raw_dir"] if p.get("raw_dir") else None  # only products that have one
+    sources = gv.raw_context(raw_dir, f"{p['name']} {kw}") if raw_dir else ""  # original passages, next to the wiki
     if sources:
         job.log(f"Writer also gets {len(sources.split())} words of original source passages from {raw_dir.name}/")
     variants = []
     for i, style in enumerate(styles):
         job.step("Writing the page in different styles", i, len(styles))
-        prompt = gv.build_prompt(p["name"], s["words"], sheet,
-                                 gv.STYLES[style].format(keyword=kw), guidelines, sources)
         allowed = gv.allowed_numbers(sheet, style)
-        text, attempts = generate_page(job, s, prompt)
+        if style == SECTIONS:
+            cited, text, process = sections.write_page(p, sheet, questions, s, log=job.log,
+                                                       cancel=job.cancelled, step=job.step)
+            (out / "sections_cited.md").write_text(cited + "\n", encoding="utf-8")
+            (out / "process.json").write_text(json.dumps(process, indent=1, ensure_ascii=False), encoding="utf-8")
+            attempts = 1
+        else:
+            prompt = gv.build_prompt(p["name"], s["words"], sheet,
+                                     gv.STYLES[style].format(keyword=kw), guidelines, sources)
+            text, attempts = generate_page(job, s, prompt)
         path = out / "variants" / f"{style}.md"
         path.write_text(text + "\n", encoding="utf-8")
         words = text.split()

@@ -73,7 +73,7 @@ def wiki_dir(p):
 def fact_sheet(p):
     """The fact sheet as one Markdown text, or raises ValueError with what is wrong.
     Like the team's load_wiki: a folder is an OKF bundle, a single .md file is a
-    ready-made fact sheet (e.g. wiki_motor_protector.md)."""
+    ready-made fact sheet (e.g. a fact sheet .md file)."""
     path = wiki_dir(p)
     if path.is_file():
         return path.read_text(encoding="utf-8")

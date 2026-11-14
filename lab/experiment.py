@@ -216,9 +216,10 @@ class LLM:
                 text = data["choices"][0]["message"]["content"] or ""
                 return THINK_RE.sub("", text).strip()
             except urllib.error.HTTPError as e:
-                detail = e.read().decode(errors="replace")[:400]
+                full = e.read().decode(errors="replace")
+                detail = full[:400]
                 if e.code == 429 or e.code >= 500:
-                    if "PerDay" in detail or "per day" in detail.lower():
+                    if "PerDay" in full or "per day" in full.lower():
                         sys.exit("Daily free quota used up. Run again tomorrow: cached "
                                  "answers are kept, so the run continues where it stopped.")
                     print(f"    limit/server error {e.code}, retrying in {wait}s ...", flush=True)
@@ -226,7 +227,7 @@ class LLM:
                     wait = min(wait * 2, 120)
                     continue
                 sys.exit(f"API error {e.code}: {detail}")
-            except urllib.error.URLError as e:
+            except (urllib.error.URLError, TimeoutError) as e:
                 if self.provider == "ollama":
                     sys.exit(f"Cannot reach Ollama ({e}). Start the Ollama app first.")
                 print(f"    network error ({e}), retrying in {wait}s ...", flush=True)

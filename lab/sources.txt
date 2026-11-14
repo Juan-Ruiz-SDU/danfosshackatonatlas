@@ -11,17 +11,27 @@
 # baseline style "original", so the rewritten variants can be compared to them.
 
 # --- Danfoss baseline (original public pages) ---
-Danfoss | https://heatexchangers.danfoss.com
-Danfoss | https://www.danfoss.com/fr-fr/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-heat-exchangers/
+# The English Micro Plate page: the page the variants in "variants ManuJuan/" rewrite.
+Danfoss | https://www.danfoss.com/en/products/dcs/heat-exchangers/micro-plate-heat-exchangers/
 
-# --- Direct rivals (component makers) ---
+# --- Direct rivals (component makers), English pages only ---
 Alfa Laval | https://www.alfalaval.com/products/heat-transfer/plate-heat-exchangers/brazed-plate-heat-exchangers/cb/
+# SWEP blocks scripts (HTTP 403). The saved copies were read through
+# https://r.jina.ai/<url> and cleaned by hand.
 SWEP | https://www.swepgroup.com/product/brazed-plate-heat-exchanger
 SWEP | https://www.swepgroup.com/applications/hvac/district-energy/district-heating
-Hexonic | https://hexonic.com/wp-content/uploads/2021/11/HEXONIC_BPHE_FR_2025_02_19.pdf
-CIAT | https://www.prosynergie.fr/fichier/A/FICHIER_LIE_A_2610.pdf
-CIAT | https://e-catalogue.ciat.com/commercial/2021/fr/index-604.html
+Hexonic | https://hexonic.com/en/applications/refrigeration/heat-pump/
+Hexonic | https://hexonic.com/en/products/brazed-plate-exchangers/l/
+Hexonic | https://hexonic.com/en/products/brazed-plate-exchangers/r/
 
-# French pages: the questions are in English, so French pages score lower in
-# BM25 for language reasons, not content. Uncomment only for a French run.
+# Removed so the test isn't biased by language (questions and variants are in English,
+# and BM25 scores French pages lower for language reasons, not content):
+# Danfoss | https://heatexchangers.danfoss.com   (now a 62-word category hub, JS only)
+# Danfoss | https://www.danfoss.com/fr-fr/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-heat-exchangers/
+# Hexonic | https://hexonic.com/wp-content/uploads/2021/11/HEXONIC_BPHE_FR_2025_02_19.pdf
+# CIAT: no English BPHE page exists (CIAT's BPHE line was sold to VAU Thermotech in 2014).
+#   The old PDF was a French gasketed swimming-pool exchanger (ITEX pool+), off-topic,
+#   and the e-catalogue page is an image flipbook with no text.
+# CIAT | https://www.prosynergie.fr/fichier/A/FICHIER_LIE_A_2610.pdf
+# CIAT | https://e-catalogue.ciat.com/commercial/2021/fr/index-604.html
 # Alfa Laval | https://www.alfalaval.com/fr-be/produits-et-solutions/rohrenwarmetauscher/echangeurs-thermiques-a-plaques/echangeurs-de-chaleur-plaques-brasees/

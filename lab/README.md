@@ -59,6 +59,16 @@ Useful options:
 --model gemini-2.5-flash-lite        a different Gemini model
 ```
 
+## Changes that break comparisons
+
+- **2026-11-14, plural stemming in BM25.** `tokens()` in `experiment.py` now maps plurals
+  to singular (pumps → pump, manufacturers → manufacturer, batteries → battery; nothing
+  more aggressive). This changes which pages make the top 5, so **results from before
+  this fix are not comparable with results after it**. The round-1 folders
+  `results/2026-11-14_164814_gemini` and `results/2026-11-14_170322_gemini` are from
+  before the fix, and so is the review in `review/2026-11-14_173157`. Compare new runs
+  only with runs made after the fix.
+
 ## Reading the result
 
 - **Citation share** is the headline number.

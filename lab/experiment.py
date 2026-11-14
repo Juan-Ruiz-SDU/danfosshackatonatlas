@@ -123,8 +123,30 @@ def load_docs(folder, default_brand, max_words):
 
 
 # --- filter 1: BM25 ----------------------------------------------------------
+# Words ending in -s that are not plurals (or whose plural rule would mangle them).
+NOT_PLURAL = {"series", "species", "gas", "bus", "lens", "chassis", "always", "perhaps"}
+
+
+def stem(word):
+    """Light English plural stemmer: pumps -> pump, boxes -> box, batteries -> battery.
+    Only plural endings, nothing aggressive. Hyphenated words are stemmed per part."""
+    if "-" in word:
+        return "-".join(stem(p) for p in word.split("-"))
+    if len(word) <= 3 or word in NOT_PLURAL or word.isdigit():
+        return word
+    if word.endswith("ies") and len(word) > 4:
+        return word[:-3] + "y"                      # batteries -> battery
+    if word.endswith(("sses", "ches", "shes", "xes")):
+        return word[:-2]                            # classes, switches, meshes, boxes
+    if word.endswith(("ss", "us", "is")):
+        return word                                 # class, status, analysis
+    if word.endswith("s"):
+        return word[:-1]                            # pumps, exchangers, sizes
+    return word
+
+
 def tokens(text):
-    return [t for t in TOKEN_RE.findall(text.lower()) if t not in STOP]
+    return [stem(t) for t in TOKEN_RE.findall(text.lower()) if t not in STOP]
 
 
 class BM25:

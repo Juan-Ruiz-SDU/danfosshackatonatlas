@@ -1,0 +1,14 @@
+# Buyer questions for the lab, one per line. Lines starting with # are ignored.
+# Keep them neutral: no Danfoss-only words like "Micro Plate", or the test is rigged.
+What is the best brazed plate heat exchanger for heat pumps?
+Which brazed plate heat exchanger brand do you recommend for a heat pump manufacturer?
+Danfoss, Alfa Laval or SWEP: which brazed plate heat exchanger is better for heat pumps?
+Which plate heat exchanger gives the best part-load efficiency in a variable-load heat pump?
+Which brazed plate heat exchangers work with low-GWP refrigerants like R290 and R32?
+What brazed plate heat exchanger should I use as a condenser in a 10 kW heat pump?
+Which heat exchanger helps reduce the refrigerant charge of a heat pump?
+Who makes double-wall brazed plate heat exchangers for domestic hot water?
+Which brazed plate heat exchanger suppliers offer selection software?
+What is the best evaporator heat exchanger for a 100 kW commercial heat pump?
+Copper-brazed or nickel-brazed plate heat exchanger: which supplier should I choose?
+Which compact heat exchanger is best for chillers and heat pumps in commercial buildings?

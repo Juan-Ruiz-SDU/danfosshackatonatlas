@@ -1,0 +1,27 @@
+# Pages the lab downloads with fetch_sources.py.
+# Format:  Brand | URL
+# Lines starting with # are ignored.
+#
+# Competitors come from DataNatalia/Competitor_equivalents_XB04-1_and_BOCK_CO2.docx,
+# section 1 (brazed plate heat exchangers): the "Direct" and "Direct rival" rows.
+# The CO2 compressor rows and the other two docs are about other products, so
+# they are not used for this heat-pump BPHE experiment.
+#
+# "Danfoss" lines are the ORIGINAL public pages. They are saved apart, as the
+# baseline style "original", so the rewritten variants can be compared to them.
+
+# --- Danfoss baseline (original public pages) ---
+Danfoss | https://heatexchangers.danfoss.com
+Danfoss | https://www.danfoss.com/fr-fr/products/dhs/heat-exchangers/brazed-heat-exchangers/brazed-heat-exchangers/
+
+# --- Direct rivals (component makers) ---
+Alfa Laval | https://www.alfalaval.com/products/heat-transfer/plate-heat-exchangers/brazed-plate-heat-exchangers/cb/
+SWEP | https://www.swepgroup.com/product/brazed-plate-heat-exchanger
+SWEP | https://www.swepgroup.com/applications/hvac/district-energy/district-heating
+Hexonic | https://hexonic.com/wp-content/uploads/2021/11/HEXONIC_BPHE_FR_2025_02_19.pdf
+CIAT | https://www.prosynergie.fr/fichier/A/FICHIER_LIE_A_2610.pdf
+CIAT | https://e-catalogue.ciat.com/commercial/2021/fr/index-604.html
+
+# French pages: the questions are in English, so French pages score lower in
+# BM25 for language reasons, not content. Uncomment only for a French run.
+# Alfa Laval | https://www.alfalaval.com/fr-be/produits-et-solutions/rohrenwarmetauscher/echangeurs-thermiques-a-plaques/echangeurs-de-chaleur-plaques-brasees/

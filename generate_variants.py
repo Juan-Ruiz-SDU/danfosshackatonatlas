@@ -14,9 +14,12 @@ Usage:
   python generate_variants.py --wiki wiki --topic "Example Pro invoicing software" \
       --model qwen3:8b --words 400 --target 3
 
-  --target N   make sure each style has pages 1..N: only missing pages are
-               generated; existing ones are kept and just checked
-  --runs N     add N new pages per style after the existing ones
+  --target N     make sure each style has pages 1..N: only missing pages are
+                 generated; existing ones are kept and just checked
+  --runs N       add N new pages per style after the existing ones
+  --retries N    regenerate a new page up to N times if its length is >20% off
+  --fix-length   also redo existing pages whose length is >20% off
+                 (the original is kept in before_fix/)
 
 Output (folder ./variants). Earlier pages are never overwritten, so the
 progress between runs stays visible:
@@ -64,15 +67,30 @@ RULES:
 - Do not add any number, name, date, source, quote or claim that is not in the fact sheet.
 - If something is missing from the fact sheet, leave it out. Never guess.
 - Respect the "Never claim" list.
+- The fact sheet marks where facts come from with [src: id] and "Source [id]:" lines.
+  Never copy these markers into the page. Only name a source when the STYLE asks for sources.
 - Write about {words} words, in English, in Markdown, starting with a # title.
 - Output only the page, nothing else.
-
+{guidelines}
 STYLE:
 {style}
 
 FACT SHEET:
 {wiki}
 """
+
+GUIDELINES_BLOCK = """
+WRITING GUIDELINES (how to lay out the page; these are instructions, not facts,
+so never take a number or claim from them):
+{text}
+"""
+
+
+def build_prompt(topic, words, wiki, style, guidelines=""):
+    """The writer prompt. `guidelines` is the text of the bundle's Guideline
+    concepts (load_guidelines), or empty."""
+    block = GUIDELINES_BLOCK.format(text=guidelines.strip()) if guidelines.strip() else ""
+    return PROMPT.format(topic=topic, words=words, wiki=wiki, style=style, guidelines=block)
 
 NUM_RE = re.compile(r"\d[\d.,]*\d|\d")
 THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
@@ -84,11 +102,24 @@ TOP_KEY_RE = re.compile(r"([A-Za-z_][\w-]*):[ \t]*(.*?)[ \t]*$")
 # Links to other concepts in the bundle (not http/https): keep only the text,
 # so bundle paths never leak into the generated pages.
 INTERNAL_LINK_RE = re.compile(r"\[([^\]]+)\]\((?!https?://)[^)]*\)")
-# Footnotes cite the eBrochure in every concept; the source is already stated
-# once in the "Single source of truth" policy, so drop them from the prompt.
-FOOTNOTE_DEF_RE = re.compile(r"^\[\^[^\]]+\]:.*\n?", re.MULTILINE)
-FOOTNOTE_REF_RE = re.compile(r"\[\^[^\]]+\]")
+# Footnotes say which Danfoss document each fact comes from. Since the bundle
+# allows several Danfoss sources, they are kept, in a compact form: [^id] in the
+# text becomes [src: id], and each definition becomes a "Source [id]: ..." line
+# at the end of its concept. The numbers inside them (document codes, dates,
+# page numbers) are not facts: allowed_numbers() leaves them out.
+FOOTNOTE_DEF_RE = re.compile(r"^\[\^([^\]]+)\]:[ \t]*(.*)\n?", re.MULTILINE)
+FOOTNOTE_REF_RE = re.compile(r"\[\^([^\]]+)\]")
+SOURCE_LINE_RE = re.compile(r"^Source \[[^\]]+\]:.*$", re.MULTILINE)
+SOURCE_MARK_RE = re.compile(r"\[src: [^\]]+\]")
 LINK_TARGET_RE = re.compile(r"\]\(([^)#\s]+)\)")
+# Concepts of this type are writing instructions, not facts (wiki/guidelines/).
+GUIDELINE_TYPE = "guideline"
+# Concepts of these types stay in the fact sheet (the writer needs the rules and
+# the source titles) but hold no product facts: their numbers (page numbers,
+# dates, document codes, "number 1") must not count as allowed numbers. Their
+# heading in the fact sheet gets this label, so allowed_numbers() can skip them.
+NOT_FACT_TYPES = {"policy": "rules", "reference": "source document", "test parameter": "lab test only"}
+NOT_FACT_HEAD_RE = re.compile(r"^## .*\((?:%s)\)\s*$" % "|".join(NOT_FACT_TYPES.values()))
 
 
 def unquote(value):
@@ -134,13 +165,13 @@ def ordered_concepts(directory):
             yield p
 
 
-def load_okf_bundle(root):
-    """Check OKF v0.2 conformance (every concept has frontmatter with a
-    non-empty `type`) and render all concepts as one fact sheet for the LLM."""
+def _concepts(root):
+    """(fm, body, path) for every concept, checking OKF v0.2 conformance (every
+    concept has frontmatter with a non-empty `type`)."""
     root = pathlib.Path(root)
     if not root.is_dir():
         sys.exit(f"{root} is not an OKF bundle folder (expected e.g. --wiki wiki)")
-    parts, problems = [], []
+    out, problems = [], []
     for path in ordered_concepts(root):
         rel = path.relative_to(root).as_posix()
         fm, body = parse_concept(path.read_text(encoding="utf-8"))
@@ -150,17 +181,76 @@ def load_okf_bundle(root):
         if not fm.get("type"):
             problems.append(f"{rel}: frontmatter has no `type`")
             continue
-        title = fm.get("title") or path.stem.replace("-", " ")
-        body = INTERNAL_LINK_RE.sub(r"\1", body)
-        body = FOOTNOTE_REF_RE.sub("", FOOTNOTE_DEF_RE.sub("", body))
-        body = re.sub(r"^(#{1,4}) ", r"##\1 ", body, flags=re.MULTILINE)
-        head = f"## {title}\n" + (fm["description"] + "\n" if fm.get("description") else "")
-        parts.append(head + "\n" + body.strip())
+        out.append((fm, body, path))
     if problems:
         sys.exit("Not a conformant OKF bundle:\n  " + "\n  ".join(problems))
+    return out
+
+
+def _render(fm, body, path, keep_sources=True):
+    title = fm.get("title") or path.stem.replace("-", " ")
+    body = INTERNAL_LINK_RE.sub(r"\1", body)
+    sources = [f"Source [{m.group(1)}]: {m.group(2).strip()}"
+               for m in FOOTNOTE_DEF_RE.finditer(body)]
+    body = FOOTNOTE_DEF_RE.sub("", body)
+    body = FOOTNOTE_REF_RE.sub(r" [src: \1]" if keep_sources else "", body)
+    body = re.sub(r"^(#{1,4}) ", r"##\1 ", body, flags=re.MULTILINE)
+    label = NOT_FACT_TYPES.get(str(fm.get("type", "")).strip().lower())
+    head = f"## {title}" + (f" ({label})" if label else "") + "\n" \
+        + (fm["description"] + "\n" if fm.get("description") else "")
+    tail = ("\n\n" + "\n".join(sources)) if keep_sources and sources else ""
+    return head + "\n" + body.strip() + tail
+
+
+def is_guideline(fm):
+    return str(fm.get("type", "")).strip().lower() == GUIDELINE_TYPE
+
+
+def load_okf_bundle(root):
+    """Render every fact concept as one fact sheet for the LLM. Guideline
+    concepts (writing instructions) are left out: see load_guidelines()."""
+    parts = [_render(fm, body, path) for fm, body, path in _concepts(root)
+             if not is_guideline(fm)]
     if not parts:
         sys.exit(f"No concept files found in {root}")
     return "# FACT SHEET (single source of truth)\n\n" + "\n\n".join(parts) + "\n"
+
+
+def load_guidelines(root, audience="writer"):
+    """The bundle's guidelines (type: Guideline) for one audience, as one text,
+    or ''. `applies_to: writer` guidelines go into the writer prompt;
+    `applies_to: app` ones (e.g. crawlability) are checked by the app's code."""
+    root = pathlib.Path(root)
+    if not root.is_dir():
+        return ""
+    parts = [_render(fm, body, path, keep_sources=False)
+             for fm, body, path in _concepts(root)
+             if is_guideline(fm) and fm.get("applies_to", "writer").strip().lower() == audience]
+    return "\n\n".join(parts)
+
+
+def facts_only(sheet):
+    """The fact sheet without the parts that hold no product facts: concepts
+    labelled as rules, source documents or lab test parameters, source lines and
+    [src: id] markers."""
+    keep, skipping = [], False
+    for line in sheet.splitlines():
+        if line.startswith("## "):
+            skipping = bool(NOT_FACT_HEAD_RE.match(line))
+        if not skipping:
+            keep.append(line)
+    return SOURCE_MARK_RE.sub("", SOURCE_LINE_RE.sub("", "\n".join(keep)))
+
+
+def allowed_numbers(sheet, style=None):
+    """Numbers a page may use: only those in the product facts. Policies,
+    source documents, source lines and [src: id] markers hold page numbers,
+    dates and document codes, so they only count for the 'sources' style,
+    which is asked to name its sources."""
+    allowed = norm_numbers(facts_only(sheet))
+    if style == "sources":
+        allowed |= norm_numbers(sheet)
+    return allowed
 
 
 def load_wiki(path):
@@ -273,6 +363,7 @@ def main():
     args = ap.parse_args()
 
     wiki = load_wiki(args.wiki)
+    guidelines = load_guidelines(args.wiki)  # '' for a single-file fact sheet
     keyword = args.keyword
     if not keyword:
         # first bullet after the "Target search phrase" heading
@@ -280,7 +371,6 @@ def main():
                       re.DOTALL | re.MULTILINE)
         keyword = m.group(1).strip(" []") if m else args.topic
 
-    allowed = norm_numbers(wiki)
     out = pathlib.Path(args.out)
     out.mkdir(exist_ok=True)
     report_path = out / "report.json"
@@ -292,6 +382,7 @@ def main():
         if style not in STYLES:
             sys.exit(f"Unknown style: {style}")
     for style in styles:
+        allowed = allowed_numbers(wiki, style)
         if args.target:
             runs = range(1, args.target + 1)
         else:
@@ -300,10 +391,8 @@ def main():
         for run in runs:
             name = f"{style}_{run}.md"
             path = out / name
-            prompt = PROMPT.format(
-                topic=args.topic, words=args.words, wiki=wiki,
-                style=STYLES[style].format(keyword=keyword),
-            )
+            prompt = build_prompt(args.topic, args.words, wiki,
+                                  STYLES[style].format(keyword=keyword), guidelines)
             existing = (path.read_text(encoding="utf-8").strip()
                         if path.is_file() and path.stat().st_size > 0 else None)
             now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -348,7 +437,7 @@ def main():
                 "file": name, "style": style, "run": run, "words": words,
                 "keyword_count": kw_count,
                 "numbers_not_in_wiki": unknown,
-                "length_ok": abs(words - args.words) <= 0.2 * args.words,
+                "length_ok": length_ok(page, args.words),
                 "topic": args.topic, "keyword": keyword,
                 "target_words": args.words, **made,
             }

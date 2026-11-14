@@ -1,0 +1,17 @@
+[
+  {"id": "s-what-is", "text": "What is {a_product}?"},
+  {"id": "s-best-for", "text": "What is the best {product} for {application}?"},
+  {"id": "s-reliable-makers", "text": "Which {product} manufacturers are the most reliable?"},
+  {"id": "s-recommend-brand", "text": "Which {product} brand do you recommend for {application}?"},
+  {"id": "s-buying-checklist", "text": "What should I look for when buying {a_product}?"},
+  {"id": "s-sizing", "text": "How do I choose the right size of {product} for my system?"},
+  {"id": "s-efficiency", "text": "Which {product} is the most energy-efficient?"},
+  {"id": "s-cost", "text": "How much does {a_product} cost?"},
+  {"id": "s-where-buy", "text": "Where can I buy {a_product} for professional installations?"},
+  {"id": "s-lifespan", "text": "How long does {a_product} last?"},
+  {"id": "s-problems", "text": "What are the most common problems with {a_product} and how do I prevent them?"},
+  {"id": "s-maintenance", "text": "How do I maintain {a_product}?"},
+  {"id": "s-alternatives", "text": "What are the alternatives to {a_product}, and which is better?"},
+  {"id": "s-replacement", "text": "What replacement {product} should I use in an old system?"},
+  {"id": "s-worth-it", "text": "Is {a_product} worth the investment for {application}?"}
+]

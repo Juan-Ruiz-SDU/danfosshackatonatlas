@@ -23,6 +23,7 @@ import io
 import pathlib
 import re
 import sys
+import urllib.error
 import urllib.request
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -81,17 +82,63 @@ def tidy(text):
     return re.sub(r"\n{3,}", "\n\n", out).strip()
 
 
+# Bot protection pages: the site answers with a check (JavaScript challenge,
+# captcha, "access denied") instead of the page. Strong markers are enough on
+# their own; weak ones only count on a page with almost no text.
+BLOCK_STRONG = [
+    (r"Azure WAF|/\.azwaf/", "Azure WAF bot check"),
+    (r"cf-chl-|challenges\.cloudflare\.com|cf_chl_opt", "Cloudflare bot check"),
+    (r"_Incapsula_Resource|Incapsula incident", "Imperva/Incapsula bot check"),
+    (r"akamai.{0,40}(?:bot manager|access denied)|Reference #\d+\.\w+\.\d+", "Akamai bot check"),
+]
+BLOCK_WEAK = [
+    (r"Please enable JavaScript|enable cookies|Just a moment\.\.\.", "page that needs JavaScript or cookies"),
+    (r"captcha|are you a robot|verify you are human", "captcha"),
+    (r"Access Denied|Forbidden|Request blocked|unusual traffic", "access denied"),
+]
+
+
+class Blocked(Exception):
+    """The site answered with a bot check instead of the page."""
+
+
+def block_reason(raw_html, status=200):
+    """Why this response is a bot check and not the page, or None."""
+    for pat, why in BLOCK_STRONG:
+        if re.search(pat, raw_html, re.I):
+            return why
+    words = len(html_to_text(raw_html).split()) if raw_html else 0
+    if status in (401, 403, 429, 503) or words < 150:
+        for pat, why in BLOCK_WEAK:
+            if re.search(pat, raw_html, re.I):
+                return why
+        if status in (401, 403, 429, 503):
+            return f"HTTP {status}"
+    return None
+
+
 def download(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA,
                                                "Accept-Language": "en,fr;q=0.8"})
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        data = resp.read()
-        ctype = resp.headers.get("Content-Type", "")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            data = resp.read()
+            ctype = resp.headers.get("Content-Type", "")
+    except urllib.error.HTTPError as e:
+        why = block_reason(e.read().decode("utf-8", errors="replace"), e.code)
+        if why:
+            raise Blocked(f"the site answered with a {why} instead of the page "
+                          "(copy the text by hand, see the top of this file)")
+        raise
     if "pdf" in ctype or url.lower().endswith(".pdf") or data[:5] == b"%PDF-":
         return pdf_to_text(data)
     charset = re.search(r"charset=([\w-]+)", ctype)
-    return html_to_text(data.decode(charset.group(1) if charset else "utf-8",
-                                    errors="replace"))
+    raw = data.decode(charset.group(1) if charset else "utf-8", errors="replace")
+    why = block_reason(raw)
+    if why:
+        raise Blocked(f"the site answered with a {why} instead of the page "
+                      "(copy the text by hand, see the top of this file)")
+    return html_to_text(raw)
 
 
 def slug(s):

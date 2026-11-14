@@ -106,11 +106,14 @@ def read_doc(path, default_brand, max_words):
                 k, v = line.split(":", 1)
                 meta[k.strip()] = v.strip()
         raw = raw[m.end():]
+    full = raw.strip()
     words = raw.split()
     if len(words) > max_words:  # same length budget for everyone
         raw = " ".join(words[:max_words]) + " ..."
     style = meta.get("style") or re.sub(r"_\d+$", "", path.stem)
-    return Doc(path, meta.get("brand", default_brand), style, raw.strip())
+    doc = Doc(path, meta.get("brand", default_brand), style, raw.strip())
+    doc.full_text = full  # whole page with its line breaks, for passage ranking
+    return doc
 
 
 def load_docs(folder, default_brand, max_words):
@@ -172,6 +175,111 @@ class BM25:
             scored.append((s, d))
         scored.sort(key=lambda x: -x[0])
         return scored
+
+
+# --- filter 1, passage version -------------------------------------------------
+# AI search engines rank passages, not whole pages: Google's AI Overviews pick
+# passages for each sub-question, Bing grounds answers on chunks, Perplexity
+# splits pages into sub-document spans. With --retrieval passage, every page is
+# cut into passages at its headings; a page ranks by its best passage, and the
+# AI sees that page's best passages instead of its first N words. A clear
+# heading then matters, because each passage carries its heading path.
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
+
+
+def split_passages(text, max_words=200):
+    """[{'heading': 'H1 > H2', 'text': body}] for a Markdown/plain text page.
+    Sections are split at headings; a long section is cut at paragraph (line)
+    boundaries into pieces of about max_words."""
+    path, buf, out = [], [], []
+
+    def flush():
+        crumb = " > ".join(t for _, t in path)
+        piece, n = [], 0
+        for para in buf:
+            w = len(para.split())
+            if piece and n + w > max_words:
+                out.append({"heading": crumb, "text": "\n".join(piece)})
+                piece, n = [], 0
+            while w > max_words:  # one huge paragraph: cut by words
+                words = para.split()
+                out.append({"heading": crumb, "text": " ".join(words[:max_words])})
+                para = " ".join(words[max_words:])
+                w = len(para.split())
+            if w:
+                piece.append(para)
+                n += w
+        if piece:
+            if out and n < 40 and out[-1]["heading"] == crumb:  # tiny tail: join the previous piece
+                out[-1]["text"] += "\n" + "\n".join(piece)
+            else:
+                out.append({"heading": crumb, "text": "\n".join(piece)})
+        buf.clear()
+
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = HEADING_RE.match(line)
+        if m:
+            flush()
+            level = len(m.group(1))
+            path = [(l, t) for l, t in path if l < level] + [(level, m.group(2))]
+        else:
+            buf.append(line)
+    flush()
+    if not out and path:  # a page that is only headings
+        out.append({"heading": " > ".join(t for _, t in path), "text": ""})
+    return out
+
+
+class Passage:
+    def __init__(self, doc, index, heading, body):
+        self.doc, self.index, self.heading, self.body = doc, index, heading, body
+        self.text = (heading + "\n" + body).strip()  # the heading path counts for ranking
+
+
+class PassageRanker:
+    """BM25 over the passages of all pages. rank() orders pages by their best
+    passage; context() gives the text the AI sees for one page."""
+
+    def __init__(self, docs, max_words=200):
+        self.docs = docs
+        self.items = []
+        for d in docs:
+            src = getattr(d, "full_text", None) or d.text
+            for i, p in enumerate(split_passages(src, max_words)):
+                self.items.append(Passage(d, i, p["heading"], p["text"]))
+        self.bm25 = BM25(self.items) if self.items else None
+        self._query, self._scores = None, []
+
+    def scores(self, query):
+        """[(score, passage)], best first (cached for the last query)."""
+        if query != self._query:
+            self._query = query
+            self._scores = self.bm25.rank(query) if self.bm25 else []
+        return self._scores
+
+    def rank(self, query):
+        best = {}
+        for s, p in self.scores(query):
+            if id(p.doc) not in best:
+                best[id(p.doc)] = (s, p.doc)
+        ranked = sorted(best.values(), key=lambda x: -x[0])
+        seen = {id(d) for _, d in ranked}
+        return ranked + [(0.0, d) for d in self.docs if id(d) not in seen]
+
+    def best(self, doc, query, n=3):
+        """The page's n best passages for the query, in page order."""
+        mine = [(s, p) for s, p in self.scores(query) if p.doc is doc][:n]
+        return [(s, p) for s, p in sorted(mine, key=lambda x: x[1].index)]
+
+    def context(self, doc, query, n=3, max_words=700):
+        text = "\n\n".join(p.text for _, p in self.best(doc, query, n))
+        words = text.split()
+        if len(words) > max_words:
+            text = " ".join(words[:max_words]) + " ..."
+        return text
 
 
 # --- filter 2: the LLM answer ------------------------------------------------
@@ -290,7 +398,8 @@ def main():
     ap.add_argument("--model", help="default depends on provider")
     ap.add_argument("--host", help="Ollama address, e.g. http://localhost:11434")
     ap.add_argument("--variants", nargs="+",
-                    default=[str(REPO / "variants ManuJuan"), str(HERE / "corpus" / "danfoss_original")],
+                    default=[str(REPO / "variants ManuJuan"), str(HERE / "corpus" / "danfoss_original"),
+                             str(HERE / "corpus" / "danfoss_restructured")],
                     help="folders with Danfoss pages; style = file name before _N")
     ap.add_argument("--competitors", default=str(HERE / "corpus" / "competitors"))
     ap.add_argument("--questions", default=str(HERE / "questions.txt"))
@@ -302,6 +411,15 @@ def main():
     ap.add_argument("--force-target", action="store_true",
                     help="always put the Danfoss page in the AI's results, even if BM25 "
                          "ranked it lower: tests the writing alone, without the retrieval filter")
+    ap.add_argument("--retrieval", choices=["page", "passage"], default="page",
+                    help="page: BM25 over whole pages, the AI sees each page's first --max-words "
+                         "words (the original lab). passage: BM25 over passages cut at headings, "
+                         "a page ranks by its best passage and the AI sees its best passages. "
+                         "Results of the two are not comparable")
+    ap.add_argument("--passage-words", type=int, default=200,
+                    help="passage length for --retrieval passage")
+    ap.add_argument("--passages", type=int, default=3,
+                    help="best passages per page the AI sees with --retrieval passage")
     ap.add_argument("--temperature", type=float, default=0.2)
     ap.add_argument("--sleep", type=float,
                     help="seconds between API calls (default 6 for gemini, 0 otherwise)")
@@ -338,7 +456,8 @@ def main():
     total = len(targets) * len(questions) * args.repeats
     print(f"Danfoss pages: {len(targets)} ({', '.join(f'{s}: {sum(d.style == s for d in targets)}' for s in styles)})")
     print(f"Competitor pages: {len(competitors)} ({', '.join(sorted({d.brand for d in competitors}))})")
-    print(f"Questions: {len(questions)}, repeats: {args.repeats}, top-k: {args.top_k}")
+    print(f"Questions: {len(questions)}, repeats: {args.repeats}, top-k: {args.top_k}, "
+          f"ranking: {args.retrieval}")
     print(f"Model: {args.provider}/{llm.model}  ->  {total} answers (cached ones are free)\n")
 
     stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
@@ -349,9 +468,18 @@ def main():
     rows, done = [], 0
     for target in targets:
         corpus = competitors + [target]  # one Danfoss page at a time vs. the same rivals
-        bm25 = BM25(corpus)
+        if args.retrieval == "passage":
+            ranker = PassageRanker(corpus, args.passage_words)
+
+            def shown_text(d, q):
+                return ranker.context(d, q, args.passages, max_words)
+        else:
+            ranker = BM25(corpus)
+
+            def shown_text(d, q):
+                return d.text
         for qi, question in enumerate(questions):
-            ranked = bm25.rank(question)
+            ranked = ranker.rank(question)
             rank = next(i for i, (_, d) in enumerate(ranked) if d is target) + 1
             top = [d for _, d in ranked[:args.top_k]]
             retrieved = target in top
@@ -362,7 +490,8 @@ def main():
                 shown = top[:]
                 random.Random(seed).shuffle(shown)
                 id_to_doc = {f"D{i + 1}": d for i, d in enumerate(shown)}
-                results = "\n\n".join(f"[{i}] Source: {d.brand}\n{d.text}" for i, d in id_to_doc.items())
+                results = "\n\n".join(f"[{i}] Source: {d.brand}\n{shown_text(d, question)}"
+                                      for i, d in id_to_doc.items())
                 text = llm.ask(SYSTEM, USER.format(question=question, results=results),
                                args.temperature, seed)
                 cites, rec = parse_answer(text, id_to_doc)
@@ -372,6 +501,7 @@ def main():
                 row = {
                     "page": target.name, "style": target.style, "question": question,
                     "repeat": rep, "bm25_rank": rank, "retrieved": retrieved,
+                    "retrieval": args.retrieval,
                     "in_context": in_context,
                     "cited": t_cites > 0,
                     "share": t_cites / len(cites) if cites else 0.0,
@@ -424,6 +554,8 @@ def main():
         f"# Citation lab results ({stamp})", "",
         f"Model: `{args.provider}/{llm.model}` · {len(questions)} questions × {args.repeats} repeats · "
         f"top-{args.top_k} results · pages cut to {max_words} words"
+        + (f" · ranking: passages (best {args.passages} per page, ~{args.passage_words} words each)"
+           if args.retrieval == "passage" else "")
         + (" · Danfoss page forced into the results" if args.force_target else ""), "",
         f"Competitors: {', '.join(f'{b} ({sum(d.brand == b for d in competitors)} pages)' for b in sorted({d.brand for d in competitors}))}", "",
         "## Danfoss, by writing style (best first)", "",

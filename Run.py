@@ -7,7 +7,11 @@ Run the page generator with this project's settings.
   python Run.py --host http://<server-ip>:11434  use the Ollama server on another computer
                                                  (find its IP with `ipconfig` on that computer)
   python Run.py --styles plain,stats             only some styles
+  python Run.py --fix-length                     also redo existing pages with a wrong length
   python Run.py --help                           all options
+  python Run.py app                              open the Atlas app in your browser (the whole process)
+  python Run.py update-sources                   ask prompts/prompts.txt, import the sources Gemini used
+                                                 (see lab/discover_sources.py for its options)
 
 By default each style is filled up to 3 pages (plain_1..3, stats_1..3, ...):
 pages that already exist are kept and only checked, so an interrupted run
@@ -60,13 +64,28 @@ def check_ollama(host, model):
 
 def main():
     os.chdir(HERE)
+    if sys.argv[1:2] == ["app"]:
+        # The Atlas app in your browser: runs the whole process, hands you the files.
+        sys.path.insert(0, str(HERE / "app"))
+        import server
+        server.main()
+        return
+    if sys.argv[1:2] == ["update-sources"]:
+        # Ask the prompts in prompts/prompts.txt and import the sources Gemini used.
+        sys.path.insert(0, str(HERE / "lab"))
+        import discover_sources
+        sys.argv = ["discover_sources.py"] + sys.argv[2:]
+        discover_sources.main()
+        return
+
     pick = argparse.ArgumentParser(prog="Run.py", add_help=False)
     pick.add_argument("--product", choices=PRODUCTS, default=DEFAULT_PRODUCT)
     chosen, user_args = pick.parse_known_args()
     wants_help = bool({"-h", "--help"} & set(user_args))
     if wants_help:
         print(f"Products (--product): {', '.join(PRODUCTS)}  "
-              f"(default: {DEFAULT_PRODUCT})\n")
+              f"(default: {DEFAULT_PRODUCT})\n"
+              "Other commands: python Run.py app | python Run.py update-sources\n")
 
     args = [x for pair in PRODUCTS[chosen.product].items() for x in pair] + COMMON
     if not {"--runs", "--target"} & {a.split("=")[0] for a in user_args}:

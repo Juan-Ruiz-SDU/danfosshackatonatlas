@@ -57,9 +57,47 @@ Useful options:
 --force-target            always show the Danfoss page to the AI: tests the writing alone
 --provider ollama --model qwen3:8b   private, local, no key
 --model gemini-2.5-flash-lite        a different Gemini model
+--retrieval passage       rank passages instead of whole pages (see below)
 ```
 
+## Passage ranking (`--retrieval passage`)
+
+AI search engines rank **passages**, not whole pages. Google's AI Overviews pick passages
+for each sub-question, Bing grounds answers on chunks, and Perplexity splits pages into
+spans. With `--retrieval passage`:
+
+- every page is cut at its headings into passages of about 200 words (`--passage-words`);
+- each passage keeps its heading path (e.g. "Micro Plate > Double wall option");
+- a page ranks by its best passage, and the AI sees that page's best 3 passages (`--passages`);
+- otherwise the AI would see the page's first 700 words.
+
+With whole-page BM25, a format change (real headings, lists, a table) barely moves the
+score: the words are the same. With passages it can, because a clear heading puts the right
+facts in one passage. The Atlas app's **Web page** tab shows both rankings per question.
+
+## The reformatted current page (style `restructured`)
+
+`corpus/danfoss_restructured/restructured_1.md` is the team's own copy of Danfoss's page,
+made and edited in the Atlas app's **Web page** tab. It is extracted with `fetch_sources.py`'s
+extractor, the same way as `danfoss_original/`, and read by default as its own style.
+
+Its header says `content: same as the original` while only the format changed. Then
+`original` vs `restructured` measures the effect of the format alone. Once the team adapts
+the text, the header says `content: changed`.
+
+`fetch_sources.py` now recognises bot protection pages (for example Azure WAF's JavaScript
+check) and reports them as failed downloads, instead of saving the check page as if it
+were the competitor's or Danfoss's page.
+
 ## Changes that break comparisons
+
+- **2026-11-14, passage ranking and the `restructured` style.** `--retrieval passage` is
+  a new series: compare it only with other passage runs. The default (`page`) is unchanged.
+  The default run now also includes the `restructured` style, which adds trials but
+  does not change the other styles' numbers.
+- **2026-11-14, writer prompt.** `generate_variants.py` now puts the wiki guidelines
+  (`wiki/guidelines/`) and the facts' source markers into the prompt. Pages generated
+  after this change are a new series of variants.
 
 - **2026-11-14, plural stemming in BM25.** `tokens()` in `experiment.py` now maps plurals
   to singular (pumps → pump, manufacturers → manufacturer, batteries → battery; nothing
@@ -113,3 +151,33 @@ It reuses the provider options and answer cache of `experiment.py` (`--provider`
 round of fixes, run the lab on them too (`--questions lab/questions_holdout.txt`). If
 Danfoss only improves on the 12 regular questions, the fixes are learning the test,
 not making better pages.
+
+## Source discovery: which pages does the AI actually use?
+
+`discover_sources.py` asks Gemini, with Google Search turned on, every prompt in
+`prompts/prompts.txt`. It records the web pages Gemini used for each answer and imports
+them as clean text into `corpus/discovered/`. These are the real competitors for each
+question, not a hand-picked list.
+
+The sources change over time, so it only runs when you start it:
+
+```bash
+python Run.py update-sources --limit 3   # quick test with 3 prompts
+python Run.py update-sources             # full update, 50 prompts, about 6 minutes
+```
+
+If it stops halfway because of quota or network, run the same command again: it continues
+where it stopped. Each update writes:
+
+| File | What it is |
+|---|---|
+| `discovered/sources.csv` | Current sources: URL, site, brand, how many prompts cite it, the imported file |
+| `discovered/changes.md` | What this update changed: new and dropped sources, most cited sites, Danfoss share |
+| `discovered/runs/<date>.jsonl` | Every answer with its search queries and sources (one file per update, kept as history) |
+| `corpus/discovered/*.md` | The imported pages. Pages no longer cited are removed (`--keep-old` keeps them) |
+
+Use the discovered pages as the competition in the citation lab:
+
+```bash
+python lab/experiment.py --provider gemini --competitors lab/corpus/discovered
+```

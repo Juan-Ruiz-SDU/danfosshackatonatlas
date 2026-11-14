@@ -1,0 +1,10 @@
+{
+  "name": "Danfoss Micro Plate™ brazed plate heat exchangers for heat pumps",
+  "product_type": "brazed plate heat exchanger",
+  "application": "heat pumps",
+  "keyword": "",
+  "wiki": "wiki",
+  "source_list": "lab/sources.txt",
+  "extra_page_dirs": ["lab/corpus/competitors", "lab/corpus/danfoss_original"],
+  "restructured_dir": "lab/corpus/danfoss_restructured"
+}

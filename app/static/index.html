@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo">A</span>
+    <div>
+      <div class="name">Atlas</div>
+      <div class="tag">Find the version of your product page that AI search cites first</div>
+    </div>
+  </div>
+  <button class="ghost" id="open-settings">⚙ Settings</button>
+</header>
+
+<main>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" data-tab="run" aria-selected="true">Run</button>
+    <button role="tab" data-tab="web" aria-selected="false">Web page</button>
+    <button role="tab" data-tab="catalog" aria-selected="false">Product by product</button>
+  </nav>
+  <div id="banner"></div>
+
+  <div id="tab-run" class="tab">
+  <!-- 1. Product -->
+  <section class="card" id="card-product">
+    <h2><span class="num">1</span> Product</h2>
+    <div class="row">
+      <select id="product-select" aria-label="Product"></select>
+      <button class="ghost" id="open-import">+ Add a product from a brochure</button>
+    </div>
+    <div class="fields" id="product-fields">
+      <label>Product type <small>used in the standard questions</small>
+        <input id="f-type" placeholder="e.g. brazed plate heat exchanger"></label>
+      <label>Main use <small>used in the standard questions</small>
+        <input id="f-app" placeholder="e.g. heat pumps"></label>
+    </div>
+    <p class="hint" id="pages-hint"></p>
+    <details>
+      <summary>Show the fact sheet (the only facts the pages may use)</summary>
+      <pre id="fact-sheet"></pre>
+    </details>
+  </section>
+
+  <!-- 2. Questions -->
+  <section class="card" id="card-questions">
+    <h2><span class="num">2</span> Buyer questions <span class="count" id="q-count"></span></h2>
+    <p class="hint">The questions people ask AI search. Every page version is tested against the ticked ones.</p>
+    <div class="qgroup">
+      <div class="qhead">
+        <h3>Standard questions <small>shared by all products</small></h3>
+        <span class="links"><a href="#" data-all="standard">all</a> · <a href="#" data-none="standard">none</a></span>
+      </div>
+      <ul id="q-standard" class="qlist"></ul>
+    </div>
+    <div class="qgroup">
+      <div class="qhead">
+        <h3>Questions for this product only</h3>
+        <span class="links"><a href="#" data-all="custom">all</a> · <a href="#" data-none="custom">none</a></span>
+      </div>
+      <ul id="q-custom" class="qlist"><li class="empty">None yet.</li></ul>
+    </div>
+    <form id="q-add" class="addq">
+      <input id="q-text" placeholder="Type a new question…" autocomplete="off">
+      <div class="scope">
+        <label><input type="radio" name="scope" value="custom" checked> Only for this product</label>
+        <label><input type="radio" name="scope" value="standard"> Standard, for all products</label>
+      </div>
+      <button type="submit">Add question</button>
+      <p class="hint tiny" id="scope-hint">In a standard question, write <code>{product}</code>, <code>{a_product}</code> or <code>{application}</code>, and each product fills in its own.</p>
+    </form>
+  </section>
+
+  <!-- 3. Run -->
+  <section class="card" id="card-run">
+    <h2><span class="num">3</span> Run</h2>
+    <label class="switch">
+      <input type="checkbox" id="s-discovery">
+      <span class="slider"></span>
+      <span><b>Find fresh sources with Google search</b><br>
+        <small id="discovery-hint">Off: faster, uses the pages saved earlier. On: asks Google's AI every question and imports the pages it cites as the competition.</small></span>
+    </label>
+    <div class="grid2">
+      <fieldset>
+        <legend>AI that writes the pages</legend>
+        <select id="s-writer"></select>
+        <input id="s-writer-model" list="writer-models" placeholder="model">
+        <datalist id="writer-models"></datalist>
+      </fieldset>
+      <fieldset>
+        <legend>AI that plays Google's answer box</legend>
+        <select id="s-judge"></select>
+        <input id="s-judge-model" list="judge-models" placeholder="model">
+        <datalist id="judge-models"></datalist>
+      </fieldset>
+    </div>
+    <fieldset>
+      <legend>Page versions to write and test</legend>
+      <div id="s-styles" class="chips"></div>
+    </fieldset>
+    <details>
+      <summary>More options</summary>
+      <div class="grid3">
+        <label>Words per page <input type="number" id="s-words" min="150" max="1500" step="50"></label>
+        <label>Repeats per question <input type="number" id="s-repeats" min="1" max="5"></label>
+        <label>Search results the AI sees <input type="number" id="s-topk" min="2" max="10"></label>
+        <label>Retries if the length is off <input type="number" id="s-retries" min="0" max="6"></label>
+        <label>Search ranking
+          <select id="s-retrieval">
+            <option value="page">Whole pages (the original lab)</option>
+            <option value="passage">Passages, like AI search</option>
+          </select></label>
+      </div>
+      <label class="check"><input type="checkbox" id="s-fresh"> Write brand-new pages (otherwise pages already written with the same settings are reused, which is free)</label>
+    </details>
+    <div class="runbar">
+      <div id="estimate" class="hint"></div>
+      <button id="run" class="primary">Run</button>
+    </div>
+  </section>
+
+  <!-- 4. Progress -->
+  <section class="card hidden" id="card-progress">
+    <h2><span class="num">4</span> Progress</h2>
+    <div class="step" id="p-step"></div>
+    <div class="bar"><div id="p-bar"></div></div>
+    <div class="row between">
+      <span class="hint" id="p-detail"></span>
+      <button class="ghost danger" id="stop">Stop</button>
+    </div>
+    <div id="p-error" class="error hidden"></div>
+    <details id="p-logbox">
+      <summary>Details</summary>
+      <pre id="p-log"></pre>
+    </details>
+  </section>
+
+  <!-- 5. Results -->
+  <section class="card" id="card-results">
+    <h2><span class="num">5</span> Your files</h2>
+    <div id="latest"></div>
+    <details id="older" class="hidden">
+      <summary>Earlier runs</summary>
+      <ul id="runs"></ul>
+    </details>
+  </section>
+  </div>
+
+  <!-- Web page: the current Danfoss page, reformatted (format only) -->
+  <div id="tab-web" class="tab hidden">
+    <section class="card">
+      <h2><span class="num">1</span> Copy of the current page <span class="count product-name"></span></h2>
+      <p class="hint">Atlas reverse-engineers Danfoss's page <b>once</b>: it reads it the way a crawler does (without
+        running JavaScript) and saves a snapshot as the reference, plus <b>your own copy</b>, already laid out for
+        crawlers (one H1, real headings, lists, tables). From then on everything works on your copy: Danfoss's
+        site is not downloaded again.</p>
+      <p id="web-copyinfo" class="hint"></p>
+      <form id="web-form" class="row">
+        <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/..." aria-label="Current Danfoss page">
+        <button class="primary" id="web-copy-btn">Make the copy</button>
+      </form>
+      <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copy (otherwise only the reference snapshot is renewed)</label>
+      <details><summary>The site blocks the download? Import the page from your browser</summary>
+        <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, and pick the file here.</p>
+        <input type="file" id="web-import" accept=".html,.htm">
+      </details>
+      <p class="hint" id="web-status"></p>
+    </section>
+    <section class="card hidden" id="web-edit">
+      <h2><span class="num">2</span> Your copy</h2>
+      <p class="hint">Adapt the page here (or in <code>products/&lt;product&gt;/webpage/page.md</code>). Markdown:
+        <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>, <code>- list</code>,
+        <code>| table |</code>, <code>[link](https://...)</code>. The lines between <code>---</code> at the top are the
+        page's title, description and address. Facts must come from the wiki: the check below compares your copy
+        with Danfoss's page and flags new numbers that are not in the wiki.</p>
+      <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy (Markdown)"></textarea>
+      <div class="row between">
+        <span class="hint" id="web-saved"></span>
+        <button class="primary" id="web-save">Save and check</button>
+      </div>
+    </section>
+    <div id="web-out" class="stackcards hidden">
+      <section class="card">
+        <h2>Changes compared to Danfoss's page</h2>
+        <div id="web-check"></div>
+        <div class="downloads" id="web-files"></div>
+      </section>
+      <section class="card">
+        <h2>Headings: before and after</h2>
+        <p class="hint">AI search cuts pages into passages at the headings. Bold text that only looks like a heading does not count.</p>
+        <div class="grid2" id="web-outline"></div>
+        <details><summary>Preview the reformatted page</summary>
+          <iframe id="web-frame" class="preview" sandbox title="Reformatted page preview"></iframe></details>
+      </section>
+      <section class="card">
+        <h2>Crawler checks</h2>
+        <p class="hint">What Google lists as crawl factors: how fast the server answers Googlebot, server errors, content quality and other signals; plus what a crawler can read.</p>
+        <div id="web-audit"></div>
+      </section>
+      <section class="card">
+        <h2>What Googlebot sees</h2>
+        <div id="web-gbot"></div>
+      </section>
+      <section class="card">
+        <h2>BM25 per question</h2>
+        <div id="web-bm25"></div>
+      </section>
+      <section class="card">
+        <h2>Never-claim screen</h2>
+        <p class="hint">Sentences that the wiki's never-claim policy would not allow. Danfoss's page has them; your copy keeps them until you change them.</p>
+        <div id="web-claims"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Product by product -->
+  <div id="tab-catalog" class="tab hidden">
+    <section class="card">
+      <h2>Products <span class="count product-name"></span></h2>
+      <p class="hint" id="cat-hint">One page per product, built only from the fact sheet. Pick a product.</p>
+      <div id="cat-list"></div>
+    </section>
+    <section class="card hidden" id="cat-page">
+      <h2 id="cat-title"></h2>
+      <div class="row">
+        <button id="cat-template">Page from the fact sheet</button>
+        <button id="cat-ai" class="primary">Rewrite with the writer AI</button>
+        <label class="check"><input type="checkbox" id="cat-fresh"> new text</label>
+      </div>
+      <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this product's facts.</p>
+      <div id="cat-out" class="hidden">
+        <div id="cat-flags"></div>
+        <div class="downloads" id="cat-files"></div>
+        <details open><summary>Preview</summary>
+          <iframe id="cat-frame" class="preview" sandbox title="Product page preview"></iframe></details>
+        <h3>Crawler checks</h3>
+        <div id="cat-audit"></div>
+        <h3>What Googlebot sees</h3>
+        <div id="cat-gbot"></div>
+        <h3>BM25 per question</h3>
+        <div id="cat-bm25"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Settings -->
+<dialog id="settings">
+  <form method="dialog" class="dlg-head"><h2>Settings</h2><button class="ghost">✕</button></form>
+  <h3>API keys</h3>
+  <p class="hint">Saved in the <code>.env</code> file on this computer only. It is never uploaded to git.</p>
+  <div id="keys"></div>
+
+  <h3>AIs</h3>
+  <ul id="prov-list" class="plain"></ul>
+  <details>
+    <summary>+ Add an AI</summary>
+    <p class="hint">Any service with an OpenAI-compatible chat API works (OpenAI, Mistral, Azure OpenAI, a Danfoss internal model, LM Studio...).</p>
+    <form id="prov-add" class="stack">
+      <label>Name <input name="label" required placeholder="e.g. Danfoss internal GPT"></label>
+      <label>API address <input name="base_url" required placeholder="https://api.example.com/v1/"></label>
+      <label>Models <small>comma separated</small> <input name="models" required placeholder="model-a, model-b"></label>
+      <label>Key name <small>leave empty if no key is needed</small> <input name="key_env" placeholder="EXAMPLE_API_KEY"></label>
+      <label>Key <input name="key" type="password" autocomplete="off"></label>
+      <label>Seconds between calls <input name="sleep" type="number" min="0" step="0.5" value="0"></label>
+      <button type="submit">Add AI</button>
+    </form>
+  </details>
+
+  <h3>Standard questions</h3>
+  <p class="hint">Deleting one here removes it for every product. To skip it for one product, untick it instead.</p>
+  <ul id="std-manage" class="plain"></ul>
+</dialog>
+
+<!-- Add product -->
+<dialog id="import">
+  <form method="dialog" class="dlg-head"><h2>Add a product</h2><button class="ghost">✕</button></form>
+  <div id="imp-step1">
+    <p class="hint">Upload a brochure or fact sheet. The AI pulls out the facts, then you check them before anything is written.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="imp-file" accept=".pdf,.docx,.txt,.md">
+      <span id="drop-text">Choose a PDF, Word or text file, or drop it here</span>
+    </label>
+    <div class="row">
+      <select id="imp-provider"></select>
+      <input id="imp-model" list="imp-models" placeholder="model">
+      <datalist id="imp-models"></datalist>
+      <button id="imp-read" class="primary" disabled>Read the brochure</button>
+    </div>
+    <p class="hint" id="imp-status"></p>
+  </div>
+  <form id="imp-step2" class="stack hidden">
+    <p class="hint">Check everything. Pages will only use what is written here.</p>
+    <label>Product name <input name="name" required></label>
+    <div class="grid3">
+      <label>Product type <input name="product_type" placeholder="brazed plate heat exchanger"></label>
+      <label>Main use <input name="application" placeholder="heat pumps"></label>
+      <label>Search phrase <input name="keyword"></label>
+    </div>
+    <label>Facts <small>Markdown</small> <textarea name="facts" rows="14" required></textarea></label>
+    <label>Never claim <small>claims the pages must not make</small> <textarea name="never_claim" rows="4"></textarea></label>
+    <label>Current Danfoss pages for this product <small>optional, one link per line, used as the baseline</small>
+      <textarea name="danfoss_urls" rows="2" placeholder="https://www.danfoss.com/..."></textarea></label>
+    <label>Competitor pages <small>optional, one link per line, or "Brand | link"</small>
+      <textarea name="competitor_urls" rows="3" placeholder="https://www.competitor.com/product"></textarea></label>
+    <div class="row between">
+      <button type="button" class="ghost" id="imp-back">← Back</button>
+      <button type="submit" class="primary">Create product</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

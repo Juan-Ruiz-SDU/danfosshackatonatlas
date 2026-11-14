@@ -1,6 +1,9 @@
 # Directory Update Log
 
 ## 2026-11-14
+* **Creation**: `guidelines/sitemap.md`: pages are listed in an XML sitemap with their final address and last change date; robots.txt declares it and lets Googlebot in. `guidelines/crawlability.md` now points to it and covers bot protection that must let crawlers through.
+* **Creation**: `guidelines/` (type `Guideline`): page structure, crawlability, terminology and evaluation hygiene, from the GEO research and the lab review. They are writing instructions, not facts: `generate_variants.py` keeps them out of the fact sheet and out of the allowed numbers, and `lab/review.py` leaves them out of the wiki check.
+* **Update**: `policies/never-claim.md`: generic environmental claims ("eco", "green", "environmentally friendly", "sustainable") are not allowed; only the specific environmental facts in this bundle may be repeated.
 * **Policy change** (approved by the team): `policies/source-of-truth.md` now allows any official Danfoss document or danfoss.com page, each cited with its document code (or URL) and date. Competitor material is never a source. The eBrochure AD565353287087en-000101 stays the main source. Descriptions in `policies/index.md`, `references/index.md` and `references/danfoss-bphe-ebrochure.md` updated to match.
 * **Creation**: `references/danfoss-r290-ebrochure.md`, the Danfoss eBrochure "Danfoss brazed plate heat exchangers" for residential propane heat pumps (AD501740144629en-000102, PDF file dated 2024-10-04). Same title as the main eBrochure but a different document.
 * **Update** (approved by the team; proposals from the lab review `lab/review/2026-11-14_175811`): facts added, each with its own footnote:

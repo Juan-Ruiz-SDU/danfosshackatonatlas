@@ -102,8 +102,8 @@ Strict rules:
 - target_file: the existing wiki file where the missing information belongs, or a
   new path under wiki/<folder>/ if no file fits.
 - source_to_check: which Danfoss document or section to look in. The wiki policy
-  allows only the eBrochure AD565353287087en-000101; say so if another Danfoss
-  document would be needed.
+  allows official Danfoss documents and danfoss.com pages; the eBrochure
+  AD565353287087en-000101 is the main source. Never a competitor document.
 - generator_suggestion: only for yes/partly. What the generated page should cover,
   using ONLY the quoted wiki facts (e.g. "give it its own heading ...").
 
@@ -142,7 +142,10 @@ class Run:
 
 
 def load_wiki(root):
-    """{relative path: text without frontmatter}, index/log files left out."""
+    """{relative path: text without frontmatter}, index/log files left out.
+    Guideline concepts (wiki/guidelines/, type: Guideline) are writing
+    instructions, not facts, so they are left out too: a quote from them must
+    never count as "the wiki already has this"."""
     root = pathlib.Path(root)
     files = {}
     for p in sorted(root.rglob("*.md")):
@@ -150,6 +153,8 @@ def load_wiki(root):
             continue
         text = p.read_text(encoding="utf-8")
         m = lab.FRONT_RE.match(text)
+        if m and re.search(r"^type:\s*['\"]?guideline['\"]?\s*$", m.group(1), re.I | re.M):
+            continue
         files[p.relative_to(REPO).as_posix() if p.is_relative_to(REPO) else p.as_posix()] = (
             text[m.end():] if m else text).strip()
     return files
@@ -571,10 +576,11 @@ def write_proposals(out, ctx):
          "**How to decide:** tick Approve only if you found the answer in a Danfoss source, "
          "then add it to the wiki yourself with its footnote. Tick Reject if Danfoss has no such "
          "information or it should not be published.", "",
-         "**Rules:** every wiki fact comes from the Danfoss eBrochure AD565353287087en-000101 "
-         "(`wiki/policies/source-of-truth.md`). Using any other document needs that policy "
-         "changed first. The never-claim list still applies. Never copy a competitor's "
-         "claims, wording or figures.", ""]
+         "**Rules:** every wiki fact comes from an official Danfoss document or a danfoss.com "
+         "page, cited in a footnote with its document code (or URL) and date "
+         "(`wiki/policies/source-of-truth.md`). The eBrochure AD565353287087en-000101 is the "
+         "main source. Competitor material is never a source. The never-claim list still "
+         "applies. Never copy a competitor's claims, wording or figures.", ""]
     if ctx["fake"]:
         L += ["> **Fake reviewer:** these proposals are placeholders from an offline test.", ""]
     if not ctx["gaps"]:
@@ -732,7 +738,8 @@ def main():
                     target, status = clean_target(k.get("target_file"), wiki)
                     missing = str(k.get("missing_info") or f"What does Danfoss say about {d['topic']}?").strip()
                     source = str(k.get("source_to_check") or
-                                 "Danfoss eBrochure AD565353287087en-000101").strip()
+                                 "Danfoss eBrochure AD565353287087en-000101, or another "
+                                 "official Danfoss document or danfoss.com page").strip()
                     gap_items.append({
                         "topic": d["topic"], "score": score, "evidence": [evidence],
                         "missing_info": missing, "source_to_check": source,

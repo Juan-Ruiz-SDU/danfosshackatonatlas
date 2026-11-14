@@ -240,12 +240,38 @@ BROCHURE:
 """
 
 
+DRAFT_KEYS = ("name", "product_type", "application", "keyword", "facts", "never_claim")
+
+
+def brochure_limit(provider):
+    """How much brochure text goes to the AI: a local model reads less at once than Gemini."""
+    return 30000 if ai.providers().get(provider, {}).get("type") == "ollama" else 60000
+
+
+def _as_markdown(v, level=1):
+    """Small models sometimes return the fact sheet as nested JSON instead of one
+    Markdown string. Turn it back into Markdown instead of failing."""
+    if isinstance(v, dict):
+        return "\n\n".join(f"{'#' * level} {k}\n{_as_markdown(x, level + 1)}" for k, x in v.items())
+    if isinstance(v, list):
+        return "\n".join(f"- {_as_markdown(x, level + 1)}" for x in v)
+    return str(v or "").strip()
+
+
+def clean_draft(d):
+    if not isinstance(d, dict):
+        raise ValueError("The AI's answer had the wrong shape")
+    d = {k.lower().strip(): v for k, v in d.items()}
+    out = {k: _as_markdown(d.get(k, "")) for k in DRAFT_KEYS}
+    if not out["facts"]:
+        raise ValueError("The AI did not write any facts")
+    return out
+
+
 def draft_from_brochure(text, provider, model):
-    answer = ai.chat(provider, model, "", DRAFT_PROMPT.format(text=text[:60000]),
+    answer = ai.chat(provider, model, "", DRAFT_PROMPT.format(text=text[:brochure_limit(provider)]),
                      temperature=0.1, use_cache=False)
-    d = ai.parse_json(answer)
-    return {k: str(d.get(k, "") or "").strip()
-            for k in ("name", "product_type", "application", "keyword", "facts", "never_claim")}
+    return clean_draft(ai.parse_json(answer))
 
 
 def create_product(d):
@@ -275,6 +301,10 @@ def create_product(d):
         "---\ntype: Policy\ntitle: Never claim\n"
         "description: Claims that generated pages must never make.\n---\n"
         f"# Never claim\n{never}\n", encoding="utf-8")
+    # OKF index: the generator reads concepts in this order, facts first
+    (wiki / "index.md").write_text(
+        "# Concepts\n* [Product](product.md) - the facts.\n"
+        "* [Never claim](never-claim.md) - claims pages must not make.\n", encoding="utf-8")
 
     urls = []
     for line in d.get("danfoss_urls", "").splitlines():

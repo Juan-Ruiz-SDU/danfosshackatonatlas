@@ -15,8 +15,17 @@ python Run.py app
 It opens in your browser at `http://127.0.0.1:8765`. Only your own computer can reach it. Keep the
 black window open while you use it.
 
-The first time, Atlas asks for a Gemini API key. You can get a free one at
-https://aistudio.google.com/apikey. The key is saved in `.env`, which is never committed.
+By default everything runs on **Ollama** (`qwen3:8b`), so it uses no tokens or quota. Ollama can run
+on your own computer or on the team server. To use the team server, open **Settings**, type its address
+in the Ollama row (for example `http://10.126.128.116:11434/`) and press **Save address**. You must be
+on the same Wi-Fi. If the address changes, ask the server's owner to run `ipconfig`.
+
+A Gemini key is only needed for **Find fresh sources**, because that step searches Google and a local
+model can't. Gemini can also be picked as the writer or judge if you want faster runs. You can get a
+free key at https://aistudio.google.com/apikey. Keys are saved in `.env`, which is never committed.
+
+Ollama on a CPU is slow: about 7 minutes per page, and 1–2 minutes per test answer. The time estimate
+above the Run button includes this. Tick fewer questions for a quick run.
 
 ## What happens when you press Run
 

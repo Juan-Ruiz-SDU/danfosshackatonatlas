@@ -42,6 +42,24 @@
         <input id="f-app" placeholder="e.g. heat pumps"></label>
     </div>
     <p class="hint" id="pages-hint"></p>
+    <details id="cmp" class="cmp">
+      <summary>Comparison pages: <span id="cmp-sum"></span></summary>
+      <p>Every run tests the new Danfoss pages <b>against competitors' pages</b>, the way Google's AI picks between them.
+        The app needs <b>at least 2 competitor pages</b>. 4 to 8 is better.</p>
+      <ol class="cmp-steps">
+        <li><a id="cmp-google" href="#" target="_blank" rel="noopener">Search Google for this product ↗</a> (opens a new tab).</li>
+        <li>Open a <b>competitor's product page</b>: a page from the company that makes it. Not a shop, a forum or a news article.</li>
+        <li>Copy the link from the browser's address bar (it starts with <code>https://</code>).</li>
+        <li>Paste it in the box below, <b>one link per line</b>. The brand is read from the link.</li>
+        <li>Press <b>Save and download</b>. Each link then shows ✔ (ready) or ✘ with what to do.</li>
+      </ol>
+      <label>Competitor pages <small>one link per line</small>
+        <textarea id="cmp-comp" rows="5" placeholder="https://www.competitor.com/products/their-product&#10;https://www.another-brand.com/product-page"></textarea></label>
+      <label>Current Danfoss page for this product <small>optional: the page the new pages should beat</small>
+        <textarea id="cmp-dan" rows="1" placeholder="https://www.danfoss.com/en/products/..."></textarea></label>
+      <div class="row"><button id="cmp-save" class="primary">Save and download</button><span class="hint" id="cmp-busy"></span></div>
+      <ul id="cmp-status" class="cmp-status"></ul>
+    </details>
     <details>
       <summary>Show the fact sheet (the only facts the pages may use)</summary>
       <pre id="fact-sheet"></pre>
@@ -104,6 +122,14 @@
       <legend>Page versions to write and test</legend>
       <div id="s-styles" class="chips"></div>
     </fieldset>
+    <fieldset>
+      <legend>Citation targets for this product</legend>
+      <div class="row targets">
+        <label>Danfoss cited in at least <input type="number" id="t-cited" min="0" max="100" step="5"> % of answers</label>
+        <label>and cited first in at least <input type="number" id="t-first" min="0" max="200" step="1"> answers</label>
+      </div>
+      <p class="hint" id="t-hint"></p>
+    </fieldset>
     <details>
       <summary>More options</summary>
       <div class="grid3">
@@ -145,6 +171,7 @@
   <section class="card" id="card-results">
     <h2><span class="num">5</span> Your files</h2>
     <div id="latest"></div>
+    <div id="suggestions" class="hidden"></div>
     <details id="older" class="hidden">
       <summary>Earlier runs</summary>
       <ul id="runs"></ul>
@@ -384,6 +411,14 @@
     </form>
   </details>
 
+  <h3>Default citation targets</h3>
+  <p class="hint">Used by every product that has no targets of its own. If the best page of a run misses one, the app suggests wiki changes.</p>
+  <form class="row targets" id="t-default">
+    <label>Cited in at least <input type="number" name="cited_pct" min="0" max="100" step="5"> % of answers</label>
+    <label>cited first in at least <input type="number" name="first_count" min="0" max="200"> answers</label>
+    <button>Save default</button>
+  </form>
+
   <h3>Standard questions</h3>
   <p class="hint">Deleting one here removes it for every product. To skip it for one product, untick it instead.</p>
   <ul id="std-manage" class="plain"></ul>
@@ -405,6 +440,16 @@
       <button id="imp-read" class="primary" disabled>Read the brochure</button>
     </div>
     <p class="hint" id="imp-status"></p>
+    <div id="imp-progress" class="hidden">
+      <div class="step" id="imp-step"></div>
+      <div class="bar"><div id="imp-bar"></div></div>
+      <div class="row between">
+        <span class="hint" id="imp-time"></span>
+        <button type="button" class="ghost danger" id="imp-stop">Stop</button>
+      </div>
+      <details><summary class="hint">What it is doing</summary><pre class="log" id="imp-log"></pre></details>
+    </div>
+    <div class="error hidden" id="imp-error"></div>
   </div>
   <form id="imp-step2" class="stack hidden">
     <p class="hint">Check everything. Pages will only use what is written here.</p>

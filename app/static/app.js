@@ -27,7 +27,6 @@ async function safe(fn) { try { return await fn(); } catch (e) { toast(e.message
 // --- start ------------------------------------------------------------------------
 async function loadState() {
   S = await api("/api/state");
-  renderBanner();
   const sel = $("#product-select");
   const want = recall("product", S.products[0]?.slug);
   sel.innerHTML = S.products.map(p => `<option value="${esc(p.slug)}">${esc(p.name)}</option>`).join("");
@@ -35,6 +34,7 @@ async function loadState() {
   fillProviders();
   renderStyles();
   restoreSettings();
+  renderBanner();
   if (sel.value) await loadProduct(sel.value);
   if (S.job && S.job.status === "running") startPolling();
   else if (S.job && S.job.slug === sel.value && S.job.status !== "done") renderJob(S.job);
@@ -43,24 +43,47 @@ async function loadState() {
 function renderBanner() {
   const b = $("#banner");
   let html = "";
-  if (!S.gemini_key) {
-    html += `<section class="card"><h2>👋 First, add your Gemini API key</h2>
-      <p class="hint">Atlas uses Google Gemini to write and test the pages. Get a free key at
-      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>,
-      paste it here, and press Save. It stays on this computer.</p>
-      <form class="row" id="first-key"><input type="password" id="first-key-val" placeholder="Paste your key" style="flex:1" autocomplete="off">
-      <button class="primary">Save</button></form></section>`;
+  const used = [...new Set([$("#s-writer").value, $("#s-judge").value])].filter(id => S.providers[id]);
+  for (const id of used) {
+    const p = S.providers[id];
+    if (p.type === "ollama" && !p.reachable) {
+      html += `<section class="card"><h2>Ollama can't be reached</h2>
+        <p class="hint">Atlas is set to use Ollama at <code>${esc(p.base_url)}</code>, but nothing answers there.
+        If Ollama runs on <b>your</b> computer, open the Ollama app. If you use the <b>team server</b>, type its address
+        (ask its owner to run <code>ipconfig</code>; you must be on the same Wi-Fi) and press Save.</p>
+        <form class="row" data-addr="${esc(id)}"><input value="${esc(p.base_url)}" style="flex:1" placeholder="http://10.126.128.116:11434/">
+        <button class="primary">Save</button><button type="button" class="ghost" data-recheck>Check again</button></form></section>`;
+    } else if (p.type === "ollama" && p.installed && !p.installed.includes($(id === $("#s-writer").value ? "#s-writer-model" : "#s-judge-model").value)) {
+      html += `<section class="card"><b>Model not installed.</b> <span class="hint">The Ollama server at <code>${esc(p.base_url)}</code> has
+        ${p.installed.length ? esc(p.installed.join(", ")) : "no models"}. Pick one of those, or run <code>ollama pull qwen3:8b</code> on that computer.</span></section>`;
+    } else if (p.key_env && !p.has_key) {
+      html += `<section class="card"><h2>Add your ${esc(p.label)} key</h2>
+        <p class="hint">${id === "gemini" ? `Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. ` : ""}It stays on this computer.
+        Or pick Ollama above to run everything on your own server, with no key and no quota.</p>
+        <form class="row" data-key="${esc(p.key_env)}"><input type="password" placeholder="Paste your key" style="flex:1" autocomplete="off">
+        <button class="primary">Save</button></form></section>`;
+    }
   }
   if (!S.deps.fpdf) {
     html += `<section class="card"><b>PDFs are off.</b> <span class="hint">To get the final page and the report as PDF, close Atlas and run
       <code>pip install -r requirements.txt</code> (or start Atlas with "Start Atlas.bat", which does it for you).</span></section>`;
   }
   b.innerHTML = html;
-  const f = $("#first-key");
-  if (f) f.onsubmit = e => {
+  $$("#banner [data-key]").forEach(f => f.onsubmit = e => {
     e.preventDefault();
-    safe(async () => { await api("/api/key", { env: "GEMINI_API_KEY", value: $("#first-key-val").value }); toast("Key saved"); await loadState(); });
-  };
+    safe(async () => { await api("/api/key", { env: f.dataset.key, value: $("input", f).value }); toast("Key saved"); await loadState(); });
+  });
+  $$("#banner [data-addr]").forEach(f => f.onsubmit = e => {
+    e.preventDefault();
+    safe(async () => { await api("/api/provider/update", { id: f.dataset.addr, base_url: $("input", f).value }); await loadState(); toast(S.providers[f.dataset.addr].reachable ? "Connected" : "Still no answer at that address"); });
+  });
+  $$("#banner [data-recheck]").forEach(btn => btn.onclick = () => safe(loadState));
+
+  // source discovery searches Google, which only Gemini can do
+  const disc = $("#s-discovery");
+  disc.disabled = !S.gemini_key;
+  if (!S.gemini_key) disc.checked = false;
+  disc.closest(".switch").title = S.gemini_key ? "" : "Needs a Gemini key (Settings): Ollama can't search the web";
 }
 
 function fillProviders() {
@@ -116,7 +139,7 @@ function applySettings(s) {
   $("#s-retries").value = s.retries ?? 3;
   $("#s-retrieval").value = s.retrieval === "passage" ? "passage" : "page";
 }
-function saveSettings() { if (restoring) return; store("settings", gather()); estimate(); }
+function saveSettings() { if (restoring) return; store("settings", gather()); renderBanner(); estimate(); }
 ["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-words", "#s-repeats", "#s-topk", "#s-fresh", "#s-retries", "#s-retrieval"]
   .forEach(s => $(s).addEventListener("change", saveSettings));
 
@@ -129,15 +152,21 @@ function estimate() {
   const search = s.discovery ? nq : 0;
   const judge = targets * nq * s.repeats;
   const calls = search + ns + judge;
-  const wait = q => (S.providers[q]?.sleep || 0) + 3;
-  const secs = search * 9 + ns * wait(s.writer) * 2 + judge * wait(s.judge);
+  const pw = S.providers[s.writer] || {}, pj = S.providers[s.judge] || {};
+  // writing: 1.5 attempts per page on average (length retries)
+  const secs = search * 9 + ns * 1.5 * ((pw.est_write || 30) + (pw.sleep || 0)) + judge * ((pj.est_answer || 10) + (pj.sleep || 0));
   const mins = Math.max(1, Math.round(secs / 60));
-  let txt = `${nq} questions × ${targets} page versions → about <b>${calls} AI calls</b>, roughly ${mins} min. Answers already saved are free.`;
+  const time = mins >= 90 ? `${(mins / 60).toFixed(1)} hours` : `${mins} min`;
+  let txt = `${nq} questions × ${targets} page versions → about <b>${calls} AI calls</b>, roughly ${time}. Answers already saved are free.`;
+  if (pw.type === "ollama" || pj.type === "ollama") txt += ` Runs on Ollama: no tokens or quota used.`;
+  if (mins >= 90 && pj.type === "ollama") txt += `<br><span style="color:var(--warn)">That's long on a CPU. To speed it up, tick fewer questions or page versions, or keep the computer from sleeping and let it run.</span>`;
   if (calls > 200 && (s.judge === "gemini" || s.writer === "gemini")) txt += `<br><span style="color:var(--warn)">This may hit Gemini's free daily limit. If it does, press Run again tomorrow: it continues where it stopped.</span>`;
   $("#estimate").innerHTML = txt;
-  $("#discovery-hint").textContent = s.discovery
-    ? `On: asks Google's AI all ${nq} questions and imports the pages it cites as the competition (+${nq} searches).`
-    : `Off: faster, uses the ${P.pages.competitors} competitor pages saved earlier.`;
+  $("#discovery-hint").textContent = !S.gemini_key
+    ? `Needs a Gemini key (Settings), because Ollama can't search the web. Off: uses the ${P.pages.competitors} competitor pages saved earlier.`
+    : s.discovery
+      ? `On: asks Google's AI (Gemini, uses quota) all ${nq} questions and imports the pages it cites as the competition (+${nq} searches).`
+      : `Off: faster, uses the ${P.pages.competitors} competitor pages saved earlier.`;
 }
 
 // --- product ----------------------------------------------------------------------
@@ -149,8 +178,10 @@ async function loadProduct(slug) {
   $("#fact-sheet").textContent = P.fact_sheet_error ? "Problem with the fact sheet:\n" + P.fact_sheet_error : P.fact_sheet;
   const pg = P.pages;
   $("#pages-hint").innerHTML = `Comparison pages saved: <b>${pg.competitors}</b> competitor, <b>${pg.danfoss}</b> current Danfoss` +
-    (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: switch on “Find fresh sources” for the first run</span>` : "");
+    (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: add competitor links under “Comparison pages” below</span>` : "");
+  loadPages(true);
   renderQuestions();
+  renderTargets();
   renderResults();
   estimate();
   resetPageTabs();
@@ -162,6 +193,52 @@ for (const [id, key] of [["#f-type", "product_type"], ["#f-app", "application"]]
     await loadProduct(P.product.slug); toast("Saved: the standard questions now use this");
   }));
 }
+
+// --- comparison pages ---------------------------------------------------------------
+let pagesPoll = null;
+async function loadPages(fillBoxes) {
+  clearTimeout(pagesPoll);
+  if (!P) return;
+  const slug = P.product.slug;
+  const st = await api("/api/pages?slug=" + encodeURIComponent(slug)).catch(() => null);
+  if (!st || !P || P.product.slug !== slug) return;
+  $("#cmp-google").href = st.google;
+  if (fillBoxes) { $("#cmp-comp").value = st.box_competitors; $("#cmp-dan").value = st.box_danfoss; }
+  const n = st.competitors;
+  $("#cmp-sum").innerHTML = st.ready
+    ? `<span class="ok">✔ ready, ${n} competitor page${n === 1 ? "" : "s"}</span>`
+    : `<span class="miss">${n} of ${st.min_competitors} competitor pages needed, add links here</span>`;
+  if (fillBoxes && !st.ready) $("#cmp").open = true;
+  const label = {
+    ok: l => `<span class="ok">✔ ready</span> <span class="hint">${l.words} words</span>`,
+    downloading: () => `<span class="hint">⏳ downloading…</span>`,
+    waiting: () => `<span class="hint">waiting…</span>`,
+    new: () => `<span class="hint">not downloaded yet</span>`,
+    failed: l => `<span class="miss">✘ ${esc(l.error)}</span>`,
+  };
+  $("#cmp-status").innerHTML = st.links.map(l => `<li>
+      <span><b>${esc(l.brand)}</b>${l.danfoss ? " (current Danfoss page)" : ""}<br><a class="hint tiny" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a></span>
+      <span>${label[l.state](l)}</span></li>`).join("");
+  const failed = st.links.filter(l => l.state === "failed").length;
+  $("#cmp-busy").innerHTML = st.busy ? "Downloading the pages… you can keep working."
+    : failed ? `${failed} link${failed === 1 ? "" : "s"} could not be downloaded: replace ${failed === 1 ? "it" : "them"} in the box and press Save and download again. <a href="#" id="cmp-retry">Try again</a>` : "";
+  const retry = $("#cmp-retry");
+  if (retry) retry.onclick = e => { e.preventDefault(); safe(async () => { await api("/api/pages/retry", { slug }); loadPages(); }); };
+  $("#cmp-save").disabled = st.busy;
+  if (st.busy) pagesPoll = setTimeout(() => loadPages(), 1500);
+  else if (P.pages.competitors !== n) {  // downloads finished: refresh the counts above
+    P.pages.competitors = n;
+    const pg = P.pages;
+    $("#pages-hint").innerHTML = `Comparison pages saved: <b>${pg.competitors}</b> competitor, <b>${pg.danfoss}</b> current Danfoss` +
+      (pg.competitors < 2 ? ` · <span style="color:var(--warn)">too few: add competitor links under “Comparison pages” below</span>` : "");
+  }
+}
+$("#cmp-save").onclick = () => safe(async () => {
+  if (!$("#cmp-comp").value.trim()) return toast("Paste at least one competitor link first", 4000);
+  await api("/api/pages/save", { slug: P.product.slug, competitors: $("#cmp-comp").value, danfoss: $("#cmp-dan").value });
+  toast("Saved. Downloading the pages…");
+  loadPages(true);
+});
 
 // --- questions --------------------------------------------------------------------
 function renderQuestions() {
@@ -276,6 +353,7 @@ function renderResults() {
         <div><b>${pct(r.winner.first)}</b><span>cited first</span></div>
         ${b ? `<div><b>${pct(b.share)}</b><span>current Danfoss page</span></div>` : ""}
       </div>
+      ${r.targets ? targetLine(r.targets) : ""}
       ${r.check_numbers?.length ? `<div class="warnbox">⚠ Check these numbers before publishing: ${esc(r.check_numbers.join(", "))}. They are not in the fact sheet.</div>` : ""}
       <div class="downloads">
         ${f.final_pdf ? `<a class="dl main" href="${fileUrl(r.run, f.final_pdf, 1)}">⬇ Final page (PDF)</a>` : ""}
@@ -292,6 +370,92 @@ function renderResults() {
     ? `<li><span>${esc(o.run)}</span><span class="hint">unfinished</span></li>`
     : `<li><span>${esc(o.run)} · ${esc(o.winner.name)} · ${pct(o.winner.share)}</span>
        <span>${o.files.final_pdf ? `<a href="${fileUrl(o.run, o.files.final_pdf, 1)}">page</a> · <a href="${fileUrl(o.run, o.files.report_pdf, 1)}">report</a> · ` : ""}<a href="${fileUrl(o.run, o.files.zip, 1)}">zip</a></span></li>`).join("");
+  renderSuggestions();
+}
+
+// --- citation targets & wiki suggestions -------------------------------------------
+function renderTargets() {
+  const t = P.targets, d = S.default_targets;
+  $("#t-cited").value = t.cited_pct; $("#t-first").value = t.first_count;
+  $("#t-hint").innerHTML = t.custom
+    ? `This product has its own targets. Default for all products: ${d.cited_pct}% and ${d.first_count}. <a href="#" id="t-reset">Use the default</a>`
+    : `The default for all products (change it in Settings). Changing it here sets targets for this product only.`;
+  const reset = $("#t-reset");
+  if (reset) reset.onclick = e => { e.preventDefault(); saveTargets({ reset: true }); };
+}
+function saveTargets(body) {
+  safe(async () => {
+    await api("/api/targets/product", { slug: P.product.slug, ...body });
+    P.targets = (await api("/api/product?slug=" + encodeURIComponent(P.product.slug))).targets;
+    renderTargets(); toast(body.reset ? "Back to the default targets" : "Targets saved for this product");
+  });
+}
+for (const [id, key] of [["#t-cited", "cited_pct"], ["#t-first", "first_count"]])
+  $(id).addEventListener("change", e => saveTargets({ [key]: e.target.value }));
+
+function targetLine(t) {
+  const m = ok => ok ? `<span class="ok">✔ met</span>` : `<span class="miss">✘ missed</span>`;
+  return `<div class="target-line">Targets: cited in <b>${t.cited_pct}%</b> of ${t.trials} answers (goal ${t.cited_target}%) ${m(t.cited_ok)}
+    · cited first <b>${t.first_count}</b> times (goal ${t.first_target}) ${m(t.first_ok)}</div>`;
+}
+function renderSuggestions() {
+  const box = $("#suggestions");
+  const r = P.runs.find(x => !x.unfinished);
+  const st = r?.analysis?.status;
+  const d = P.suggestions && P.suggestions.run === r?.run ? P.suggestions : null;
+  box.classList.toggle("hidden", !(d || st === "error"));
+  if (!d) {
+    if (st === "error") {
+      box.innerHTML = `<h3>Wiki suggestions</h3>
+        <div class="error">The target was missed, but the analysis could not run: ${esc(r.analysis.error)}</div>
+        <p><button class="primary" id="an-retry">Try the analysis again</button></p>`;
+      $("#an-retry").onclick = () => safe(async () => {
+        await api("/api/analysis/run", { slug: P.product.slug, run: r.run }); startPolling();
+      });
+    }
+    return;
+  }
+  const open = d.suggestions.filter(x => !x.decision).length;
+  const accepted = d.suggestions.filter(x => x.decision === "accepted").length;
+  const list = items => items.length ? `<ul>${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+  const card = x => `<div class="sugg ${x.decision || ""}" data-id="${esc(x.id)}">
+      <div><b>${esc(x.id)}.</b> <span class="file">${esc(x.file)}</span> · ${x.action === "replace" ? "replace text" : "add at the end"}</div>
+      <div>${esc(x.why)}</div>
+      ${x.note ? `<div class="hint">${esc(x.note)}</div>` : ""}
+      ${x.find ? `<div class="hint">Replaces:</div><blockquote>${esc(x.find)}</blockquote><div class="hint">With:</div>` : ""}
+      ${x.decision
+        ? `<blockquote>${esc(x.text)}</blockquote><div class="done">${x.decision === "accepted" ? "✔ Accepted: written to the wiki" : "Declined"}</div>`
+        : `<textarea aria-label="Suggested text">${esc(x.text)}</textarea>
+           ${x.unknown_numbers?.length ? `<div class="warnbox">⚠ Numbers not in the wiki: ${esc(x.unknown_numbers.join(", "))}. Check them before accepting.</div>` : ""}
+           <div class="row"><button class="primary" data-act="accept">Accept</button><button class="ghost" data-act="decline">Decline</button></div>`}
+    </div>`;
+  box.innerHTML = `<h3>Wiki suggestions to reach the targets</h3>
+    <p class="hint">Best version <b>${esc(d.best.name)}</b> (cited ${d.best.cited_count}/${d.best.trials}, first ${d.best.first_count})
+      compared with the worst, <b>${esc(d.worst.name)}</b> (cited ${d.worst.cited_count}/${d.worst.trials}, first ${d.worst.first_count}) · by ${esc(d.analyst)}</p>
+    <p>${esc(d.diagnosis)}</p>
+    ${d.best_does.length ? `<b>The best page:</b>${list(d.best_does)}` : ""}
+    ${d.worst_misses.length ? `<b>The worst page lacks:</b>${list(d.worst_misses)}` : ""}
+    <p class="hint">Nothing changes in the wiki until you accept. You can edit the text before accepting.</p>
+    ${d.suggestions.map(card).join("")}
+    ${d.missing_facts.length ? `<div class="sugg"><b>Missing facts</b> <span class="hint">(a person must find a Danfoss source before adding these)</span>${list(d.missing_facts)}</div>` : ""}
+    ${open ? `<p class="hint">${open} of ${d.suggestions.length} still to decide.</p>` : `<div class="next-run">
+      <b>All suggestions decided</b> (${accepted} accepted). ${accepted
+        ? "The next pages will be written from the updated wiki."
+        : "Nothing changed in the wiki, so the same pages would be written again unless you tick “Write brand-new pages” under More options."}
+      <p><button class="primary" id="next-run">Write a new set of pages</button></p></div>`}`;
+  $$("#suggestions .sugg [data-act]").forEach(b => b.onclick = () => {
+    const c = b.closest(".sugg");
+    safe(async () => {
+      P.suggestions = await api("/api/suggestion", { slug: P.product.slug, run: d.run, id: c.dataset.id,
+        decision: b.dataset.act, text: $("textarea", c)?.value });
+      renderSuggestions();
+      toast(b.dataset.act === "accept" ? "Written to the wiki" : "Declined");
+      if (b.dataset.act === "accept")
+        $("#fact-sheet").textContent = (await api("/api/product?slug=" + encodeURIComponent(P.product.slug))).fact_sheet;
+    });
+  });
+  const next = $("#next-run");
+  if (next) next.onclick = () => { $("#run").click(); $("#card-progress").scrollIntoView({ behavior: "smooth" }); };
 }
 
 // --- settings dialog ----------------------------------------------------------------
@@ -309,18 +473,36 @@ function renderSettings() {
     safe(async () => { await api("/api/key", { env: f.dataset.env, value: $("input", f).value }); toast("Key saved"); await loadState(); renderSettings(); });
   });
   $("#prov-list").innerHTML = Object.entries(S.providers).map(([id, p]) =>
-    `<li><span><b>${esc(p.label)}</b> <small class="hint">${esc(p.base_url)} · ${esc(p.models.join(", "))}</small></span>
-     ${id === "gemini" ? `<small class="hint">needed for search</small>` : `<button class="x" data-rm="${esc(id)}" title="Remove">✕</button>`}</li>`).join("");
+    `<li style="flex-wrap:wrap"><span><b>${esc(p.label)}</b>
+       ${p.type === "ollama" ? `<small class="${p.reachable ? "ok" : "hint"}">${p.reachable ? "✔ connected · " + esc((p.installed || []).join(", ") || "no models") : "not reachable"}</small>` : ""}
+       <br><small class="hint">${esc(p.models.join(", "))}</small></span>
+     <form class="row" data-addr="${esc(id)}" style="flex:1 1 300px"><input value="${esc(p.base_url)}" style="flex:1" aria-label="Address">
+       <button>Save address</button>
+       ${["gemini", "ollama"].includes(id) ? "" : `<button type="button" class="x" data-rm="${esc(id)}" title="Remove">✕</button>`}</form></li>`).join("");
+  $$("#prov-list [data-addr]").forEach(f => f.onsubmit = e => {
+    e.preventDefault();
+    safe(async () => { await api("/api/provider/update", { id: f.dataset.addr, base_url: $("input", f).value }); await loadState(); renderSettings(); toast("Address saved"); });
+  });
   $$("#prov-list [data-rm]").forEach(b => b.onclick = () => {
     if (!confirm("Remove this AI from the app?")) return;
     safe(async () => { await api("/api/provider/remove", { id: b.dataset.rm }); await loadState(); renderSettings(); });
   });
+  const td = $("#t-default");
+  td.elements.cited_pct.value = S.default_targets.cited_pct; td.elements.first_count.value = S.default_targets.first_count;
   $("#std-manage").innerHTML = S.standard.map(q => `<li><span>${esc(q.text)}</span><button class="x" data-std="${esc(q.id)}" title="Delete for all products">✕</button></li>`).join("");
   $$("#std-manage [data-std]").forEach(b => b.onclick = () => {
     if (!confirm("Delete this standard question for ALL products?")) return;
     safe(async () => { await api("/api/questions/delete", { id: b.dataset.std, kind: "standard" }); await loadState(); renderSettings(); });
   });
 }
+$("#t-default").onsubmit = e => {
+  e.preventDefault();
+  safe(async () => {
+    await api("/api/targets/default", Object.fromEntries(new FormData(e.target)));
+    await loadState(); toast("Default targets saved");
+    if (P) await loadProduct(P.product.slug);
+  });
+};
 $("#prov-add").onsubmit = e => {
   e.preventDefault();
   const f = Object.fromEntries(new FormData(e.target));
@@ -329,12 +511,19 @@ $("#prov-add").onsubmit = e => {
 
 // --- add product dialog -------------------------------------------------------------
 let upload = null;
-$("#open-import").onclick = () => {
+$("#open-import").onclick = async () => {
+  $("#import").showModal();
+  // a brochure may still be being read (dialog closed or page reloaded): pick it up again
+  const st = await api("/api/import/status").catch(() => null);
+  if (st && st.status !== "cancelled") return showImport(st);
+  resetImport();
+};
+function resetImport() {
   upload = null; $("#imp-file").value = ""; $("#drop-text").textContent = "Choose a PDF, Word or text file, or drop it here";
   $("#imp-read").disabled = true; $("#imp-status").textContent = "";
+  $("#imp-progress").classList.add("hidden"); $("#imp-error").classList.add("hidden");
   $("#imp-step1").classList.remove("hidden"); $("#imp-step2").classList.add("hidden");
-  $("#import").showModal();
-};
+}
 function takeFile(file) {
   if (!file) return;
   const r = new FileReader();
@@ -346,16 +535,46 @@ const drop = $("#drop");
 drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
 drop.ondragleave = () => drop.classList.remove("over");
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); takeFile(e.dataTransfer.files[0]); };
-$("#imp-read").onclick = () => safe(async () => {
-  $("#imp-read").disabled = true; $("#imp-status").textContent = "Reading the brochure and pulling out the facts… this can take a minute.";
-  try {
-    const r = await api("/api/import/extract", { ...upload, provider: $("#imp-provider").value, model: $("#imp-model").value });
+function mmss(t) { t = Math.max(0, Math.round(t)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; }
+let impPoll = null;
+function showImport(st) {
+  const busy = st.status === "running";
+  $("#imp-step1").classList.remove("hidden"); $("#imp-step2").classList.add("hidden");
+  $("#imp-progress").classList.toggle("hidden", !busy && st.status !== "error");
+  $("#imp-read").disabled = busy || !upload; $("#imp-stop").classList.toggle("hidden", !busy);
+  if (!busy) $("#imp-status").textContent = "";
+  $("#imp-step").textContent = st.step + (st.filename ? ` · ${st.filename}` : "");
+  $("#imp-bar").style.width = st.pct + "%";
+  $("#imp-time").textContent = `${Math.round(st.pct)}% · ${mmss(st.elapsed)} elapsed` +
+    (busy && st.left != null ? ` · about ${st.left >= 90 ? Math.round(st.left / 60) + " min" : mmss(st.left)} left` : "");
+  const log = $("#imp-log"); log.textContent = st.log.join("\n"); log.scrollTop = log.scrollHeight;
+  const err = $("#imp-error");
+  err.classList.toggle("hidden", st.status !== "error");
+  err.textContent = st.status === "error" ? "Could not read the brochure: " + st.error : "";
+  clearTimeout(impPoll);
+  if (busy) impPoll = setTimeout(followImport, 1000);
+  if (st.status === "done" && st.draft) {
     const f = $("#imp-step2");
-    for (const [k, v] of Object.entries(r.draft)) if (f.elements[k]) f.elements[k].value = v;
+    for (const [k, v] of Object.entries(st.draft)) if (f.elements[k]) f.elements[k].value = v;
     $("#imp-step1").classList.add("hidden"); f.classList.remove("hidden");
-  } finally { $("#imp-read").disabled = false; $("#imp-status").textContent = ""; }
+  }
+}
+async function followImport() {
+  try { showImport(await api("/api/import/status")); }
+  catch (e) { impPoll = setTimeout(followImport, 3000); }  // server busy for a moment: keep trying
+}
+$("#imp-read").onclick = () => safe(async () => {
+  $("#imp-read").disabled = true; $("#imp-error").classList.add("hidden");
+  $("#imp-status").textContent = "You can close this window: the brochure keeps being read, and reopening 'Add a product' shows it again.";
+  await api("/api/import/start", { ...upload, provider: $("#imp-provider").value, model: $("#imp-model").value })
+    .catch(e => { $("#imp-read").disabled = false; throw e; });
+  followImport();
 });
-$("#imp-back").onclick = () => { $("#imp-step2").classList.add("hidden"); $("#imp-step1").classList.remove("hidden"); };
+$("#imp-stop").onclick = () => safe(async () => {
+  await api("/api/import/stop", {}); clearTimeout(impPoll);
+  await api("/api/import/clear", {}); resetImport(); toast("Stopped");
+});
+$("#imp-back").onclick = () => safe(async () => { await api("/api/import/clear", {}); resetImport(); });
 $("#imp-step2").onsubmit = e => {
   e.preventDefault();
   const draft = Object.fromEntries(new FormData(e.target));

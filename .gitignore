@@ -21,6 +21,7 @@ lab/cache/
 app/cache/
 products/*/runs/
 products/*/webpage/cache/
+products/*/fixed/_failed.json
 
 # Citations tab: cached AI reviewer answers
 lab/discovered/explanations/

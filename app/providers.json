@@ -1,24 +1,41 @@
 {
-  "_help": "AIs the app can use. To add one, use Settings > Add an AI in the app, or copy an entry below. Any service with an OpenAI-compatible chat API works: base_url must end with /. key_env is the name of the key in .env (null = no key needed). sleep = seconds to wait between calls (free tiers have per-minute limits).",
+  "_help": "AIs the app can use. Add one in Settings > Add an AI, or copy an entry below. type 'ollama' talks to an Ollama server (base_url = its address, e.g. http://10.126.128.116:11434/ for a teammate's server); any other entry is an OpenAI-compatible chat API (base_url ends with /v1/ or similar). key_env = name of the key in .env (null = no key). sleep = seconds between calls. num_ctx = how much text Ollama reads per request (its default is too small for the citation test). think = false turns off the slow 'thinking' of models like qwen3. est_write / est_answer = rough seconds per page / per answer, for the time estimate.",
+  "ollama": {
+    "label": "Ollama (your computer or the team server)",
+    "type": "ollama",
+    "base_url": "http://10.126.128.116:11434/",
+    "key_env": null,
+    "models": [
+      "qwen3:8b"
+    ],
+    "sleep": 0,
+    "num_ctx": 16384,
+    "think": false,
+    "est_write": 420,
+    "est_answer": 90
+  },
   "gemini": {
-    "label": "Google Gemini",
+    "label": "Google Gemini (uses API quota)",
     "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
     "key_env": "GEMINI_API_KEY",
-    "models": ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"],
-    "sleep": 6
-  },
-  "ollama": {
-    "label": "Ollama (local, private)",
-    "base_url": "http://localhost:11434/v1/",
-    "key_env": null,
-    "models": ["qwen3:8b", "llama3.1:8b"],
-    "sleep": 0
+    "models": [
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-2.5-pro"
+    ],
+    "sleep": 6,
+    "est_write": 20,
+    "est_answer": 10
   },
   "openrouter": {
     "label": "OpenRouter",
     "base_url": "https://openrouter.ai/api/v1/",
     "key_env": "OPENROUTER_API_KEY",
-    "models": ["openai/gpt-oss-20b:free"],
-    "sleep": 3
+    "models": [
+      "openai/gpt-oss-20b:free"
+    ],
+    "sleep": 3,
+    "est_write": 30,
+    "est_answer": 15
   }
 }

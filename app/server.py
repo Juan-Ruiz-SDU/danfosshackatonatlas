@@ -24,8 +24,11 @@ REPO = APP.parent
 STATIC = APP / "static"
 sys.path.insert(0, str(APP))
 import ai  # noqa: E402
+import analysis  # noqa: E402
+import brochure  # noqa: E402
 import catalog  # noqa: E402
 import citations  # noqa: E402
+import comparison  # noqa: E402
 import verify  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
@@ -39,7 +42,7 @@ class Job:
         self.slug, self.settings = slug, settings
         self.status, self.error, self.result = "running", None, None
         self.step_name, self.done, self.total = "Starting", 0, 0
-        self.lines, self.stop = [], False
+        self.lines, self.stop, self.analysis_run = [], False, None
         self.started = time.time()
 
     def log(self, msg):
@@ -65,19 +68,27 @@ JOB = None
 LOCK = threading.Lock()
 
 
-def start_job(slug, settings):
+def start_job(slug, settings, analysis_run=None):
     global JOB
     with LOCK:
         if JOB and JOB.status == "running":
             raise ValueError("A run is already going. Wait for it, or press Stop.")
         products.get(slug)
         JOB = Job(slug, settings)
+        JOB.analysis_run = analysis_run
     threading.Thread(target=_run, args=(JOB,), daemon=True).start()
 
 
 def _run(job):
     try:
-        job.result = pipeline.run(job, job.slug, job.settings)
+        if job.analysis_run:  # only the wiki analysis of a finished run, again
+            p = products.get(job.slug)
+            out = run_folder(p, job.analysis_run)
+            job.result = pipeline.run_analysis(job, p, out)
+            if job.result["analysis"]["status"] == "error":
+                raise RuntimeError(job.result["analysis"]["error"])
+        else:
+            job.result = pipeline.run(job, job.slug, job.settings)
         job.status = "done"
         job.log("Finished.")
     except ai.Cancelled:
@@ -105,17 +116,35 @@ def deps():
 
 def state():
     ai.load_env()
-    provs = {pid: {"label": p["label"], "models": p.get("models", []), "key_env": p.get("key_env"),
-                   "has_key": ai.has_key(p.get("key_env")), "base_url": p["base_url"],
-                   "sleep": p.get("sleep", 0)}
-             for pid, p in ai.providers().items()}
+    provs = {}
+    for pid, p in ai.providers().items():
+        info = {"label": p["label"], "models": p.get("models", []), "key_env": p.get("key_env"),
+                "has_key": ai.has_key(p.get("key_env")), "base_url": p["base_url"],
+                "sleep": p.get("sleep", 0), "type": p.get("type", "openai"),
+                "est_write": p.get("est_write", 30), "est_answer": p.get("est_answer", 10)}
+        if info["type"] == "ollama":
+            info["reachable"], installed = ai.ollama_status(p["base_url"])
+            # show the models that are really installed on that server first
+            info["installed"] = installed
+            info["models"] = installed + [m for m in info["models"] if m not in installed]
+        provs[pid] = info
     return {"products": products.list_products(), "providers": provs,
             "gemini_key": ai.has_key("GEMINI_API_KEY"), "standard": products.standard_questions(),
             "defaults": pipeline.DEFAULTS, "deps": deps(),
+            "default_targets": analysis.default_targets(),
             "styles": [{"id": k, "name": pipeline.STYLE_NAMES.get(k, k),
                         "publishable": k in pipeline.PUBLISHABLE}
                        for k in pipeline.gv.STYLES],
             "job": JOB.as_dict() if JOB else None}
+
+
+def run_folder(p, run):
+    if not run or "/" in run or "\\" in run or run.startswith("."):
+        raise ValueError("Unknown run")
+    out = p["folder"] / "runs" / run
+    if not (out / "result.json").is_file():
+        raise ValueError("Unknown run")
+    return out
 
 
 def product_info(slug):
@@ -142,6 +171,10 @@ def product_info(slug):
                   "competitors": sum(d.brand.lower() != "danfoss" for d in pages),
                   "fixed_links": len(products.source_list(p))},
         "runs": runs[:20],
+        "targets": analysis.product_targets(p),
+        # suggestions of the latest finished run, to accept or decline
+        "suggestions": next((analysis.load(p["folder"] / "runs" / r["run"])
+                             for r in runs if not r.get("unfinished")), None),
     }
 
 
@@ -417,6 +450,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, state())
             if url.path == "/api/product":
                 return self.send(200, product_info(q.get("slug", "")))
+            if url.path == "/api/pages":
+                p = products.get(q.get("slug", ""))
+                return self.send(200, {**comparison.status(p), **comparison.boxes(p),
+                                       "google": comparison.google_link(p)})
+            if url.path == "/api/import/status":
+                return self.send(200, brochure.status())
             if url.path == "/api/job":
                 return self.send(200, JOB.as_dict() if JOB else None)
             if url.path.startswith("/files/"):
@@ -478,15 +517,40 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if b.get("key") and b.get("key_env"):
                     ai.save_key(b["key_env"].strip(), b["key"])
                 return self.send(200, {"ok": True, "id": pid})
+            elif path == "/api/provider/update":
+                ai.update_provider(b["id"], base_url=b.get("base_url"))
             elif path == "/api/provider/remove":
                 ai.remove_provider(b["id"])
-            elif path == "/api/import/extract":
-                text = products.extract_text(b["filename"], base64.b64decode(b["data"]))
-                draft = products.draft_from_brochure(text, b.get("provider", "gemini"),
-                                                     b.get("model", "gemini-2.5-flash"))
-                return self.send(200, {"draft": draft, "words": len(text.split())})
+            elif path == "/api/pages/save":
+                p = products.get(b.get("slug", ""))
+                comparison.save(p, b.get("danfoss", ""), b.get("competitors", ""))
+                comparison.start_fetch(p)
+            elif path == "/api/pages/retry":
+                comparison.start_fetch(products.get(b.get("slug", "")))
+            elif path == "/api/targets/default":
+                analysis.set_default_targets(b)
+            elif path == "/api/targets/product":
+                analysis.set_product_targets(products.get(b.get("slug", "")), b, bool(b.get("reset")))
+            elif path == "/api/suggestion":
+                p = products.get(b.get("slug", ""))
+                return self.send(200, analysis.decide(p, run_folder(p, b.get("run")), b.get("id"),
+                                                      b.get("decision"), b.get("text")))
+            elif path == "/api/analysis/run":
+                p = products.get(b.get("slug", ""))
+                run_folder(p, b.get("run"))
+                start_job(p["slug"], {}, analysis_run=b["run"])
+            elif path == "/api/import/start":
+                # runs in the background: the page follows it with /api/import/status
+                brochure.start(b["filename"], base64.b64decode(b["data"]),
+                               b.get("provider") or "ollama", b.get("model") or "qwen3:8b")
+            elif path == "/api/import/stop":
+                brochure.stop()
+            elif path == "/api/import/clear":
+                brochure.clear()
             elif path == "/api/import/save":
-                return self.send(200, {"slug": products.create_product(b.get("draft", {}))})
+                slug = products.create_product(b.get("draft", {}))
+                brochure.clear()
+                return self.send(200, {"slug": slug})
             elif path == "/api/catalog/build":
                 return self.send(200, build_product_page(b))
             elif path == "/api/site/copy":

@@ -1,0 +1,212 @@
+# One prompt per line. Lines starting with # and blank lines are ignored.
+
+# Brazed plate heat exchangers
+What is a brazed plate heat exchanger?
+what is a brazed plate heat exchanger
+Brazed vs gasketed plate heat exchanger: which is better?
+brazed vs gasketed plate heat exchanger which is better
+What is the best brazed plate heat exchanger for domestic hot water?
+best brazed plate heat exchanger for domestic hot water
+How do I size a plate heat exchanger for a heat pump?
+how to size a plate heat exchanger for a heat pump
+What is a good small plate heat exchanger for a district heating substation?
+small plate heat exchanger for district heating substation
+Copper brazed or stainless brazed heat exchanger: which should I choose?
+copper brazed or stainless brazed heat exchanger
+How many plates do I need in a plate heat exchanger?
+how many plates do i need in a plate heat exchanger
+How much does a brazed plate heat exchanger cost?
+brazed plate heat exchanger price
+Why does my plate heat exchanger keep scaling up?
+why does my plate heat exchanger keep scaling up
+How do I clean a brazed plate heat exchanger?
+how to clean a brazed plate heat exchanger
+How long does a brazed plate heat exchanger last?
+how long does a brazed plate heat exchanger last
+What replacement plate heat exchanger should I use for a heat interface unit?
+replacement plate heat exchanger for a heat interface unit
+Which type of heat exchanger is best for a district heating substation?
+best heat exchanger type for district heating substation
+What should I look for when buying a brazed plate heat exchanger?
+what to look for when buying a brazed plate heat exchanger
+Which brazed plate heat exchanger manufacturers are the most reliable?
+most reliable brazed plate heat exchanger manufacturers
+Is a brazed plate heat exchanger a good choice for domestic hot water?
+is a brazed plate heat exchanger good for domestic hot water
+What is the best heat exchanger for a heat pump system?
+best heat exchanger for heat pump system
+Where can I buy brazed plate heat exchangers for HVAC installations?
+where to buy brazed plate heat exchangers for hvac
+What are the advantages of a brazed plate heat exchanger compared to a shell-and-tube heat exchanger?
+brazed plate vs shell and tube heat exchanger advantages
+When should I choose a gasketed plate heat exchanger instead of a brazed one?
+when to use gasketed instead of brazed plate heat exchanger
+What is the difference between copper-brazed and nickel-brazed plate heat exchangers?
+copper brazed vs nickel brazed plate heat exchanger
+Are single-pass or two-pass plate heat exchangers more efficient?
+single pass vs two pass plate heat exchanger efficiency
+How do I calculate the right size of plate heat exchanger for my system?
+how to calculate plate heat exchanger size
+What maximum pressure and temperature can a brazed plate heat exchanger handle?
+brazed plate heat exchanger max pressure and temperature
+How does the number of plates affect a heat exchanger's capacity?
+how does number of plates affect heat exchanger capacity
+What water quality is required for a copper-brazed heat exchanger?
+water quality requirements for copper brazed heat exchanger
+Can a brazed plate heat exchanger be used with glycol?
+brazed plate heat exchanger with glycol
+
+# CO2 compressors
+What is the best compressor for subcritical CO2 refrigeration?
+best compressor for subcritical co2 refrigeration
+Which semi-hermetic compressor should I use for a CO2 cascade freezer?
+semi-hermetic compressor for co2 cascade freezer
+What is a good small CO2 compressor for a low-temperature cold room?
+small co2 compressor for a low temperature cold room
+Reciprocating vs rotary compressor for CO2: which is better?
+reciprocating vs rotary compressor for co2
+What oil does a CO2 compressor use?
+what oil does a co2 compressor use
+How much does a CO2 compressor cost?
+co2 compressor price
+What is the difference between a subcritical and a transcritical CO2 compressor?
+subcritical vs transcritical co2 compressor difference
+Why does my CO2 compressor keep tripping on high pressure?
+co2 compressor keeps tripping on high pressure
+How long does a semi-hermetic compressor last?
+how long does a semi-hermetic compressor last
+What replacement compressor should I use for a CO2 cascade system?
+replacement compressor for a co2 cascade system
+Which compressor is best for a low-temperature CO2 refrigeration system?
+best compressor for low temperature co2 refrigeration system
+What should I consider when choosing a compressor for a CO2 cascade system?
+how to choose a compressor for a co2 cascade system
+Which manufacturers make the most reliable CO2 compressors?
+most reliable co2 compressor manufacturers
+What size of compressor do I need for a small CO2 freezer room?
+compressor size for small co2 freezer room
+Where can I buy semi-hermetic compressors for commercial refrigeration?
+where to buy semi-hermetic compressors for commercial refrigeration
+Is a semi-hermetic compressor a good choice for a supermarket freezer system?
+semi-hermetic compressor for supermarket freezer system
+
+Which heat interface unit is best for a new apartment building?
+best heat interface unit for new apartment building
+What is the best district heating substation for a small residential block?
+best district heating substation for small residential block
+How much does a district heating substation cost to buy and install?
+district heating substation cost including installation
+Which manufacturers supply the most reliable heat interface units?
+most reliable heat interface unit manufacturers
+Where can I buy prefabricated district heating substations?
+where to buy prefabricated district heating substations
+Which commercial heat pump is best for an apartment building?
+best commercial heat pump for apartment building
+What is the best heat pump for producing hot water in a hotel?
+best heat pump for hotel hot water
+Which brand of large air-to-water heat pump is the most reliable?
+most reliable large air to water heat pump brand
+How much does a 100 kW commercial heat pump cost?
+100 kw commercial heat pump price
+Is it worth buying a CO2 heat pump for commercial hot water?
+is a co2 heat pump worth it for commercial hot water
+What is the best heat recovery system for a supermarket refrigeration plant?
+best heat recovery system for supermarket refrigeration
+Which heat recovery unit should I buy for a commercial kitchen?
+heat recovery unit for commercial kitchen
+How much does it cost to add heat recovery to an existing refrigeration system?
+cost to add heat recovery to existing refrigeration system
+Which manufacturers make heat recovery systems for data centers?
+data center heat recovery system manufacturers
+Is it worth buying a wastewater heat recovery system for a hotel?
+is wastewater heat recovery worth it for a hotel
+Which instant hot water module is best for a commercial building?
+best instant hot water module for commercial building
+What is the best hot water storage tank to pair with a heat pump?
+best hot water storage tank for heat pump
+Should I buy a hot water cylinder or a plate heat exchanger module for an office building?
+hot water cylinder vs plate heat exchanger module for office building
+How much does a commercial hot water system cost to replace?
+commercial hot water system replacement cost
+Which circulation pump is the most energy-efficient for a heating system?
+most energy efficient circulation pump for heating system
+What are the best balancing valves for a large heating installation?
+best balancing valves for large heating installation
+Which heating controller should I buy for a commercial building?
+best heating controller for commercial building
+Are smart thermostatic radiator valves worth buying for an office?
+are smart thermostatic radiator valves worth it for an office
+Where can I buy heating system components for professional installers?
+where to buy heating system components for installers
+What should I buy to replace an old gas boiler in a commercial building?
+replace old gas boiler in commercial building
+Which heating equipment qualifies for energy efficiency subsidies?
+heating equipment that qualifies for energy efficiency subsidies
+What is the best replacement for an old shell-and-tube heat exchanger?
+best replacement for old shell and tube heat exchanger
+Which heating system upgrade pays for itself the fastest?
+heating system upgrade with fastest payback
+What is the best heating system to buy for a renovated apartment block?
+best heating system for renovated apartment block
+Which suppliers offer complete heating packages for new buildings?
+complete heating package suppliers for new buildings
+What is the best plate heat exchanger for underfloor heating?
+best plate heat exchanger for underfloor heating
+Which heat exchanger should I buy for a swimming pool heat pump?
+heat exchanger for swimming pool heat pump which one to buy
+What is the cheapest way to heat hot water in a small hotel?
+cheapest way to heat hot water in a small hotel
+What size of buffer tank should I buy for a heat pump?
+buffer tank for heat pump what size should i buy
+What is the best brand of heat pump for a school building?
+best brand heat pump for a school building
+How much does a heat interface unit cost per apartment?
+heat interface unit price per apartment
+Which solar thermal heat exchanger is the best?
+solar thermal heat exchanger which one is best
+What replacement heat exchanger should I use for an old boiler?
+replacement heat exchanger for old boiler
+What is the best hot water heat pump for a restaurant?
+best hot water heat pump for a restaurant
+Which district heating meter should I buy?
+district heating meter which one to buy
+Should I buy a commercial boiler or a heat pump?
+commercial boiler vs heat pump which to buy
+What is the best water-to-water heat pump for a heat network?
+best water to water heat pump for a heat network
+Where can installers buy heat exchangers online?
+where to buy heat exchangers for installers online
+What is the best heat exchanger for recovering heat from a chiller?
+best heat exchanger for heat recovery from a chiller
+What heat pump do I need for a building with 20 flats?
+what heat pump do i need for a 20 flat building
+How much does a stainless steel plate heat exchanger cost?
+stainless steel plate heat exchanger price
+What is the best glycol heat exchanger for a ground source heat pump?
+best glycol heat exchanger for a ground source heat pump
+Which brand of hot water module is best for a block of flats?
+hot water module for a block of flats which brand
+Is a secondhand plate heat exchanger worth buying?
+secondhand plate heat exchanger worth it
+What is the best heating system for a warehouse?
+best heating system for a warehouse
+Which heat exchanger should I use for a brewery cooling system?
+heat exchanger for a brewery cooling system
+Which hot water cylinder works best with a heat pump?
+which hot water cylinder works best with a heat pump
+How much does an energy-efficient circulator pump for a heating system cost?
+energy efficient circulator pump for a heating system price
+What is the best heat pump for a sports centre pool and showers?
+best heat pump for a sports centre pool and showers
+Which heat exchanger should I buy for a wood boiler?
+buy a heat exchanger for a wood boiler
+Which high-temperature heat pump is suitable for an old building with radiators?
+high temperature heat pump for an old building with radiators
+What is the most reliable heat exchanger brand for district heating?
+most reliable heat exchanger brand for district heating
+Which compact heat exchanger is best for a small plant room?
+compact heat exchanger for a small plant room
+What should I buy to cut the heating bill in an office building?
+what to buy to cut a heating bill in an office building
+How much does a heat recovery ventilation unit for a commercial building cost?
+heat recovery ventilation unit for a commercial building price

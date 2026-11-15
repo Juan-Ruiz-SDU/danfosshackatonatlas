@@ -209,8 +209,14 @@ Under **More options**, *Search ranking* chooses how the citation test picks the
 - **Whole pages**: the original lab. The AI sees each page's first words.
 - **Passages**: like AI search. Pages are cut at their headings, a page ranks by its best passage,
   and the AI sees its best passages.
+- **Words + meaning**: BM25 and embeddings, which match by meaning, each rank the whole pages,
+  and the two rankings are merged. A page that answers the question in other words can still
+  make the top results. The AI sees the same text as with *Whole pages*, so comparing the two
+  shows what the ranking alone changes. It needs the `nomic-embed-text` model on the Ollama
+  server (`ollama pull nomic-embed-text`, already installed on the team server). Embeddings are
+  saved in `app/cache/embeddings/`, so each page is only processed once.
 
-Scores from the two settings are not comparable.
+Scores from different settings are not comparable.
 
 ## Adding another AI
 

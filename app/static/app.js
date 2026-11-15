@@ -161,7 +161,7 @@ function applySettings(s) {
   $("#s-embeddings").checked = s.embeddings !== false; $("#s-maxwords").value = s.max_words ?? 700;
   $("#s-fresh").checked = !!s.fresh_pages;
   $("#s-retries").value = s.retries ?? 3;
-  $("#s-retrieval").value = s.retrieval === "passage" ? "passage" : "page";
+  $("#s-retrieval").value = ["passage", "hybrid"].includes(s.retrieval) ? s.retrieval : "page";
   renderPreset();
 }
 function saveSettings() { if (restoring) return; store("settings", { ...gather(), _v: SETTINGS_VERSION }); renderBanner(); estimate(); renderPreset(); }

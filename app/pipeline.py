@@ -374,11 +374,20 @@ def citation_test(job, targets, competitors, questions, s, out, fname="citation_
     total = len(targets) * len(questions) * s["repeats"]
     rows, done = [], 0
     blind, force = bool(s.get("blind")), bool(s.get("force_target"))
+    embedder = None
+    if s.get("retrieval") == "hybrid":  # words + meaning: embeddings from the Ollama server
+        embedder = lab.Embedder(ai.providers()["ollama"]["base_url"], s.get("embed_model"),
+                                ai.CACHE)
     raw = (out / fname).open("w", encoding="utf-8")
     for target in targets:
         version = getattr(target, "version", target.style)
         corpus = competitors + [target]  # one Danfoss page at a time vs the same rivals
-        if s.get("retrieval") == "passage":  # rank passages, show each page's best ones
+        if embedder:  # BM25 + embedding similarity, merged; the AI sees the same text as "page"
+            ranker = lab.HybridRanker(corpus, embedder)
+
+            def page_text(d, q):
+                return d.text
+        elif s.get("retrieval") == "passage":  # rank passages, show each page's best ones
             ranker = lab.PassageRanker(corpus)
 
             def page_text(d, q):
@@ -417,7 +426,7 @@ def citation_test(job, targets, competitors, questions, s, out, fname="citation_
                 name = labels.get(target.brand, TARGET).lower()
                 row = {
                     "page": target.name, "version": version, "style": target.style, "question": q, "repeat": rep,
-                    "bm25_rank": rank, "retrieved": retrieved, "in_context": target in shown, "forced": forced,
+                    "bm25_rank": rank, "retrieval": s.get("retrieval", "page"), "retrieved": retrieved, "in_context": target in shown, "forced": forced,
                     "cited": bool(mine), "share": len(mine) / len(cites) if cites else 0.0,
                     "first": bool(cites) and id_to_doc[cites[0]] is target,
                     "recommended": bool(re.search(rf"\b{re.escape(name)}\b", rec.lower())),

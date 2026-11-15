@@ -58,7 +58,23 @@ Useful options:
 --provider ollama --model qwen3:8b   private, local, no key
 --model gemini-2.5-flash-lite        a different Gemini model
 --retrieval passage       rank passages instead of whole pages (see below)
+--retrieval hybrid        words + meaning: BM25 + embeddings (see below)
 ```
+
+## Words + meaning ranking (`--retrieval hybrid`)
+
+BM25 only matches words. A page that says "BPHE for residential heating" scores low for
+"heat exchanger for a heat pump" even if it answers it. AI search engines combine keyword
+ranking with meaning (embedding) ranking. With `--retrieval hybrid`:
+
+- BM25 ranks the whole pages, and so does embedding similarity (`nomic-embed-text` on Ollama);
+- the two rankings are merged with reciprocal rank fusion: score = 1/(60 + rank by words) +
+  1/(60 + rank by meaning);
+- the AI sees the same text as with `--retrieval page`, so the two can be compared directly.
+
+It needs `ollama pull nomic-embed-text` on the server given by `--host` (default
+`http://localhost:11434`). `--embed-model` picks another embedding model. Embeddings are
+cached in `lab/cache/embeddings/`.
 
 ## Passage ranking (`--retrieval passage`)
 

@@ -282,6 +282,109 @@ class PassageRanker:
         return text
 
 
+# --- filter 1, words + meaning (hybrid) ----------------------------------------
+# BM25 only matches words: a page that says "BPHE for residential heating" scores
+# low for "heat exchanger for a heat pump" although it answers it. AI search
+# engines combine keyword ranking with meaning (embedding) ranking. With
+# --retrieval hybrid, BM25 and embedding similarity each rank the whole pages,
+# and the two rankings are merged with reciprocal rank fusion (RRF), the usual
+# way to combine them. The AI sees the same text as with --retrieval page, so a
+# comparison of the two isolates the ranking. Embeddings come from an Ollama
+# server (ollama pull nomic-embed-text) and are cached on disk per text.
+EMBED_MODEL = "nomic-embed-text"
+RRF_K = 60  # the standard RRF constant: score = sum of 1 / (60 + rank)
+
+
+class Embedder:
+    def __init__(self, host="http://localhost:11434", model=EMBED_MODEL, cache_dir=None):
+        host = (host or "http://localhost:11434").rstrip("/")
+        self.host = host[:-3] if host.endswith("/v1") else host
+        self.model = model or EMBED_MODEL
+        self.cache_dir = pathlib.Path(cache_dir) / "embeddings" if cache_dir else None
+        self.mem = {}
+
+    def _key(self, text):
+        return hashlib.sha256(f"{self.model}\n{text}".encode("utf-8")).hexdigest()
+
+    def embed(self, texts):
+        """One vector per text, in order. Cached in memory and on disk."""
+        todo = []
+        for t in dict.fromkeys(texts):
+            k = self._key(t)
+            if k in self.mem:
+                continue
+            f = self.cache_dir / f"{k}.json" if self.cache_dir else None
+            if f and f.is_file():
+                self.mem[k] = json.loads(f.read_text(encoding="utf-8"))
+            else:
+                todo.append(t)
+        for i in range(0, len(todo), 16):
+            batch = todo[i:i + 16]
+            for t, v in zip(batch, self._call(batch)):
+                k = self._key(t)
+                self.mem[k] = v
+                if self.cache_dir:
+                    self.cache_dir.mkdir(parents=True, exist_ok=True)
+                    (self.cache_dir / f"{k}.json").write_text(json.dumps(v), encoding="utf-8")
+        return [self.mem[self._key(t)] for t in texts]
+
+    def _call(self, batch):
+        body = json.dumps({"model": self.model, "input": batch, "truncate": True}).encode("utf-8")
+        req = urllib.request.Request(self.host + "/api/embed", data=body,
+                                     headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                vecs = json.loads(resp.read())["embeddings"]
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode("utf-8", "replace")[:300]
+            if e.code == 404 or "not found" in msg.lower():
+                raise RuntimeError(
+                    f"The embedding model '{self.model}' is not installed on the Ollama server at "
+                    f"{self.host}. On that computer run:  ollama pull {self.model}") from None
+            raise RuntimeError(f"Ollama at {self.host} refused the embedding request "
+                               f"({e.code}): {msg}") from None
+        except (urllib.error.URLError, OSError) as e:
+            raise RuntimeError(f"Cannot reach Ollama at {self.host} for embeddings "
+                               f"({getattr(e, 'reason', e)}). Words + meaning ranking needs "
+                               "Ollama with the nomic-embed-text model.") from None
+        if len(vecs) != len(batch):
+            raise RuntimeError(f"Ollama at {self.host} returned {len(vecs)} embeddings "
+                               f"for {len(batch)} texts.")
+        return vecs
+
+
+def cosine(a, b):
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    return dot / (na * nb) if na and nb else 0.0
+
+
+class HybridRanker:
+    """Words + meaning: BM25 and embedding similarity each rank the pages, merged
+    with reciprocal rank fusion. Same interface as BM25: rank(query) -> [(score, doc)]."""
+
+    def __init__(self, docs, embedder):
+        self.docs = docs
+        self.bm25 = BM25(docs)
+        self.embedder = embedder
+        # nomic-embed-text expects these task prefixes
+        self.vecs = embedder.embed(["search_document: " + d.text for d in docs])
+
+    def meaning(self, query):
+        """[(similarity, doc)], most similar first."""
+        q = self.embedder.embed(["search_query: " + query])[0]
+        sims = [(cosine(q, v), d) for v, d in zip(self.vecs, self.docs)]
+        return sorted(sims, key=lambda x: -x[0])
+
+    def rank(self, query):
+        score = collections.defaultdict(float)
+        for ranking in (self.bm25.rank(query), self.meaning(query)):
+            for r, (_, d) in enumerate(ranking, 1):
+                score[id(d)] += 1 / (RRF_K + r)
+        return sorted(((score[id(d)], d) for d in self.docs), key=lambda x: -x[0])
+
+
 # --- filter 2: the LLM answer ------------------------------------------------
 def load_dotenv():
     env = REPO / ".env"
@@ -429,11 +532,17 @@ def main():
     ap.add_argument("--force-target", action="store_true",
                     help="always put the Danfoss page in the AI's results, even if BM25 "
                          "ranked it lower: tests the writing alone, without the retrieval filter")
-    ap.add_argument("--retrieval", choices=["page", "passage"], default="page",
+    ap.add_argument("--retrieval", choices=["page", "passage", "hybrid"], default="page",
                     help="page: BM25 over whole pages, the AI sees each page's first --max-words "
                          "words (the original lab). passage: BM25 over passages cut at headings, "
                          "a page ranks by its best passage and the AI sees its best passages. "
-                         "Results of the two are not comparable")
+                         "hybrid: words + meaning, BM25 and embedding similarity (Ollama, "
+                         "--embed-model) rank whole pages, merged by reciprocal rank fusion; "
+                         "the AI sees the same text as with page. "
+                         "Results of the different rankings are not comparable")
+    ap.add_argument("--embed-model", default=EMBED_MODEL,
+                    help="Ollama embedding model for --retrieval hybrid (uses --host, "
+                         "default http://localhost:11434)")
     ap.add_argument("--passage-words", type=int, default=200,
                     help="passage length for --retrieval passage")
     ap.add_argument("--passages", type=int, default=3,
@@ -484,10 +593,20 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     raw = (out / "trials.jsonl").open("w", encoding="utf-8")
 
+    embedder = (Embedder(args.host, args.embed_model, HERE / "cache")
+                if args.retrieval == "hybrid" else None)
     rows, done = [], 0
     for target in targets:
         corpus = competitors + [target]  # one Danfoss page at a time vs. the same rivals
-        if args.retrieval == "passage":
+        if args.retrieval == "hybrid":
+            try:
+                ranker = HybridRanker(corpus, embedder)
+            except RuntimeError as e:
+                sys.exit(str(e))
+
+            def shown_text(d, q):
+                return d.text
+        elif args.retrieval == "passage":
             ranker = PassageRanker(corpus, args.passage_words)
 
             def shown_text(d, q):
@@ -575,6 +694,8 @@ def main():
         f"top-{args.top_k} results · pages cut to {max_words} words"
         + (f" · ranking: passages (best {args.passages} per page, ~{args.passage_words} words each)"
            if args.retrieval == "passage" else "")
+        + (f" · ranking: words + meaning (BM25 + `{args.embed_model}` embeddings, merged by RRF)"
+           if args.retrieval == "hybrid" else "")
         + (" · Danfoss page forced into the results" if args.force_target else ""), "",
         f"Competitors: {', '.join(f'{b} ({sum(d.brand == b for d in competitors)} pages)' for b in sorted({d.brand for d in competitors}))}", "",
         "## Danfoss, by writing style (best first)", "",

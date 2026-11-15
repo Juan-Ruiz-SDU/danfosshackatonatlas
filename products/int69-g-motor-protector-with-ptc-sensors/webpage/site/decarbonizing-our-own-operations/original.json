@@ -1,0 +1,312 @@
+{
+ "id": "decarbonizing-our-own-operations",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/",
+ "copied": "2026-11-15T09:04:12",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Decarbonizing our own operations | Danfoss",
+  "description": "To address the climate crisis, we need ambition and action. We want to do our part, and we are well on our way towards carbon neutrality 2030.",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Sustainability",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  ],
+  [
+   "Decarbonizing our own operations",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.45 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "512 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "30 (18 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "42 chars",
+   "status": "ok",
+   "note": "Decarbonizing our own operations | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "142 chars",
+   "status": "ok",
+   "note": "To address the climate crisis, we need ambition and action. We want to do our part, and we are well on our way towards carbon neutrality 2030."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 2,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "1 of 7",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "1119 of 1119",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "percentage",
+   "match": "90%",
+   "sentence": "Danfoss has an SBTi-approved target to reduce absolute Scope 1 and 2 GHG emissions 90% by 2035 from a 2024 base year."
+  },
+  {
+   "type": "percentage",
+   "match": "33%",
+   "sentence": "Reduce scope 3 GHG emissions 66.33% per EUR value added within the same timeframe."
+  },
+  {
+   "type": "percentage",
+   "match": "33%",
+   "sentence": "Reduce scope 3 GHG emissions from the use of sold products 66.33% per ton of refrigeration from sold compressors within the same timeframe."
+  },
+  {
+   "type": "percentage",
+   "match": "90%",
+   "sentence": "Maintain a minimum 90% absolute scope 1 and 2 GHG emissions reduction from 2035 through 2050 from a 2024 base year."
+  },
+  {
+   "type": "percentage",
+   "match": "97%",
+   "sentence": "Reduce scope 3 GHG emissions 97% per EUR value added by 2050 from a 2024 base year."
+  },
+  {
+   "type": "percentage",
+   "match": "90%",
+   "sentence": "With our updated science-based target covering scope 1 and 2 emissions, we aim to achieve a 90% absolute reduction by 2035 from a 2024 base year."
+  },
+  {
+   "type": "percentage",
+   "match": "90%",
+   "sentence": "Our ambition is to reach this 90% reduction compared to our 2019 base year, already by 2030."
+  },
+  {
+   "type": "percentage",
+   "match": "100%",
+   "sentence": "Lastly, we commit to using 100% renewable electricity across our operations by 2030 (RE100)."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "green",
+   "sentence": "Our decarbonization approach is also supported by our First Movers Coalition (FMC) commitment to transitioning to green aluminum."
+  },
+  {
+   "type": "percentage",
+   "match": "10%",
+   "sentence": "We commit to purchasing at least 10% (by volume) low-carbon primary aluminum by 2030 and to ensuring that at least half of the total mass of all aluminum procured per year will be from secondary aluminum by 2030."
+  },
+  {
+   "type": "percentage",
+   "match": "30%",
+   "sentence": "The FMC is a global coalition of companies leveraging their purchasing power to decarbonize the world’s heavy-emitting industrial sectors responsible for 30% of global emissions."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "green",
+   "sentence": "Step 3: Thirdly, we re-source green energy by replacing fossil fuels with renewable energy sources."
+  },
+  {
+   "type": "percentage",
+   "match": "80%",
+   "sentence": "With more than 80% of energy-related emissions coming from electricity, sourcing electricity from renewable and carbon-neutral sources is a key priority."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "We prioritize power purchase agreements (PPAs) that contribute to the transition to more sustainable electricity grids and reinforce our long-term commitment to renewable energy."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "green",
+   "sentence": "By purchasing green electricity where available, we can make the fastest and most significant contribution to climate action."
+  },
+  {
+   "type": "percentage",
+   "match": "90%",
+   "sentence": "At identified sites, at least 90% of the energy within the stated scope comes from low carbon or renewable energy; residual emissions addressed through carbon offsets represent up to 10%."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Stay up to date with recent information from Danfoss, get inspiring content on our sustainable solutions and climate action."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Read successful case stories from our customers and explore how we help lead the sustainable transformation to limit climate change."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Decarbonizing our own operations"
+  },
+  {
+   "level": 2,
+   "text": "Our decarbonization targets"
+  },
+  {
+   "level": 4,
+   "text": "Near-term targets"
+  },
+  {
+   "level": 4,
+   "text": "Long-term targets"
+  },
+  {
+   "level": 2,
+   "text": "Climate Group initiative targets"
+  },
+  {
+   "level": 2,
+   "text": "First Movers Coalition target"
+  },
+  {
+   "level": 4,
+   "text": "Achieving net-zero"
+  },
+  {
+   "level": 4,
+   "text": "Target-setting methodology"
+  },
+  {
+   "level": 2,
+   "text": "In competitive decarbonization, sequence matters"
+  },
+  {
+   "level": 2,
+   "text": "Securing renewable energy"
+  },
+  {
+   "level": 3,
+   "text": "Carbon-neutral operations"
+  },
+  {
+   "level": 3,
+   "text": "Fleet electrification"
+  },
+  {
+   "level": 4,
+   "text": "Annual Report 2025"
+  },
+  {
+   "level": 2,
+   "text": "Updates from Danfoss"
+  }
+ ],
+ "words_raw": 1119,
+ "words_rendered": 1119,
+ "links": [
+  "https://assets.danfoss.com/documents/latest/579091/AH553953857668en-000101.pdf",
+  "https://www.theclimategroup.org/",
+  "https://initiatives.weforum.org/first-movers-coalition/commitments/",
+  "https://www.danfoss.com/en/about-danfoss/news/cf/danfoss-joins-first-movers-coalition-and-commits-to-drive-global-development-of-sustainable-aluminum/",
+  "https://www.danfoss.com/en/about-danfoss/news/cf/volvo-and-danfoss-introduce-first-24-hour-e-truck-fleet/",
+  "https://assets.danfoss.com/documents/latest/579092/AH553954278717en-000101.pdf"
+ ]
+}

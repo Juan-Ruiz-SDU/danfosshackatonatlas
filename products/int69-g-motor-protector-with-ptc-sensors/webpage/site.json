@@ -1,7 +1,7 @@
 {
  "start": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
- "prefix": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
- "copied": "2026-11-15T08:35:37",
+ "prefix": "https://www.danfoss.com/en/about-danfoss/company/",
+ "copied": "2026-11-15T09:04:32",
  "browser": true,
  "pages": [
   {
@@ -14,6 +14,83 @@
    "parent": null,
    "words_raw": 366,
    "words_rendered": 366
+  },
+  {
+   "id": "application-development-centers",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/",
+   "title": "Application Development Centers (ADCs) | Danfoss",
+   "h1": "Application Development Centers (ADCs)",
+   "depth": 1,
+   "parent": "who-we-are",
+   "words_raw": 220,
+   "words_rendered": 220
+  },
+  {
+   "id": "sustainability",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/",
+   "title": "Sustainability | Danfoss",
+   "h1": "Sustainability",
+   "depth": 1,
+   "parent": "who-we-are",
+   "words_raw": 577,
+   "words_rendered": 640
+  },
+  {
+   "id": "our-sustainability-ambitions",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/",
+   "title": "Our sustainability ambitions | Danfoss",
+   "h1": "Our sustainability ambitions",
+   "depth": 2,
+   "parent": "sustainability",
+   "words_raw": 1140,
+   "words_rendered": 1140
+  },
+  {
+   "id": "policies-reports-and-sustainability-ratings",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+   "title": "Policies, reports, and sustainability ratings | Danfoss",
+   "h1": "Policies, reports, and sustainability ratings",
+   "depth": 2,
+   "parent": "sustainability",
+   "words_raw": 667,
+   "words_rendered": 667
+  },
+  {
+   "id": "decarbonizing-our-own-operations",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/",
+   "title": "Decarbonizing our own operations | Danfoss",
+   "h1": "Decarbonizing our own operations",
+   "depth": 2,
+   "parent": "sustainability",
+   "words_raw": 1119,
+   "words_rendered": 1119
+  },
+  {
+   "id": "circularity",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/",
+   "title": "A more circular Danfoss | Danfoss",
+   "h1": "Circularity",
+   "depth": 2,
+   "parent": "sustainability",
+   "words_raw": 891,
+   "words_rendered": 955
+  },
+  {
+   "id": "inclusion",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/",
+   "title": "Inclusion - Danfoss | Danfoss",
+   "h1": "Inclusion",
+   "depth": 2,
+   "parent": "sustainability",
+   "words_raw": 659,
+   "words_rendered": 659
   }
  ]
 }

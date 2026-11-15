@@ -342,6 +342,8 @@
     </div>
 
     <div class="subpanel" data-sub="site">
+     <div class="site-layout">
+      <div class="site-main">
       <section class="card" id="web-live-card">
         <h2>danfoss.com, live <span class="count product-name"></span></h2>
         <form id="web-live-form" class="row">
@@ -354,12 +356,17 @@
           <div class="browserbar"><span class="dots"><i></i><i></i><i></i></span><span id="web-live-addr" class="addr"></span></div>
           <iframe id="web-live" sandbox="allow-same-origin allow-popups" title="danfoss.com, live"></iframe>
         </div>
+        <div id="web-live-sync" class="syncbar hidden" role="status"></div>
       </section>
 
       <section class="card hidden" id="web-site">
-        <h2>Our version <span class="count product-name"></span></h2>
-        <div class="sitebox">
-          <ol id="web-pages" class="pagelist" aria-label="Pages of the website"></ol>
+        <div class="row between">
+          <h2>Our version <span class="count product-name"></span></h2>
+          <button id="web-update" type="button" title="Reads the Danfoss pages again and rebuilds every page from the wiki. Your edits are kept.">↻ Update our version</button>
+        </div>
+        <p class="hint" id="web-site-source"></p>
+        <div class="sitebox single">
+          <ol id="web-pages" class="pagelist hidden" aria-label="Pages of the website"></ol>
           <div class="browser">
             <div class="browserbar"><span class="dots"><i></i><i></i><i></i></span><span id="web-addr" class="addr"></span>
               <a id="web-open" class="ghostlink" target="_blank" rel="noopener">Open ↗</a></div>
@@ -395,6 +402,13 @@
           <p class="hint" id="web-status"></p>
         </details>
       </section>
+      </div>
+      <aside class="historybar card" aria-label="History of changed pages">
+        <h3>History</h3>
+        <p class="hint tiny">Every change to our pages, newest first. Click a page to open it.</p>
+        <ol id="web-history" class="history"></ol>
+      </aside>
+     </div>
     </div>
 
     <div class="subpanel" data-sub="edit">

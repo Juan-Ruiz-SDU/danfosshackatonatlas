@@ -240,7 +240,7 @@ def site_state(slug):
     if not (SITE_JOB and SITE_JOB.slug == slug and SITE_JOB.status == "running"):
         website.refresh(p, danfoss_url(p))  # the wiki may have changed: rebuild from it
     site = website.load_map(p)
-    return {"site": site, "checks": website.site_checks(p) if site else None,
+    return {"site": site, "checks": website.site_checks(p) if site else None, "history": website.history(p),
             "lab_page": website.lab_page(p, danfoss_url(p)) if site else None,
             "start": website.default_start(p, danfoss_url(p)),
             "job": SITE_JOB.as_dict() if SITE_JOB and SITE_JOB.slug == slug else None}
@@ -261,6 +261,12 @@ def start_site_copy(b):
         try:
             website.copy_site(p, url, also=[danfoss_url(p)], max_pages=max(1, min(int(b.get("max_pages") or 15), 40)),
                               replace=bool(b.get("replace")), log=job.log, cancelled=lambda: job.stop)
+            # remember this website for the product, so the next update starts from it
+            pj = p["folder"] / "product.json"
+            data = json.loads(pj.read_text(encoding="utf-8"))
+            if data.get("site_start") != url:
+                data["site_start"] = url
+                pj.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
             job.status = "done"
             job.log("Finished.")
         except (ValueError, RuntimeError) as e:

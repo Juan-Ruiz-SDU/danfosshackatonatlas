@@ -1,0 +1,250 @@
+{
+ "id": "sustainability",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/",
+ "copied": "2026-11-15T09:03:47",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Sustainability | Danfoss",
+  "description": "While delivering growth and strong financial results, we care for our people and aim to leave the world to the next generation in a better state than we found it. Our business and organizational culture has been built on these basic principles since the day Danfoss was founded.",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/sustainability/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Sustainability",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "Our latest sustainability achievements",
+  "Sustainability highlights 2025",
+  "Sustainability reports"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.28 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "541 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "29 (18 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "24 chars",
+   "status": "ok",
+   "note": "Sustainability | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "278 chars",
+   "status": "warn",
+   "note": "While delivering growth and strong financial results, we care for our people and aim to leave the world to the next generation in a better state than we found it. Our business and organizational culture has been built on these basic principles since the day Danfoss was founded."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 3,
+   "status": "bad",
+   "note": "Our latest sustainability achievements; Sustainability highlights 2025; Sustainability reports — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "10 of 16",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "577 of 640",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "percentage",
+   "match": "2%",
+   "sentence": "We achieved our former SBTi-target to reduce our scope 1 and 2 emissions by 46.2% by 2030, five years ahead of plan."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Stay up to date with recent information from Danfoss, get inspiring content on our sustainable solutions and climate action."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Read successful case stories from our customers and explore how we help lead the sustainable transformation to limit climate change."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Sustainability"
+  },
+  {
+   "level": 3,
+   "text": "Our latest sustainability achievements"
+  },
+  {
+   "level": 2,
+   "text": "CDP Leadership"
+  },
+  {
+   "level": 2,
+   "text": "EcoVadis Platinum Medal​"
+  },
+  {
+   "level": 2,
+   "text": "Raising the bar towards net-zero"
+  },
+  {
+   "level": 2,
+   "text": "Expected avoided emissions​ for our customers"
+  },
+  {
+   "level": 2,
+   "text": "CDP Leadership"
+  },
+  {
+   "level": 2,
+   "text": "EcoVadis Platinum Medal​"
+  },
+  {
+   "level": 3,
+   "text": "Sustainability highlights 2025"
+  },
+  {
+   "level": 3,
+   "text": "Annual Report 2025"
+  },
+  {
+   "level": 3,
+   "text": "Climate Transition Plan"
+  },
+  {
+   "level": 4,
+   "text": "Policies, reports, and sustainability ratings"
+  },
+  {
+   "level": 3,
+   "text": "Discover more on sustainability"
+  },
+  {
+   "level": 2,
+   "text": "Explore our sustainability papers"
+  },
+  {
+   "level": 2,
+   "text": "Updates from Danfoss"
+  },
+  {
+   "level": 2,
+   "text": "Sustainability reports"
+  }
+ ],
+ "words_raw": 577,
+ "words_rendered": 640,
+ "links": [
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/",
+  "https://www.danfoss.com/en/about-danfoss/news/cf/danfoss-earns-cdp-leadership-recognition/",
+  "https://www.danfoss.com/en/about-danfoss/news/cf/danfoss-awarded-ecovadis-platinum-medal/",
+  "https://www.danfoss.com/en/about-danfoss/news/cf/danfoss-reaffirms-climate-ambitions-with-updated-targets-approved-by-science-based-targets-initiative-sbti/",
+  "https://assets.danfoss.com/documents/latest/579092/AH553954278717en-000101.pdf",
+  "https://assets.danfoss.com/documents/latest/587977/AH561835845116en-000101.pdf",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/decarbonizing-our-own-operations/",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/",
+  "https://danfoss.whistleblowernetwork.net/"
+ ]
+}

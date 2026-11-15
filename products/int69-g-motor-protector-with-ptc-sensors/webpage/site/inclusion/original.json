@@ -1,0 +1,225 @@
+{
+ "id": "inclusion",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/",
+ "copied": "2026-11-15T09:04:30",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Inclusion - Danfoss | Danfoss",
+  "description": "Danfoss’ foundation is our high-performing and engaged teams. We strongly believe that taking care of our people and our working environment – where everyone feels engaged, respected, and included – is essential for Danfoss’ growth journey.",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Sustainability",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  ],
+  [
+   "Inclusion",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "Gender Pay Gap Reports - Danfoss Limited (UK)",
+  "Explore more"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "1.16 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "509 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "27 (17 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "29 chars",
+   "status": "ok",
+   "note": "Inclusion - Danfoss | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "240 chars",
+   "status": "warn",
+   "note": "Danfoss’ foundation is our high-performing and engaged teams. We strongly believe that taking care of our people and our working environment – where everyone feels engaged, respected, and included – is essential for Danfoss’ growth journey."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/sustainability/inclusion/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 2,
+   "status": "bad",
+   "note": "Gender Pay Gap Reports - Danfoss Limited (UK); Explore more — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "2 of 6",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "659 of 659",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "We demonstrate the Danfoss behaviors every day, while focusing on operational excellence, sustainable innovation, and a customer-centric approach."
+  },
+  {
+   "type": "percentage",
+   "match": "5%",
+   "sentence": "To support this ambition, we have set a target to ensure the total net gender pay gap remains below 5% globally towards 2030."
+  },
+  {
+   "type": "percentage",
+   "match": "70%",
+   "sentence": "To achieve this, we follow the globally recognized 70:20:10 learning model, where 70% of learning and development comes from on-the-job experience, 20% from working together and learning from each other, and 10% from for"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Stay up to date with recent information from Danfoss, get inspiring content on our sustainable solutions and climate action."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Read successful case stories from our customers and explore how we help lead the sustainable transformation to limit climate change."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Inclusion"
+  },
+  {
+   "level": 3,
+   "text": "Fostering a safe and inclusive culture where our high-performing, engaged teams can thrive and deliver their best"
+  },
+  {
+   "level": 4,
+   "text": "Ambitious targets driving our performance"
+  },
+  {
+   "level": 4,
+   "text": "Learning and development"
+  },
+  {
+   "level": 3,
+   "text": "Promoting inclusion through our Employee Resource Groups"
+  },
+  {
+   "level": 4,
+   "text": "Annual Report 2025"
+  },
+  {
+   "level": 4,
+   "text": "Gender Pay Gap Reports - Danfoss Limited (UK)"
+  },
+  {
+   "level": 4,
+   "text": "Explore more"
+  },
+  {
+   "level": 2,
+   "text": "Updates from Danfoss"
+  }
+ ],
+ "words_raw": 659,
+ "words_rendered": 659,
+ "links": [
+  "https://assets.danfoss.com/documents/latest/579092/AH553954278717en-000101.pdf"
+ ]
+}

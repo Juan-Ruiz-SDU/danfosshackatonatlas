@@ -1,0 +1,291 @@
+{
+ "id": "circularity",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/",
+ "copied": "2026-11-15T09:04:19",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "A more circular Danfoss | Danfoss",
+  "description": "We strive to deliver the best circular solutions on the market by developing innovative circular business models with our customers and suppliers. Explore how...",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Sustainability",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  ],
+  [
+   "Circularity",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.35 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "522 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "27 (17 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "33 chars",
+   "status": "ok",
+   "note": "A more circular Danfoss | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "161 chars",
+   "status": "warn",
+   "note": "We strive to deliver the best circular solutions on the market by developing innovative circular business models with our customers and suppliers. Explore how..."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/sustainability/circularity/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 3,
+   "status": "warn",
+   "note": "The Sustainability Strategies Wheel; New product development; Circular business revenues"
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "2 of 10",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "891 of 955",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "As one of our three sustainability step-change initiatives, our circularity agenda plays a key role in our approach to sustainable innovation."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Sustainable Design Guide: operationalizes the Danfoss Circularity Framework, providing guidelines and practical examples for implementation."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Our overarching Sustainable Design Guide methodology identifies 10 sustainability strategies for new product development and 30 guidelines providing practical advice and tips for implementation."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "This Guide forms the basis for our work with sustainable product design as well as our qualitative RE:CIRC tool."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Our internal sustainable design assessment tool is based on our Sustainable Design Guide."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Green",
+   "sentence": "Green Materials Guide: provides practical guidance circularity and carbon data on materials and applications to inform our materials choices."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Practical guidance on carbon footprint and circularity potential of materials, informing our choice of materials in the new product development, and underpinning our Sustainable Design Guide."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Sustainable Packaging tool: assesses the sustainability of packaging options."
+  },
+  {
+   "type": "percentage",
+   "match": "80%",
+   "sentence": "By 2030, we aim to have 80% of newly developed products launched covered by Danfoss’ circularity approach."
+  },
+  {
+   "type": "percentage",
+   "match": "25%",
+   "sentence": "By 2030, we aim to achieve a 25% increase of circular business revenues compared to our 2023 base year, equal to EUR 287m."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "With dedicated teams and established refurbishment lines, we are scaling up our circular service offerings to support more sustainable operations across industries while driving competitiveness."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Stay up to date with recent information from Danfoss, get inspiring content on our sustainable solutions and climate action."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Read successful case stories from our customers and explore how we help lead the sustainable transformation to limit climate change."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Circularity"
+  },
+  {
+   "level": 3,
+   "text": "We invest in circularity to take responsibility for our environmental impact and strengthen our competitiveness"
+  },
+  {
+   "level": 0,
+   "text": "The Sustainability Strategies Wheel",
+   "pseudo": true
+  },
+  {
+   "level": 4,
+   "text": "Danfoss Circularity Toolbox"
+  },
+  {
+   "level": 4,
+   "text": "Our circularity targets"
+  },
+  {
+   "level": 0,
+   "text": "New product development",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "Circular business revenues",
+   "pseudo": true
+  },
+  {
+   "level": 2,
+   "text": "Danfoss Sustainability Paper No. 1 - Reduce, Reuse, Re-source"
+  },
+  {
+   "level": 2,
+   "text": "New Danfoss Sustainability Paper - Circularity in action"
+  },
+  {
+   "level": 2,
+   "text": "Danfoss Sustainability Paper No. 1 - Reduce, Reuse, Re-source"
+  },
+  {
+   "level": 2,
+   "text": "New Danfoss Sustainability Paper - Circularity in action"
+  },
+  {
+   "level": 3,
+   "text": "Collaborating for circularity"
+  },
+  {
+   "level": 3,
+   "text": "Collaboration with customers"
+  },
+  {
+   "level": 4,
+   "text": "Annual Report 2025"
+  },
+  {
+   "level": 2,
+   "text": "Updates from Danfoss"
+  }
+ ],
+ "words_raw": 891,
+ "words_rendered": 955,
+ "links": [
+  "https://assets.danfoss.com/documents/latest/403611/BE493135987733en-000101.pdf",
+  "https://assets.danfoss.com/documents/latest/432056/BE501446424322en-000101.pdf",
+  "https://assets.danfoss.com/documents/latest/579092/AH553954278717en-000101.pdf"
+ ]
+}

@@ -2,7 +2,7 @@
  "id": "who-we-are",
  "url": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
  "final_url": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
- "copied": "2026-11-15T08:35:35",
+ "copied": "2026-11-15T09:03:29",
  "rendered_with": "browser",
  "meta": {
   "title": "Who we are | Danfoss",
@@ -46,8 +46,8 @@
   },
   {
    "check": "Time to first byte",
-   "value": "0.32 s",
-   "status": "ok",
+   "value": "3.42 s",
+   "status": "bad",
    "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
   },
   {

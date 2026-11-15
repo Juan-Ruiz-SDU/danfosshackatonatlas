@@ -1,0 +1,168 @@
+{
+ "id": "application-development-centers",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/",
+ "copied": "2026-11-15T09:03:36",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Application Development Centers (ADCs) | Danfoss",
+  "description": "",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Application Development Centers (ADCs)",
+   "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.89 s",
+   "status": "warn",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "108 KB",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "26 (17 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "48 chars",
+   "status": "ok",
+   "note": "Application Development Centers (ADCs) | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "0 chars",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "0 of 9",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "220 of 220",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "unsupported superlative",
+   "match": "superior",
+   "sentence": "Access state-of-the-art test facilities, superior technical expertise, and deep application knowledge by teaming up with our experienced engineers."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Application Development Centers (ADCs)"
+  },
+  {
+   "level": 3,
+   "text": "Explore Danfoss Application Development Centers"
+  }
+ ],
+ "words_raw": 220,
+ "words_rendered": 220,
+ "links": []
+}

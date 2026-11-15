@@ -1,7 +1,7 @@
 ---
 source: "https://www.danfoss.com/en/about-danfoss/company/who-we-are/"
 final_url: "https://www.danfoss.com/en/about-danfoss/company/who-we-are/"
-copied: "2026-11-15T08:35:35"
+copied: "2026-11-15T09:03:29"
 note: "Snapshot of the page as copied. Do not edit: edit page.md"
 ---
 # Who we are

@@ -239,6 +239,13 @@ def copy_site(p, start_url, also=(), max_pages=15, replace=False, log=print, can
                           "depth": depth if depth != 9 else None, "parent": parent,
                           "words_raw": raw_words, "words_rendered": words_js})
             log(f"  saved as {pid}: {words_js} words with JavaScript, {raw_words} without")
+            if len(pages) == 1 and depth == 0 and not any(l.startswith(prefix) and l != final for l in links):
+                # the first page links to nothing below its own address (e.g. ".../who-we-are/"):
+                # take its parent folder as the section, so the site is more than one page
+                parent_dir = prefix.rstrip("/").rsplit("/", 1)[0] + "/"
+                if parent_dir.count("/") > 3:
+                    prefix = parent_dir
+                    log(f"  nothing below this address: the section is {prefix}")
             if depth < 2:
                 for link in links:
                     if link.startswith(prefix) and link not in seen:
@@ -251,12 +258,16 @@ def copy_site(p, start_url, also=(), max_pages=15, replace=False, log=print, can
     site = {"start": start, "prefix": prefix, "copied": datetime.datetime.now().isoformat(timespec="seconds"),
             "browser": bool(browser), "pages": pages}
     old = load_map(p)
-    if old and not replace:  # keep pages copied earlier that this run did not reach
+    if old and not replace:  # keep pages copied earlier that this run did not reach, if in this section
         ids = {x["id"] for x in pages}
-        site["pages"] += [x for x in old["pages"] if x["id"] not in ids and page_paths(p, x["id"])["copy"].is_file()]
+        site["pages"] += [x for x in old["pages"] if x["id"] not in ids and page_paths(p, x["id"])["copy"].is_file()
+                          and norm_url(x["final_url"]).startswith(prefix)]
     save_map(p, site)
     _migrate_single_copy(p, site)
-    render_site(p)
+    render_site(p, reason="update")
+    log_history(p, "update", f"Read again from danfoss.com: {len(pages)} page{'s' if len(pages) != 1 else ''} "
+                f"from {start}" + (" (edited pages replaced)" if replace else " (edits kept)"),
+                [x["id"] for x in pages])
     return site
 
 
@@ -319,7 +330,8 @@ def import_page(p, url, raw_html, filename=""):
                               "h1": next((i["text"] for i in items if i["kind"] == "h1"), pid),
                               "depth": None, "parent": None, "words_raw": None, "words_rendered": words})
     save_map(p, site)
-    render_site(p)
+    render_site(p, reason="import")
+    log_history(p, "import", f"Imported from a file saved in the browser ({words} words)", [pid])
     return pid
 
 
@@ -523,12 +535,44 @@ def _copy_items(p, pid):
     return meta, webpage.md_to_items(body)
 
 
-def render_site(p):
+# --- history: one line per change, shown in the side bar of Web page › Site -----------------
+def history_path(p):
+    return paths(p)["map"].parent / "history.jsonl"
+
+
+def log_history(p, kind, text, pages=()):
+    """kind: edit (saved by hand), update (read again from danfoss.com), wiki (a wiki change
+    reached the pages), import (a page imported from the browser)."""
+    site = load_map(p) or {"pages": []}
+    names = {x["id"]: x.get("h1") or x["id"] for x in site["pages"]}
+    entry = {"time": datetime.datetime.now().isoformat(timespec="seconds"), "kind": kind, "text": text,
+             "pages": [{"id": i, "h1": names.get(i, i)} for i in pages]}
+    with history_path(p).open("a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def history(p, n=200):
+    f = history_path(p)
+    if not f.is_file():
+        return []
+    rows = []
+    for line in f.read_text(encoding="utf-8-sig").splitlines():  # a damaged line never breaks the tab
+        try:
+            if line.strip():
+                rows.append(json.loads(line))
+        except ValueError:
+            continue
+    return rows[::-1][:n]
+
+
+def render_site(p, reason="wiki"):
     """Every page copy as a static HTML page of the mini website, with links
-    between the pages pointing to each other, then the sitemap."""
+    between the pages pointing to each other, then the sitemap. Pages whose text
+    changed because of the wiki are noted in the history (reason='wiki')."""
     site = load_map(p)
     if not site:
-        return
+        return []
+    changed = []
     by_url = {}
     for pg in site["pages"]:
         meta, _ = webpage.read_copy(page_paths(p, pg["id"])["copy"])
@@ -563,8 +607,15 @@ def render_site(p):
             meta.get("url") or pg["final_url"], [tuple(b) for b in crumbs], meta.get("lang") or "en",
             note=f"Atlas reconstruction of {pg['final_url']} for testing. Not the official Danfoss website.",
             link_map=link_map, chrome=chrome, product={"category": p.get("product_type", "")})
-        page_paths(p, pg["id"])["html"].write_text(page_html, encoding="utf-8")
+        out = page_paths(p, pg["id"])["html"]
+        before = out.read_text(encoding="utf-8") if out.is_file() else ""
+        if before and webpage.lab_text(before) != webpage.lab_text(page_html):
+            changed.append(pg["id"])
+        out.write_text(page_html, encoding="utf-8")
     webpage.write_sitemap(p)
+    if changed and reason == "wiki":
+        log_history(p, "wiki", "Rebuilt from the wiki: the facts changed", changed)
+    return changed
 
 
 def render_original(p, pid):
@@ -653,9 +704,11 @@ def site_checks(p):
          "note": ", ".join(deep)},
         {"check": "Pages in sitemap.xml", "value": f"{sum(r['in_sitemap'] for r in rows)} of {len(rows)}",
          "status": "ok" if all(r["in_sitemap"] for r in rows) else "warn"},
-        {"check": "Danfoss pages whose text needs JavaScript", "value": len(js_only),
-         "status": "ok" if not js_only else "bad", "note": ", ".join(js_only) + (
-             " — in your copies all text is in the HTML" if js_only else "")},
+        {"check": "Our pages whose text needs JavaScript", "value": 0, "status": "ok",
+         "note": "all text is in the HTML, readable by every crawler"},
+        {"check": "Danfoss's live pages whose text needs JavaScript (for reference)", "value": len(js_only),
+         "status": "ok" if not js_only else "warn", "note": (", ".join(js_only) + ": our version fixes this")
+         if js_only else ""},
     ]
     return {"summary": summary, "pages": rows}
 
@@ -761,5 +814,13 @@ def save_page(p, pid, text):
                          + ". Pick them from the list under the editor.")
     if not any(x["kind"] == "h1" for x in webpage.md_to_items(expanded)):
         raise ValueError("The page needs one main title: a line starting with '# '.")
+    old_words = 0
+    if pth["copy"].is_file():
+        _, old_body = webpage.read_copy(pth["copy"])
+        old_words = len(webpage.words_of(webpage.md_to_items(expand_wiki(p, old_body)[0])))
+    new_words = len(webpage.words_of(webpage.md_to_items(expanded)))
     pth["copy"].write_text(text.replace("\r\n", "\n"), encoding="utf-8")
-    render_site(p)  # titles in the menu and links between pages may have changed
+    render_site(p, reason="edit")  # titles in the menu and links between pages may have changed
+    blocks = len(WIKI_RE.findall(body))
+    log_history(p, "edit", f"Saved by hand: {new_words} words ({new_words - old_words:+d})"
+                + (f", {blocks} wiki block{'s' if blocks != 1 else ''}" if blocks else ""), [pid])

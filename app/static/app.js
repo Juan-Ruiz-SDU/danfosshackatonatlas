@@ -821,7 +821,7 @@ let SITE = null, PAGESEL = null, sitePoll = null;
 function showLive(url) {
   url = (url || "").trim();
   if (!url) { $("#web-live-status").textContent = "Write the address of a danfoss.com page."; return; }
-  $("#web-live-url").value = url; $("#web-live-addr").textContent = url; $("#web-live-open").href = url;
+  $("#web-live-url").value = url; $("#web-live-addr").textContent = url; $("#web-live-open").href = url; LIVEURL = url;
   $("#web-live-status").textContent = "Loading the page from danfoss.com… (10–20 seconds the first time)";
   $("#web-live").src = "/live?url=" + encodeURIComponent(url);
 }
@@ -830,9 +830,81 @@ $("#web-live").addEventListener("load", () => {
   $("#web-live-status").textContent = "";
   try {  // follow the links clicked inside the box
     const u = new URL($("#web-live").contentWindow.location.href).searchParams.get("url");
-    if (u) { $("#web-live-url").value = u; $("#web-live-addr").textContent = u; $("#web-live-open").href = u; }
+    if (u) { $("#web-live-url").value = u; $("#web-live-addr").textContent = u; $("#web-live-open").href = u; LIVEURL = u; }
   } catch (e) { /* not our page */ }
+  renderLiveSync();
 });
+
+// --- our version follows the live page --------------------------------------------------------
+let LIVEURL = "";
+function normUrl(u) {
+  try { const x = new URL(u); let path = x.pathname || "/"; if (!path.endsWith("/") && !path.split("/").pop().includes(".")) path += "/";
+    return `${x.protocol}//${x.host.toLowerCase()}${path}`; } catch (e) { return u; }
+}
+function renderLiveSync() {
+  const bar = $("#web-live-sync");
+  if (!LIVEURL || !P) { bar.classList.add("hidden"); return; }
+  const want = normUrl(LIVEURL);
+  const page = SITE?.site?.pages.find(pg => [pg.url, pg.final_url].some(u => normUrl(u) === want));
+  const inSection = SITE?.site && want.startsWith(normUrl(SITE.site.prefix || SITE.site.start));
+  bar.classList.remove("hidden");
+  if (page) {
+    bar.innerHTML = `✔ This page is in our version. <button type="button" id="sync-show">Show our version of it</button>`;
+    $("#sync-show").onclick = () => safe(async () => { await selectPage(page.id, true); $("#web-site").scrollIntoView({ behavior: "smooth" }); });
+  } else {
+    bar.innerHTML = `${inSection ? "This page is not in our version yet." : SITE?.site ? "Our version is another part of danfoss.com." : "We have no version of this website yet."}
+      <button type="button" class="primary" id="sync-use">${inSection ? "Add it to our version" : "Use this website for our version"}</button>
+      <span class="hint">Reads it and the pages it links to (1–3 minutes). Your edits to other pages are kept.</span>`;
+    $("#sync-use").onclick = () => startSiteCopy(LIVEURL, false);
+  }
+}
+function startSiteCopy(url, replace) {
+  if (!P) return;
+  safe(async () => {
+    await api("/api/site/copy", { slug: P.product.slug, url, max_pages: +$("#web-max").value || 15, replace });
+    $("#web-url").value = url; $("#web-url").dataset.auto = "0";
+    $("#web-load").open = true;
+    $("#web-copy-btn").disabled = true;
+    renderJobBox({ status: "running", log: ["Starting…"], elapsed: 0 });
+    $("#web-job").scrollIntoView({ behavior: "smooth", block: "center" });
+    pollSite();
+  });
+}
+// --- the history bar: every change to our pages, newest first -----------------------------------
+const HIST_KIND = { edit: ["✎", "Edited"], update: ["↻", "Updated"], wiki: ["◆", "Wiki"], import: ["⇩", "Imported"] };
+function whenText(iso) {
+  const d = new Date(iso), now = new Date();
+  const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (d.toDateString() === now.toDateString()) return `Today ${hm}`;
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return `Yesterday ${hm}`;
+  return `${d.toLocaleDateString([], { day: "numeric", month: "short" })} ${hm}`;
+}
+function renderHistory() {
+  const box = $("#web-history"), rows = SITE?.history || [];
+  if (!rows.length) {
+    box.innerHTML = `<li class="hint">Nothing changed yet. Edits, updates from danfoss.com and wiki changes that reach a page appear here.</li>`;
+    return;
+  }
+  const known = new Set((SITE?.site?.pages || []).map(x => x.id));
+  box.innerHTML = rows.map(r => {
+    const [icon, label] = HIST_KIND[r.kind] || ["•", r.kind];
+    const pages = r.pages.slice(0, 4).map(pg => known.has(pg.id)
+      ? `<button type="button" class="linklike" data-id="${esc(pg.id)}">${esc(_shortTitle(pg.h1))}</button>` : `<span>${esc(_shortTitle(pg.h1))}</span>`).join("");
+    const more = r.pages.length > 4 ? `<span class="hint tiny">+${r.pages.length - 4} more</span>` : "";
+    return `<li class="h-${esc(r.kind)}"><div class="h-head"><span class="h-ic" aria-hidden="true">${icon}</span><b>${esc(label)}</b><time datetime="${esc(r.time)}">${esc(whenText(r.time))}</time></div>
+      <div class="h-pages">${pages}${more}</div><div class="hint tiny">${esc(r.text)}</div></li>`;
+  }).join("");
+  $$("#web-history [data-id]").forEach(b => b.onclick = () => safe(async () => {
+    await selectPage(b.dataset.id, true); $("#web-site").scrollIntoView({ behavior: "smooth" });
+  }));
+}
+async function refreshHistory() {
+  const s = await api("/api/site?slug=" + encodeURIComponent(P.product.slug)).catch(() => null);
+  if (s) { SITE.history = s.history; renderHistory(); }
+}
+
+$("#web-update").onclick = () => SITE?.site && startSiteCopy(SITE.site.start, false);
 
 async function loadWeb() {
   SITE = await api("/api/site?slug=" + encodeURIComponent(P.product.slug));
@@ -843,6 +915,8 @@ async function loadWeb() {
   if (liveUrl && $("#web-live").dataset.product !== P.product.slug) { $("#web-live").dataset.product = P.product.slug; showLive(liveUrl); }
   renderJobBox(SITE.job);
   if (SITE.job && SITE.job.status === "running") pollSite();
+  renderLiveSync();
+  renderHistory();
   if (!SITE.site) {
     $("#web-copyinfo").innerHTML = "To edit our version, write the first page of the section (for example the catalog) and press <b>Load the pages</b>. It takes a minute or two.";
     ["#web-site", "#web-edit", "#web-gaps-card"].forEach(s => $(s).classList.add("hidden"));
@@ -910,6 +984,7 @@ function renderSite() {
   $("#web-copy-btn").textContent = "Load the pages again";
   $("#web-copyinfo").innerHTML = `${s.pages.length} pages loaded ${esc(s.copied.replace("T", " "))} from <a href="${esc(s.start)}" target="_blank" rel="noopener">${esc(s.start)}</a>${s.browser ? "" : " (without a browser: pages that need JavaScript may be incomplete)"}.`;
   $("#web-site").classList.remove("hidden");
+  $("#web-site-source").innerHTML = `${s.pages.length} page${s.pages.length === 1 ? "" : "s"} from <a href="${esc(s.start)}" target="_blank" rel="noopener">${esc(s.start)}</a>, updated ${esc(s.copied.replace("T", " ").slice(0, 16))}. Facts come from the wiki, rebuilt every time you open this tab.`;
   $("#web-pages").innerHTML = s.pages.map(pg => {
     const r = rows[pg.id] || {};
     const d = r.depth == null ? 3 : Math.min(r.depth, 3);
@@ -956,6 +1031,7 @@ $("#web-save").onclick = () => {
       renderSite(); renderPage();
       $("#web-frame").src = pageUrl(`site/${PAGESEL}.html`) + "?t=" + Date.now();
       toast("Page saved");
+      refreshHistory();
     } finally { btn.disabled = false; }
   });
 };

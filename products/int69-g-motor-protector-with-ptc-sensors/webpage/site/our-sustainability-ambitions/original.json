@@ -1,0 +1,256 @@
+{
+ "id": "our-sustainability-ambitions",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/",
+ "copied": "2026-11-15T09:03:55",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Our sustainability ambitions | Danfoss",
+  "description": "Our impact and contribution towards mitigating climate change is two-fold – through the solutions we sell and through the way we run our business. By delivering the solutions needed to decarbonize the industries we serve as the core of our business, we can have a sustained and systemic impact. This is why our sustainability ambition is to become our customers’ preferred decarbonization partner.",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Sustainability",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  ],
+  [
+   "Our sustainability ambitions",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/"
+  ]
+ ],
+ "removed_empty_sections": [],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.36 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "523 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "28 (18 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "38 chars",
+   "status": "ok",
+   "note": "Our sustainability ambitions | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "397 chars",
+   "status": "warn",
+   "note": "Our impact and contribution towards mitigating climate change is two-fold – through the solutions we sell and through the way we run our business. By delivering the solutions needed to decarbonize the industries we serve as the core of our business, we can have a sustained and systemic impact. This is why our sustainability ambition is to become our customers’ preferred decarbonization partner."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/sustainability/our-sustainability-ambitions/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 0,
+   "status": "ok",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Repeated list items",
+   "value": 1,
+   "status": "warn",
+   "note": "Adoption of more sustainable practices"
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "3 of 9",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "1140 of 1140",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "green",
+   "sentence": "Therefore, we have a responsibility and a unique opportunity to help enable the green transition."
+  },
+  {
+   "type": "unsupported superlative",
+   "match": "highest",
+   "sentence": "We are committed to fostering a culture where everyone feels safe, respected, and empowered to perform at their highest potential."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Green",
+   "sentence": "Supplier engagement program, the Green Ask"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Drive development of sustainable innovation"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Adoption of more sustainable practices"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Secure sustainable funding"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Adoption of more sustainable practices"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Our impact on the Sustainable Development Goals"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "With sustainability at the core of our business, we continue to support and contribute to the United Nations Sustainable Development Goals."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "We also see our contribution to the Sustainable Development Goals through our business activities and the effort of aligning our business practices with current environmental and societal challenges."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Stay up to date with recent information from Danfoss, get inspiring content on our sustainable solutions and climate action."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Read successful case stories from our customers and explore how we help lead the sustainable transformation to limit climate change."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Our sustainability ambitions"
+  },
+  {
+   "level": 2,
+   "text": "Our step-change initiatives"
+  },
+  {
+   "level": 3,
+   "text": "Sustainability governance"
+  },
+  {
+   "level": 2,
+   "text": "Double Materiality Assessment"
+  },
+  {
+   "level": 2,
+   "text": "Stakeholder engagement"
+  },
+  {
+   "level": 3,
+   "text": "Our impact on the Sustainable Development Goals"
+  },
+  {
+   "level": 4,
+   "text": "Annual Report 2025"
+  },
+  {
+   "level": 2,
+   "text": "Updates from Danfoss"
+  }
+ ],
+ "words_raw": 1140,
+ "words_rendered": 1140,
+ "links": [
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/energy-efficiency-is-climate-action/",
+  "https://assets.danfoss.com/documents/latest/579092/AH553954278717en-000101.pdf",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/the-sustainable-development-goals/"
+ ]
+}

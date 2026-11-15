@@ -1,0 +1,229 @@
+{
+ "id": "policies-reports-and-sustainability-ratings",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+ "copied": "2026-11-15T09:04:02",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Policies, reports, and sustainability ratings | Danfoss",
+  "description": "In Danfoss, we are on a continuous sustainability journey. Throughout this journey, we are committed to responsible environmental, social, and corporate governance (ESG).",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Sustainability",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+  ],
+  [
+   "Policies, reports, and sustainability ratings",
+   "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "CDP reports"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.46 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "518 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "30 (17 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "55 chars",
+   "status": "ok",
+   "note": "Policies, reports, and sustainability ratings | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "170 chars",
+   "status": "warn",
+   "note": "In Danfoss, we are on a continuous sustainability journey. Throughout this journey, we are committed to responsible environmental, social, and corporate governance (ESG)."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/sustainability/policies-reports-and-sustainability-ratings/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 5,
+   "status": "warn",
+   "note": "Environmental; Social; Governance; CDP; EcoVadis"
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 1,
+   "status": "bad",
+   "note": "CDP reports — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, FAQPage, FAQPage, FAQPage, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "2 of 4",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "667 of 667",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Sustainable Procurement Management policy extracted from Danfoss Business Conduct"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "Sustainable",
+   "sentence": "Sustainable Procurement, Policy Implementation and governance document"
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Ratings cover environment, human rights and labor rights, sustainable procurement, and ethics."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Policies, reports, and sustainability ratings"
+  },
+  {
+   "level": 4,
+   "text": "Policies | Annual reports l CDP reports l Sustainability ratings"
+  },
+  {
+   "level": 0,
+   "text": "Environmental",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "Social",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "Governance",
+   "pseudo": true
+  },
+  {
+   "level": 4,
+   "text": "Our policies"
+  },
+  {
+   "level": 4,
+   "text": "CDP reports"
+  },
+  {
+   "level": 3,
+   "text": "Sustainability ratings"
+  },
+  {
+   "level": 0,
+   "text": "CDP",
+   "pseudo": true
+  },
+  {
+   "level": 0,
+   "text": "EcoVadis",
+   "pseudo": true
+  }
+ ],
+ "words_raw": 667,
+ "words_rendered": 667,
+ "links": [
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/product-compliance/",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/ethics-and-human-rights/",
+  "https://assets.danfoss.com/documents/latest/562977/AH492546010848en-000201.pdf",
+  "https://www.danfoss.com/en/about-danfoss/company/suppliers/",
+  "https://assets.danfoss.com/documents/latest/467133/AH493134951691en-000301.pdf",
+  "https://www.danfoss.com/en/about-danfoss/company/financial-information/year-in-review/",
+  "https://recognition.ecovadis.com/vnRqtbmXg0OqCeHOGMhfjw/"
+ ]
+}

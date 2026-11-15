@@ -65,19 +65,39 @@ a{color:#e2000f;text-decoration:none} a:hover{text-decoration:underline}
 .dh{border-bottom:1px solid #e5e5e5;background:#fff;position:sticky;top:0;z-index:2}
 .dh .bar{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:28px;padding:14px 20px}
 .dh .logo{font:800 26px/1 Arial,sans-serif;color:#e2000f;letter-spacing:-.5px}
-.dh nav{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px}
-.dh nav a{color:#303030;padding:4px 0;border-bottom:2px solid transparent}
+.dh nav{display:flex;gap:4px 22px;font-size:14px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;min-width:0}
+.dh nav{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:40px}
+.dh nav a{flex:none;color:#303030;padding:6px 0;border-bottom:2px solid transparent}
 .dh nav a.on,.dh nav a:hover{border-bottom-color:#e2000f;text-decoration:none}
 main{max-width:1180px;margin:0 auto;padding:0 20px 40px}
 .crumbs{font-size:13px;color:#707070;padding:14px 0 4px}
 .crumbs a{color:#707070} .crumbs span{margin:0 6px}
-h1{font-size:2.4rem;line-height:1.15;margin:.3em 0 .4em;color:#303030;font-weight:700}
-article>h1+p,article>h1+nav+p{font-size:1.15rem;color:#505050;max-width:900px}
-h2{font-size:1.7rem;margin:1.8em 0 .5em;padding-top:.6em;border-top:1px solid #e5e5e5}
-h3{font-size:1.2rem;margin:1.3em 0 .4em}
-article{max-width:1180px} article>p,article>ul,article>table{max-width:900px}
-nav.toc{background:#f4f4f4;padding:12px 18px;margin:16px 0;font-size:.95rem;max-width:900px}
-nav.toc ol{margin:6px 0 0;padding-left:20px}
+/* hero: title, the answer in one paragraph, the call to action */
+.hero{background:linear-gradient(180deg,#f6f6f6,#fff);border-bottom:1px solid #ececec;margin:6px -20px 0;padding:34px 20px 30px}
+.hero-in{max-width:880px}
+h1{font-size:2.6rem;line-height:1.12;margin:0 0 .45em;color:#303030;font-weight:700;letter-spacing:-.01em}
+.hero p{font-size:1.15rem;line-height:1.6;color:#505050;margin:.4em 0 .9em}
+.btn{display:inline-block;background:#e2000f;color:#fff!important;font-weight:600;padding:11px 26px;border-radius:2px;margin-top:4px}
+.btn:hover{background:#b8000c;text-decoration:none}
+/* body: side contents + sections */
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:44px;margin-top:30px;align-items:start}
+nav.toc{position:sticky;top:76px;font-size:.9rem;border-left:2px solid #ececec;padding:2px 0 2px 16px;max-height:calc(100vh - 100px);overflow:auto}
+nav.toc b{display:block;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#909090;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0}
+nav.toc li{margin:0 0 9px;line-height:1.35}
+nav.toc a{color:#505050} nav.toc a:hover{color:#e2000f;text-decoration:none}
+.sec{padding:6px 0 30px;border-bottom:1px solid #ececec;margin-bottom:26px;scroll-margin-top:80px}
+.sec:last-child{border-bottom:0}
+h2{font-size:1.75rem;line-height:1.25;margin:.3em 0 .55em;color:#303030;position:relative;padding-left:16px}
+h2::before{content:"";position:absolute;left:0;top:.2em;bottom:.2em;width:4px;background:#e2000f}
+h3{font-size:1.15rem;margin:1.5em 0 .45em;color:#303030}
+.sec p,.sec ul{max-width:760px}
+.sec ul{list-style:none;padding:0;margin:.6em 0 1em}
+.sec li{position:relative;padding:7px 0 7px 26px;border-bottom:1px solid #f2f2f2}
+.sec li::before{content:"";position:absolute;left:4px;top:15px;width:8px;height:8px;background:#e2000f;border-radius:50%}
+.sec li b{color:#303030}
+article{max-width:1180px}
+@media(max-width:900px){.layout{grid-template-columns:1fr;gap:10px}nav.toc{position:static;max-height:none;border-left:0;border-bottom:1px solid #ececec;padding:0 0 12px}}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;margin:14px 0 24px}
 .card{display:flex;flex-direction:column;border:1px solid #e5e5e5;padding:18px;color:#303030;background:#fff;min-height:100%}
 .card:hover{border-color:#e2000f;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.06)}
@@ -85,26 +105,32 @@ nav.toc ol{margin:6px 0 0;padding-left:20px}
 .card p{margin:0 0 12px;font-size:.93rem;color:#505050;flex:1}
 .card .more{color:#e2000f;font-weight:600;font-size:.9rem}
 .card .more::after{content:" \203A"}
-table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
-th,td{border:1px solid #e5e5e5;padding:7px 9px;text-align:left;vertical-align:top} th{background:#f4f4f4}
+.tablewrap{overflow-x:auto;margin:14px 0 20px;border:1px solid #e5e5e5}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid #ececec}
+th{background:#303030;color:#fff;font-weight:600;font-size:.85rem;letter-spacing:.02em;white-space:nowrap}
+tbody tr:nth-child(even){background:#fafafa} tbody tr:hover{background:#fff4f4}
+td:first-child{font-weight:600;color:#303030}
 footer{background:#303030;color:#d0d0d0;margin-top:30px}
 footer .in{max-width:1180px;margin:0 auto;padding:22px 20px;font-size:13px}
 footer a{color:#fff} footer .updated{max-width:1180px;margin:0 auto;padding:0 20px 18px;font-size:12px;color:#a0a0a0}
 @media(max-width:640px){h1{font-size:1.8rem}.dh .bar{flex-wrap:wrap;gap:10px}}</style>
 </head>
 <body>
-<header class="dh"><div class="bar"><a class="logo" href="who-we-are.html">Danfoss</a><nav aria-label="Catalog"><a href="who-we-are.html" class="on">Who we are</a></nav></div></header>
+<header class="dh"><div class="bar"><a class="logo" href="who-we-are.html">Danfoss</a><nav aria-label="Catalog"><a href="who-we-are.html" class="on">Who we are</a><a href="application-development-centers.html" class="">Application Development Centers…</a><a href="sustainability.html" class="">Sustainability</a></nav></div></header>
 <main>
 <div class="crumbs"><a href="https://www.danfoss.com/en/">Home page</a> <span>›</span> <a href="https://www.danfoss.com/en/about-danfoss/">About Danfoss</a> <span>›</span> <a href="https://www.danfoss.com/en/about-danfoss/company/">Company</a> <span>›</span> Who we are</div>
 <article>
-<h1>Who we are</h1>
-<nav class="toc" aria-label="Contents"><b>Contents</b><ol><li><a href="#we-engineer-a-better-future">We engineer a better future</a></li><li><a href="#our-customer-promise">Our customer promise</a></li><li><a href="#our-three-business-segments">Our three business segments</a></li></ol></nav>
-<h2 id="we-engineer-a-better-future">We engineer a better future</h2>
+<div class="hero"><div class="hero-in"><h1>Who we are</h1>
+</div></div>
+<div class="layout"><nav class="toc" aria-label="Contents"><b>On this page</b><ol><li><a href="#we-engineer-a-better-future">We engineer a better future</a></li><li><a href="#our-customer-promise">Our customer promise</a></li><li><a href="#our-three-business-segments">Our three business segments</a></li></ol></nav><div class="content">
+<section class="sec" aria-labelledby="we-engineer-a-better-future"><h2 id="we-engineer-a-better-future">We engineer a better future</h2>
 <p>We engineer solutions that increase machine productivity, reduce emissions, lower energy consumption, and enable electrification.</p>
 <p>The technologies and solutions needed to address global challenges already exist, thanks to our dedicated Danfoss teams worldwide.</p>
 <p>We are a family-owned company dedicated to creating long-term value for all our stakeholders.</p>
-<p><a href="https://www.danfoss.com/en/industries/">Explore our solutions</a></p>
-<h2 id="our-customer-promise">Our customer promise</h2>
+<p><a href="https://www.danfoss.com/en/industries/" class=btn>Explore our solutions</a></p>
+</section>
+<section class="sec" aria-labelledby="our-customer-promise"><h2 id="our-customer-promise">Our customer promise</h2>
 <h3 id="with-our-global-leading-positions-application-know-how-and-s">With our global leading positions, application know-how, and sustainable innovation, we aim to be our customers’ partner of choice.</h3>
 <p>The Danfoss customer promise defines how we do business and build long-term partnerships. As a leading technology partner, we continuously invest in new products and solutions to provide the broadest portfolio in the industry.</p>
 <p>All Danfoss core businesses are pursuing a global number-one or number-two position, leading in scale and operational excellence. By excelling in safety, quality, delivery, and productivity, we ensure our customers receive the high-quality service and solutions they expect from Danfoss.</p>
@@ -112,8 +138,9 @@ footer a{color:#fff} footer .updated{max-width:1180px;margin:0 auto;padding:0 20
 <h3 id="maximizing-customer-value-by-understanding-the-details-of-ou">Maximizing customer value by understanding the details of our customers’ business</h3>
 <p>Customers can experience the full potential of our technologies in their own applications at Danfoss Application Development Centers. Across industries, we are committed to driving industrial decarbonization.</p>
 <p>Today, our three core businesses have ADCs, now totaling 13, close to our customers and partners across the globe.</p>
-<p><a href="https://www.danfoss.com/en/about-danfoss/company/application-development-centers/">Explore Application Development Centers</a></p>
-<h2 id="our-three-business-segments">Our three business segments</h2>
+<p><a href="application-development-centers.html" class=btn>Explore Application Development Centers</a></p>
+</section>
+<section class="sec" aria-labelledby="our-three-business-segments"><h2 id="our-three-business-segments">Our three business segments</h2>
 <h3 id="danfoss-power-solutions">Danfoss Power Solutions</h3>
 <p>Full solutions across mobile and industrial hydraulics, fluid conveyance and data center applications, electrification, and software.</p>
 <h3 id="danfoss-climate-solutions">Danfoss Climate Solutions</h3>
@@ -123,7 +150,9 @@ footer a{color:#fff} footer .updated{max-width:1180px;margin:0 auto;padding:0 20
 <h3 id="sustainability-and-competitiveness">Sustainability and competitiveness</h3>
 <p>Sustainability is integral to our purpose of engineering a better future and is embedded within our LEAP 2030 strategy.</p>
 <p>We pursue our sustainability efforts through our three step-change initiatives: decarbonization, circularity, and inclusion.</p>
-<p><a href="https://www.danfoss.com/en/about-danfoss/company/sustainability/">Learn more about our sustainability ambitions</a></p>
+<p><a href="sustainability.html">Learn more about our sustainability ambitions</a></p>
+</section>
+</div></div>
 </article>
 </main>
 <footer><div class="in">Danfoss A/S · Nordborgvej 81, 6430 Nordborg, Denmark</div><p class="updated">Atlas reconstruction of https://www.danfoss.com/en/about-danfoss/company/who-we-are/ for testing. Not the official Danfoss website.</p></footer>

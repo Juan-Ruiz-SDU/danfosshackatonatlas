@@ -149,7 +149,7 @@ function setWikiEditor(file, text) {
   const editable = file && file.path !== "log.md";
   $("#wiki-newpath").classList.add("hidden");
   $("#wiki-path").textContent = file ? file.path : "Pick a file on the left, or make a new concept";
-  $("#wiki-used").textContent = file && file.used_by.length ? `Used on: ${file.used_by.join(", ")}` : file ? "Not used by a page of the website copy yet" : "";
+  $("#wiki-used").textContent = file && file.used_by.length ? `Used on: ${file.used_by.join(", ")}` : file ? "Not used by a page of our website version yet" : "";
   $("#wiki-text").value = text || "";
   $("#wiki-text").disabled = !editable;
   $("#wiki-save").disabled = !editable;
@@ -187,10 +187,10 @@ $("#wiki-save").onclick = () => {
       WIKI = r; WIKIFILE = path;
       $("#wiki-note").value = "";
       $("#wiki-result").innerHTML = !r.changed ? `<p class="hint">Nothing changed.</p>`
-        : `<div class="okbox">✔ ${r.created ? "Created" : "Saved"} and noted in the change log. The website copy was rebuilt from the wiki.</div>`
+        : `<div class="okbox">✔ ${r.created ? "Created" : "Saved"} and noted in the change log. Our website version was rebuilt from the wiki.</div>`
           + (r.new_numbers.length ? `<div class="warnbox">⚠ New numbers: <b>${esc(r.new_numbers.join(", "))}</b>. Each needs a Danfoss source (document code or danfoss.com URL) in a footnote.</div>` : "")
           + (r.removed_numbers.length ? `<p class="hint">Numbers removed: ${esc(r.removed_numbers.join(", "))}</p>` : "")
-          + (r.site_error ? `<p class="hint">The website copy could not be rebuilt: ${esc(r.site_error)}</p>` : "");
+          + (r.site_error ? `<p class="hint">Our website version could not be rebuilt: ${esc(r.site_error)}</p>` : "");
       toast(r.changed ? "Wiki saved" : "Nothing changed");
       $("#wiki-log").innerHTML = WIKI.log ? logHtml(WIKI.log) : "";
       await openWikiFile(path, true);

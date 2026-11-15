@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atlas</title>
-<script>try { const t = localStorage.getItem("atlas.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<script>try { const t = localStorage.getItem("atlas.theme"); if (t === "light" || t === "dark" || t === "neon") document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="/static/style.css">
 <link rel="stylesheet" href="/static/neon.css">
+<link rel="stylesheet" href="/static/polish.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -34,7 +35,7 @@
     <span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4 L28 27 H4 Z"/><path d="M10.5 19.5 H21.5"/></svg></span>
     <div>
       <div class="name">Atlas</div>
-      <div class="tag">Find the version of your product page that AI search cites first</div>
+      <div class="tag" title="Find the version of your product page that AI search cites first">Pages AI search cites first</div>
     </div>
   </div>
   <div class="product-switch">
@@ -406,7 +407,7 @@
           <code>- [Title](https://...): description</code>. The lines between <code>---</code> at the top are the page's
           title, description and address. Links to other pages of the website stay links between them. Facts must come
           from the wiki: the check flags new numbers that are not in it.</p>
-        <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy of this page (Markdown)"></textarea>
+        <textarea id="web-md" rows="22" spellcheck="true" aria-label="Our version of this page (Markdown)"></textarea>
         <div class="row">
           <select id="web-wiki-pick" aria-label="Wiki block to insert" style="flex:1 1 300px"></select>
           <button type="button" id="web-wiki-insert">Insert wiki block at the cursor</button>
@@ -425,15 +426,15 @@
     <div class="subpanel" data-sub="compare">
       <p class="empty-state">Load the pages under <a href="#web/site">Site › Pages to edit</a> first, then pick a page to compare it with Danfoss's.</p>
       <section class="card hidden web-out" id="web-slider-card">
-        <h2>Danfoss's page and your copy</h2>
-        <p class="hint">Drag the handle. Left: Danfoss's page as Atlas copied it, before any edit. Right: your copy as it is now, with its wiki blocks filled in. Both scroll together.</p>
+        <h2>Danfoss's page and our version</h2>
+        <p class="hint">Drag the handle. Left: the current Danfoss page as it was loaded, before any edit. Right: our version as it is now, with its wiki blocks filled in. Both scroll together.</p>
         <div class="compare" id="web-compare">
           <iframe id="web-before" sandbox="allow-same-origin" title="Danfoss's page (snapshot)"></iframe>
-          <iframe id="web-after" sandbox="allow-same-origin" title="Your copy"></iframe>
+          <iframe id="web-after" sandbox="allow-same-origin" title="Our version"></iframe>
           <div class="compare-handle" aria-hidden="true"><span></span></div>
           <span class="compare-label left">Danfoss's page</span>
-          <span class="compare-label right">Your copy</span>
-          <input type="range" id="web-compare-range" min="0" max="100" value="50" aria-label="Move the divider between Danfoss's page and your copy">
+          <span class="compare-label right">Our version</span>
+          <input type="range" id="web-compare-range" min="0" max="100" value="50" aria-label="Move the divider between Danfoss's page and our version">
         </div>
       </section>
       <section class="card hidden web-out">
@@ -448,7 +449,7 @@
       </section>
       <section class="card hidden web-out">
         <h2>Never-claim screen</h2>
-        <p class="hint">Sentences that the wiki's never-claim policy would not allow. Danfoss's page has them; your copy keeps them until you change them.</p>
+        <p class="hint">Sentences that the wiki's never-claim policy would not allow. Danfoss's page has them; our version keeps them until you change them.</p>
         <div id="web-claims"></div>
       </section>
     </div>
@@ -663,8 +664,8 @@
       <section class="card">
         <h2>The wiki <span class="count" id="wiki-root"></span></h2>
         <p class="hint">Every fact on every page Atlas writes comes from here. A save checks that the whole wiki still
-          loads, flags new numbers (each needs a Danfoss source), is noted in the change log, and rebuilds the website
-          copy so pages with wiki blocks follow.</p>
+          loads, flags new numbers (each needs a Danfoss source), is noted in the change log, and rebuilds our website
+          version so pages with wiki blocks follow.</p>
         <div class="wikibox">
           <div class="wikinav">
             <input id="wiki-filter" placeholder="Filter files…" aria-label="Filter wiki files">
@@ -900,5 +901,6 @@
 <script src="/static/how.js"></script>
 <script src="/static/overview.js"></script>
 <script src="/static/features.js"></script>
+<script src="/static/guide.js"></script>
 </body>
 </html>

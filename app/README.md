@@ -53,9 +53,9 @@ answers with a bot check (captcha, "access denied") gets a clear message to pick
 Answers are saved in `app/cache/`. If a run stops because of the free daily limit, press Run again
 the next day and it continues where it stopped, without spending the quota again.
 
-## Web page tab: your own copy of Danfoss's website
+## Web page tab: our version of the product website
 
-1. **Copy the website (once).** Give the first page of a section of danfoss.com. For Micro Plate that is
+1. **Load the website (once).** Give the first page of a section of danfoss.com. For Micro Plate that is
    the heat exchanger catalog (`site_start` in `product.json`). Atlas follows the links in the pages'
    content that stay inside that section, up to two clicks deep and the number of pages you choose. It
    always includes the product's own Danfoss page. Every page is read twice:
@@ -63,12 +63,12 @@ the next day and it continues where it stopped, without spending the quota again
    - with JavaScript, in Edge or Chrome without a window, the way a visitor sees it.
 
    For each page Atlas saves a snapshot as the reference (`site/<page>/original.md` and `.json`) and
-   **your copy** (`site/<page>/page.md`), already laid out for crawlers. Copying again only renews
-   the snapshots, unless you tick "Also replace my edited copies".
+   **our version** (`site/<page>/page.md`), already laid out for crawlers. Loading again only renews
+   the snapshots, unless you tick "Also replace my edited pages".
 
    danfoss.com cannot be shown inside Atlas: its server forbids being framed (`X-Frame-Options`). If its
    bot protection blocks a download, Atlas says so. You can save that page from your browser and import it.
-2. **Your website** shows the copies as a small website that looks like Danfoss's: header, menu,
+2. **Your website** shows our versions as a small website: header, menu,
    breadcrumbs, catalog tiles and footer. The links between the pages work. Click through it, or pick a
    page in the list. The list shows how deep each page is and how many pages link to it and from it.
    **How the website spreads authority** checks the whole site against `wiki/guidelines/site-structure.md`:
@@ -77,7 +77,7 @@ the next day and it continues where it stopped, without spending the quota again
    - pages more than 3 clicks deep;
    - the sitemap;
    - Danfoss pages whose text needs JavaScript.
-3. **Product facts come from the wiki.** In a page copy, a line `{{wiki: platforms/heat-pump-platforms}}`
+3. **Product facts come from the wiki.** In a page, a line `{{wiki: platforms/heat-pump-platforms}}`
    (or `{{wiki: technologies/micro-plate-pattern#Benefits}}` for one section) is replaced by that part of the
    wiki whenever the website is built:
    - when the tab opens;
@@ -95,7 +95,7 @@ the next day and it continues where it stopped, without spending the quota again
 
    See `wiki/guidelines/competitor-training.md` for the method and the first training round.
 4. **Edit the page** in Markdown. Catalog tiles are written as `- [Title](address): description`.
-   Atlas compares your copy with Danfoss's page and warns about new numbers that are not in the wiki.
+   Atlas compares our version with the current Danfoss page and warns about new numbers that are not in the wiki.
 5. For the page you pick it shows:
    - the headings, before and after
    - crawler checks
@@ -106,7 +106,7 @@ the next day and it continues where it stopped, without spending the quota again
    The product's own page (Micro Plate) is also the `restructured` page of the citation test.
 
 Files in `products/<name>/webpage/`:
-- committed: `site.json` (the map), `site/<page>/` (snapshot and copy), `site/<page>.html` (the
+- committed: `site.json` (the map), `site/<page>/` (snapshot and our version), `site/<page>.html` (the
   rendered page), `sitemap.xml`;
 - not committed: `cache/` (downloaded HTML).
 
@@ -143,7 +143,7 @@ citations change.
   - the cited pages with their shares;
   - Gemini's searches;
   - for each search, where the chosen page of ours ranks among the cited pages' passages (BM25) and who leads.
-  "Our pages" are the website copy, the last Atlas run and the newest variants. The wiki is not used here.
+  "Our pages" are our website version, the last Atlas run and the newest variants. The wiki is not used here.
 - **Explain why** asks an AI reviewer (the Run tab's answer-box AI) to score the cited passages and ours
   on checkable signals: direct answer, figures with units, named models, definition or comparison,
   scope, self-contained. It then explains the result. Every passage is plain text of the same length,

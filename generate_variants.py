@@ -430,10 +430,15 @@ def main():
     ap.add_argument("--out", default="variants")
     ap.add_argument("--raw", default="", help="folder with the original source texts (lab/fetch_raw.py); "
                     "'' to write from the wiki alone")
+    ap.add_argument("--extra-instructions", metavar="FILE",
+                    help="optional text file with extra writer instructions, added "
+                         "to the guidelines in the prompt (e.g. lab/round2_instructions.txt)")
     args = ap.parse_args()
 
     wiki = load_wiki(args.wiki)
     guidelines = load_guidelines(args.wiki)  # '' for a single-file fact sheet
+    if args.extra_instructions:
+        guidelines += "\n\n" + pathlib.Path(args.extra_instructions).read_text(encoding="utf-8")
     keyword = args.keyword
     if not keyword:
         # first bullet after the "Target search phrase" heading
@@ -512,6 +517,8 @@ def main():
                 "topic": args.topic, "keyword": keyword,
                 "target_words": args.words, **made,
             }
+            if args.extra_instructions:
+                entry["extra_instructions"] = args.extra_instructions
             report.append(entry)
             reported.add(name)
             # saved after every page, so an interrupted run keeps its entries

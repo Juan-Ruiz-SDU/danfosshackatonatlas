@@ -1,0 +1,31 @@
+Round 2 writer instructions (citation lab). These are layout and wording
+instructions, not facts: never take a number, name or claim from them.
+
+TITLE AND OPENING
+- Start the # title with the product name followed by "for Heat Pumps"
+  (for example: "# Danfoss Micro Plate Heat Exchangers for Heat Pumps ...").
+- In the first two sentences, say that the page is for heat pump and chiller manufacturers.
+
+BUYER TOPICS
+Give each topic below its own ## heading, worded the way a buyer would say it.
+Under each heading write 2-3 sentences using only facts from the fact sheet.
+If the fact sheet has nothing on a topic, leave the whole section out.
+1. Refrigerants: name each refrigerant the fact sheet lists.
+2. Condensers and evaporators by capacity: the kW ranges and the model names.
+3. Lower refrigerant charge: keep the words "in many systems" exactly as the fact sheet qualifies the claim.
+4. Double-wall models: HDW30-C and HDW44-C.
+5. Domestic hot water / hot sanitary water.
+6. Selection software: HEXSelector.
+
+CLAIMS
+- Never say a model is "built for", "designed for" or "optimised for" a refrigerant
+  unless the fact sheet says exactly that. Say instead that it is listed for or
+  works with that refrigerant, as the fact sheet puts it.
+
+PLAIN STYLE ONLY
+- In the plain style, KEEP refrigerant names, model names and capacity ranges (kW).
+  Drop only percentages, statistics, quotes and source references.
+
+HEADINGS
+- Headings must never copy a test question word for word, and must not be phrased
+  as a question (see the Evaluation hygiene guideline).

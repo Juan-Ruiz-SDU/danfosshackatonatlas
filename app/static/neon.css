@@ -1,10 +1,10 @@
 /* =============================================================================================
-   NEON THEME: black, neon cyan / magenta / lime. Loaded after style.css and wins over its light
-   and dark tokens (html:root:not(.x-plain) is more specific than :root:not([data-theme="light"])).
-   To go back to the plain look, remove the <link> to this file in index.html.
+   NEON THEME (optional): black, neon cyan / magenta / lime. Pick it with the theme button (auto → light → dark → neon).
+   It wins over style.css's light and dark tokens (html:root[data-theme="neon"] is more specific than
+   :root:not([data-theme="light"])). The default look is the plain one, with polish.css on top.
    The Danfoss pages shown in frames (#web-live, #web-frame) keep their own look.
    ============================================================================================= */
-html:root:not(.x-plain) {
+html:root[data-theme="neon"] {
   --bg: #04050a; --card: #0a0d17; --field: #0f1422; --text: #e9f7ff; --muted: #8796b0;
   --line: #1a2440; --line-strong: #2a3a66;
   --accent: #ff2bd6; --accent-soft: rgba(255, 43, 214, .12); --blue: #00e5ff; --ok: #39ff88; --warn: #ffb02e;
@@ -16,7 +16,7 @@ html:root:not(.x-plain) {
   --font-display: "Orbitron", "Archivo", system-ui, sans-serif;
   color-scheme: dark;
 }
-html:root:not(.x-plain) body {
+html:root[data-theme="neon"] body {
   background:
     radial-gradient(900px 500px at 85% -10%, rgba(255, 43, 214, .13), transparent 60%),
     radial-gradient(800px 500px at -10% 30%, rgba(0, 229, 255, .10), transparent 60%),
@@ -25,76 +25,76 @@ html:root:not(.x-plain) body {
     var(--bg);
   background-attachment: fixed;
 }
-html:root:not(.x-plain) ::selection { background: rgba(255, 43, 214, .45); color: #fff; }
+html:root[data-theme="neon"] ::selection { background: rgba(255, 43, 214, .45); color: #fff; }
 
 /* header and rail: glass over the grid */
-html:root:not(.x-plain) .top { background: rgba(6, 8, 15, .82); backdrop-filter: blur(10px);
+html:root[data-theme="neon"] .top { background: rgba(6, 8, 15, .82); backdrop-filter: blur(10px);
   border-bottom: 1px solid transparent; border-image: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), transparent) 1; }
-html:root:not(.x-plain) .logo { background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink)); box-shadow: var(--glow-pink); }
-html:root:not(.x-plain) .name { font-family: var(--font-display); letter-spacing: .12em; text-transform: uppercase;
+html:root[data-theme="neon"] .logo { background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink)); box-shadow: var(--glow-pink); }
+html:root[data-theme="neon"] .name { font-family: var(--font-display); letter-spacing: .12em; text-transform: uppercase;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-html:root:not(.x-plain) .rail { background: rgba(6, 8, 15, .6); border-right-color: var(--line); }
-html:root:not(.x-plain) .rail [role=tab][aria-selected=true] { background: rgba(0, 229, 255, .07); color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
-html:root:not(.x-plain) .rail [role=tab][aria-selected=true] .t { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 229, 255, .6); }
-html:root:not(.x-plain) .rail [role=tab][aria-selected=true]::before { background: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan); }
-html:root:not(.x-plain) .subtabs { background: rgba(4, 5, 10, .85); backdrop-filter: blur(8px); }
-html:root:not(.x-plain) .subtabs [role=tab][aria-selected=true] { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan);
+html:root[data-theme="neon"] .rail { background: rgba(6, 8, 15, .6); border-right-color: var(--line); }
+html:root[data-theme="neon"] .rail [role=tab][aria-selected=true] { background: rgba(0, 229, 255, .07); color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
+html:root[data-theme="neon"] .rail [role=tab][aria-selected=true] .t { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 229, 255, .6); }
+html:root[data-theme="neon"] .rail [role=tab][aria-selected=true]::before { background: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan); }
+html:root[data-theme="neon"] .subtabs { background: rgba(4, 5, 10, .85); backdrop-filter: blur(8px); }
+html:root[data-theme="neon"] .subtabs [role=tab][aria-selected=true] { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan);
   text-shadow: 0 0 10px rgba(0, 229, 255, .55); box-shadow: 0 6px 14px -8px var(--neon-cyan); }
-html:root:not(.x-plain) .subtabs [aria-selected=true] .n { background: var(--neon-cyan); border-color: var(--neon-cyan); color: #04050a; }
+html:root[data-theme="neon"] .subtabs [aria-selected=true] .n { background: var(--neon-cyan); border-color: var(--neon-cyan); color: #04050a; }
 
 /* cards: dark glass with a thin neon edge */
-html:root:not(.x-plain) .card { background: linear-gradient(180deg, rgba(15, 20, 36, .92), rgba(9, 12, 22, .92));
+html:root[data-theme="neon"] .card { background: linear-gradient(180deg, rgba(15, 20, 36, .92), rgba(9, 12, 22, .92));
   border: 1px solid var(--line); box-shadow: 0 0 0 1px rgba(0, 229, 255, .04), 0 10px 30px rgba(0, 0, 0, .45); }
-html:root:not(.x-plain) .card:hover { border-color: var(--line-strong); }
-html:root:not(.x-plain) h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: .04em; }
-html:root:not(.x-plain) .num { background: transparent; color: var(--neon-pink); box-shadow: inset 0 0 0 1px var(--neon-pink), 0 0 10px rgba(255, 43, 214, .4); }
+html:root[data-theme="neon"] .card:hover { border-color: var(--line-strong); }
+html:root[data-theme="neon"] h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: .04em; }
+html:root[data-theme="neon"] .num { background: transparent; color: var(--neon-pink); box-shadow: inset 0 0 0 1px var(--neon-pink), 0 0 10px rgba(255, 43, 214, .4); }
 
 /* controls */
-html:root:not(.x-plain) input, html:root:not(.x-plain) select, html:root:not(.x-plain) textarea { background: var(--field); border-color: var(--line-strong); }
-html:root:not(.x-plain) input:focus, html:root:not(.x-plain) select:focus, html:root:not(.x-plain) textarea:focus { outline: none; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
-html:root:not(.x-plain) :focus-visible { outline-color: var(--neon-cyan); }
-html:root:not(.x-plain) button { background: var(--field); border-color: var(--line-strong); color: var(--text); }
-html:root:not(.x-plain) button:hover { border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); background: var(--field); }
-html:root:not(.x-plain) button.primary { background: linear-gradient(90deg, var(--neon-pink), var(--neon-violet)); border-color: transparent; color: #fff;
+html:root[data-theme="neon"] input, html:root[data-theme="neon"] select, html:root[data-theme="neon"] textarea { background: var(--field); border-color: var(--line-strong); }
+html:root[data-theme="neon"] input:focus, html:root[data-theme="neon"] select:focus, html:root[data-theme="neon"] textarea:focus { outline: none; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
+html:root[data-theme="neon"] :focus-visible { outline-color: var(--neon-cyan); }
+html:root[data-theme="neon"] button { background: var(--field); border-color: var(--line-strong); color: var(--text); }
+html:root[data-theme="neon"] button:hover { border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); background: var(--field); }
+html:root[data-theme="neon"] button.primary { background: linear-gradient(90deg, var(--neon-pink), var(--neon-violet)); border-color: transparent; color: #fff;
   box-shadow: var(--glow-pink); text-shadow: 0 0 6px rgba(255, 255, 255, .4); }
-html:root:not(.x-plain) button.primary:hover { filter: brightness(1.15); box-shadow: 0 0 0 1px rgba(255, 43, 214, .7), 0 0 30px rgba(255, 43, 214, .55); }
-html:root:not(.x-plain) button.ghost { background: transparent; border-color: transparent; }
+html:root[data-theme="neon"] button.primary:hover { filter: brightness(1.15); box-shadow: 0 0 0 1px rgba(255, 43, 214, .7), 0 0 30px rgba(255, 43, 214, .55); }
+html:root[data-theme="neon"] button.ghost { background: transparent; border-color: transparent; }
 /* tabs are not boxes: only the selected one lights up */
-html:root:not(.x-plain) .rail [role=tab], html:root:not(.x-plain) .subtabs [role=tab] { background: transparent; border-color: transparent; box-shadow: none; }
-html:root:not(.x-plain) .rail [role=tab]:hover { background: rgba(0, 229, 255, .05); }
-html:root:not(.x-plain) .subtabs [role=tab]:hover { color: var(--neon-cyan); }
-html:root:not(.x-plain) .rail [role=tab][aria-selected=true] { background: rgba(0, 229, 255, .07); box-shadow: var(--glow-cyan); }
-html:root:not(.x-plain) .subtabs [role=tab][aria-selected=true] { border-bottom-color: var(--neon-cyan); }
+html:root[data-theme="neon"] .rail [role=tab], html:root[data-theme="neon"] .subtabs [role=tab] { background: transparent; border-color: transparent; box-shadow: none; }
+html:root[data-theme="neon"] .rail [role=tab]:hover { background: rgba(0, 229, 255, .05); }
+html:root[data-theme="neon"] .subtabs [role=tab]:hover { color: var(--neon-cyan); }
+html:root[data-theme="neon"] .rail [role=tab][aria-selected=true] { background: rgba(0, 229, 255, .07); box-shadow: var(--glow-cyan); }
+html:root[data-theme="neon"] .subtabs [role=tab][aria-selected=true] { border-bottom-color: var(--neon-cyan); }
 /* brand: one line of tagline, so the name is never cut */
-html:root:not(.x-plain) .name { font-size: 17px; line-height: 1.15; }
-html:root:not(.x-plain) .tag { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
-html:root:not(.x-plain) a { color: var(--neon-cyan); }
-html:root:not(.x-plain) .good, html:root:not(.x-plain) .okbox { text-shadow: 0 0 8px rgba(57, 255, 136, .35); }
-html:root:not(.x-plain) .badtxt { color: var(--neon-pink); }
-html:root:not(.x-plain) .error { background: rgba(255, 43, 214, .1); color: #ff7be6; border: 1px solid rgba(255, 43, 214, .4); }
-html:root:not(.x-plain) pre, html:root:not(.x-plain) code { background: #070a14; border-color: var(--line); color: #bff8ff; }
-html:root:not(.x-plain) table.data thead th { background: rgba(0, 229, 255, .06); color: var(--neon-cyan); letter-spacing: .03em; }
-html:root:not(.x-plain) table.data tr.chosen, html:root:not(.x-plain) table.pick tbody tr.sel { background: rgba(255, 43, 214, .1); }
-html:root:not(.x-plain) .tile .big { color: var(--neon-cyan); text-shadow: 0 0 14px rgba(0, 229, 255, .5); font-family: var(--font-display); }
-html:root:not(.x-plain) .step-box { background: rgba(0, 229, 255, .04); border-color: rgba(0, 229, 255, .25); }
-html:root:not(.x-plain) .flow .arrow { color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); }
-html:root:not(.x-plain) .sharebar i { background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan); }
-html:root:not(.x-plain) .sharebar i.us { background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink); }
+html:root[data-theme="neon"] .name { font-size: 17px; line-height: 1.15; }
+html:root[data-theme="neon"] .tag { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+html:root[data-theme="neon"] a { color: var(--neon-cyan); }
+html:root[data-theme="neon"] .good, html:root[data-theme="neon"] .okbox { text-shadow: 0 0 8px rgba(57, 255, 136, .35); }
+html:root[data-theme="neon"] .badtxt { color: var(--neon-pink); }
+html:root[data-theme="neon"] .error { background: rgba(255, 43, 214, .1); color: #ff7be6; border: 1px solid rgba(255, 43, 214, .4); }
+html:root[data-theme="neon"] pre, html:root[data-theme="neon"] code { background: #070a14; border-color: var(--line); color: #bff8ff; }
+html:root[data-theme="neon"] table.data thead th { background: rgba(0, 229, 255, .06); color: var(--neon-cyan); letter-spacing: .03em; }
+html:root[data-theme="neon"] table.data tr.chosen, html:root[data-theme="neon"] table.pick tbody tr.sel { background: rgba(255, 43, 214, .1); }
+html:root[data-theme="neon"] .tile .big { color: var(--neon-cyan); text-shadow: 0 0 14px rgba(0, 229, 255, .5); font-family: var(--font-display); }
+html:root[data-theme="neon"] .step-box { background: rgba(0, 229, 255, .04); border-color: rgba(0, 229, 255, .25); }
+html:root[data-theme="neon"] .flow .arrow { color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); }
+html:root[data-theme="neon"] .sharebar i { background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan); }
+html:root[data-theme="neon"] .sharebar i.us { background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink); }
 
 /* charts: neon lines with a soft glow */
-html:root:not(.x-plain) svg.viz .line { filter: drop-shadow(0 0 4px currentColor); }
-html:root:not(.x-plain) svg.viz .line.s1 { color: var(--series-1); }
-html:root:not(.x-plain) svg.viz .line.s2 { color: var(--series-2); }
-html:root:not(.x-plain) .pt { stroke: #04050a; }
-html:root:not(.x-plain) .pt.q { fill: #fff; filter: drop-shadow(0 0 5px #fff); }
-html:root:not(.x-plain) .viz-tip { background: rgba(10, 13, 23, .95); border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
+html:root[data-theme="neon"] svg.viz .line { filter: drop-shadow(0 0 4px currentColor); }
+html:root[data-theme="neon"] svg.viz .line.s1 { color: var(--series-1); }
+html:root[data-theme="neon"] svg.viz .line.s2 { color: var(--series-2); }
+html:root[data-theme="neon"] .pt { stroke: #04050a; }
+html:root[data-theme="neon"] .pt.q { fill: #fff; filter: drop-shadow(0 0 5px #fff); }
+html:root[data-theme="neon"] .viz-tip { background: rgba(10, 13, 23, .95); border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
 
 /* assistant panel */
-html:root:not(.x-plain) .chat { background: rgba(6, 8, 15, .96); border-left: 1px solid rgba(0, 229, 255, .3); box-shadow: -10px 0 40px rgba(0, 229, 255, .08); }
-html:root:not(.x-plain) .msg.user { background: rgba(255, 43, 214, .14); border: 1px solid rgba(255, 43, 214, .35); }
-html:root:not(.x-plain) .msg.assistant { background: rgba(0, 229, 255, .06); border-color: rgba(0, 229, 255, .25); }
+html:root[data-theme="neon"] .chat { background: rgba(6, 8, 15, .96); border-left: 1px solid rgba(0, 229, 255, .3); box-shadow: -10px 0 40px rgba(0, 229, 255, .08); }
+html:root[data-theme="neon"] .msg.user { background: rgba(255, 43, 214, .14); border: 1px solid rgba(255, 43, 214, .35); }
+html:root[data-theme="neon"] .msg.assistant { background: rgba(0, 229, 255, .06); border-color: rgba(0, 229, 255, .25); }
 
 /* the Danfoss pages stay as Danfoss shows them: neutral frame, white page, no neon */
-html:root:not(.x-plain) .browser { border-color: #2a3346; box-shadow: none; }
-html:root:not(.x-plain) .browserbar { background: #11151f; }
-html:root:not(.x-plain) #web-live, html:root:not(.x-plain) #web-frame { background: #fff; filter: none; color-scheme: light; }
+html:root[data-theme="neon"] .browser { border-color: #2a3346; box-shadow: none; }
+html:root[data-theme="neon"] .browserbar { background: #11151f; }
+html:root[data-theme="neon"] #web-live, html:root[data-theme="neon"] #web-frame { background: #fff; filter: none; color-scheme: light; }

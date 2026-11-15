@@ -755,7 +755,7 @@ function resetPageTabs() {
 $("#web-url").addEventListener("input", e => e.target.dataset.auto = "0");
 
 const STATUS_ICON = { ok: "✔", warn: "▲", bad: "✖" };
-const VERSION_NAME = { original: "Danfoss's page", rebuilt: "Your copy", template: "From the fact sheet", ai: "AI rewrite" };
+const VERSION_NAME = { original: "Danfoss's page", rebuilt: "Our version", template: "From the fact sheet", ai: "AI rewrite" };
 
 // Crawler checks: one row per check, one column per version
 function renderAudit(el, audits) {
@@ -1002,32 +1002,32 @@ function renderPage() {
   $("#web-edit").classList.remove("hidden");
   $("#web-edit-title").textContent = (SITE.checks?.pages || []).find(r => r.id === w.id)?.h1 || w.id;
   if ($("#web-md").dataset.page !== w.id || $("#web-md").value !== cp.text) { $("#web-md").value = cp.text; $("#web-md").dataset.page = w.id; }
-  $("#web-saved").textContent = `Copied ${cp.copied.slice(0, 10)} (${cp.rendered_with}) · last saved ${cp.changed.replace("T", " ")}`;
+  $("#web-saved").textContent = `Loaded ${cp.copied.slice(0, 10)} (${cp.rendered_with}) · last saved ${cp.changed.replace("T", " ")}`;
   $$(".web-out").forEach(e => e.classList.remove("hidden"));
   if (typeof renderCompare === "function") renderCompare();
   if (typeof renderStructured === "function") renderStructured($("#web-structured"), w.structured);
   const list = (a) => a.map(esc).join(" ");
   $("#web-check").innerHTML = (c.same
       ? `<div class="okbox">✔ Same content as Danfoss's page: only the format changed (${c.words_after} words, numbers identical).</div>`
-      : `<div class="warnbox">✎ Your copy changes the content: ${c.words_before} words in Danfoss's page, ${c.words_after} in your copy.</div>
+      : `<div class="warnbox">✎ Our version changes the content: ${c.words_before} words in Danfoss's page, ${c.words_after} in our version.</div>
          ${c.added.length ? `<p class="hint"><b>Added words:</b> ${list(c.added)}</p>` : ""}
          ${c.removed.length ? `<p class="hint"><b>Removed words:</b> ${list(c.removed)}</p>` : ""}
          ${c.numbers_added.length ? `<p class="hint"><b>New numbers:</b> ${list(c.numbers_added)}</p>` : ""}
          ${c.numbers_removed.length ? `<p class="hint"><b>Numbers removed:</b> ${list(c.numbers_removed)}</p>` : ""}`)
     + (c.numbers_not_in_wiki.length ? `<div class="warnbox">⚠ New numbers that are not in the wiki: <b>${list(c.numbers_not_in_wiki)}</b>. Every fact must come from the wiki: add it there with its Danfoss source, or remove it.</div>` : "")
-    + (c.removed_empty_sections.length ? `<p class="hint">Left out when copying: headings with nothing under them (a script fills them on the live page, so a crawler sees them empty): <b>${esc(c.removed_empty_sections.join(", "))}</b>.</p>` : "")
+    + (c.removed_empty_sections.length ? `<p class="hint">Left out when loading: headings with nothing under them (a script fills them on the live page, so a crawler sees them empty): <b>${esc(c.removed_empty_sections.join(", "))}</b>.</p>` : "")
     + (w.is_lab_page ? `<p class="hint">This page is the product's page in the citation test: <code>${esc(w.lab_file || "")}</code> (style “restructured”), extracted the same way as Danfoss's page.</p>` : "");
   $("#web-files").innerHTML = `<a class="dl main" href="${pageUrl(w.file, 1)}">⬇ This page (HTML)</a>
     <a class="dl" href="${pageUrl("sitemap.xml")}" target="_blank" rel="noopener">sitemap.xml</a>
     <a class="dl" href="${esc(cp.final_url)}" target="_blank" rel="noopener">Danfoss's page</a>`;
   const outline = (lst, title) => `<div><h3>${title}</h3><ul class="outline">${lst.map(h => h.pseudo && !h.level ? `<li class="pseudo">bold text: ${esc(h.text)}</li>`
       : `<li class="lv${h.level}"><b>H${h.level}</b> ${esc(h.text)}</li>`).join("")}</ul></div>`;
-  $("#web-outline").innerHTML = outline(w.outline.original, "Danfoss's page") + outline(w.outline.rebuilt, "Your copy");
+  $("#web-outline").innerHTML = outline(w.outline.original, "Danfoss's page") + outline(w.outline.rebuilt, "Our version");
   renderAudit($("#web-audit"), w.audit);
   renderGooglebot($("#web-gbot"), w.googlebot);
   renderBm25($("#web-bm25"), w.bm25);
   const claims = (fs) => fs.length ? `<ul class="claims">${fs.map(f => `<li><span class="tag">${esc(f.type)}</span> “${esc(f.match)}” — <span class="hint">${esc(f.sentence)}</span></li>`).join("")}</ul>` : `<p class="okbox">✔ None found.</p>`;
-  $("#web-claims").innerHTML = `<div class="grid2"><div><h3>Danfoss's page</h3>${claims(w.claims.original)}</div><div><h3>Your copy</h3>${claims(w.claims.copy)}</div></div>`;
+  $("#web-claims").innerHTML = `<div class="grid2"><div><h3>Danfoss's page</h3>${claims(w.claims.original)}</div><div><h3>Our version</h3>${claims(w.claims.copy)}</div></div>`;
 }
 
 // --- Citations tab: what Gemini with Google Search cites ------------------------------------

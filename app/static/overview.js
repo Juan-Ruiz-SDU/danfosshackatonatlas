@@ -4,17 +4,17 @@
 
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)");
 
-// --- theme: automatic → light → dark ----------------------------------------------------------
+// --- theme: automatic → light → dark → neon ----------------------------------------------------------
 function applyTheme(t) {
-  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  if (t === "light" || t === "dark" || t === "neon") document.documentElement.dataset.theme = t;
   else delete document.documentElement.dataset.theme;
-  const name = { light: "light", dark: "dark" }[t] || "automatic (follows your computer)";
+  const name = { light: "light", dark: "dark", neon: "neon" }[t] || "automatic (follows your computer)";
   $("#toggle-theme").title = `Theme: ${name}. Click to change.`;
 }
 // stored as plain text (not JSON): the inline script in <head> reads it before the page draws
 function savedTheme() { try { return localStorage.getItem("atlas.theme") || "auto"; } catch (e) { return "auto"; } }
 $("#toggle-theme").onclick = () => {
-  const order = ["auto", "light", "dark"];
+  const order = ["auto", "light", "dark", "neon"];
   const next = order[(order.indexOf(savedTheme()) + 1) % order.length];
   try { localStorage.setItem("atlas.theme", next); } catch (e) {}
   applyTheme(next);
@@ -33,7 +33,7 @@ async function loadOverview() {
   renderOvStats();
   renderRunsChart();
   $("#ov-title").textContent = "Measuring the page…";
-  $("#ov-lede").textContent = "Ranking your copy and Danfoss's page against the competitor pages for every buyer question.";
+  $("#ov-lede").textContent = "Ranking our version and Danfoss's page against the competitor pages for every buyer question.";
   $("#ov-dumbbell").innerHTML = `<div class="skeleton" aria-hidden="true"></div>`;
   // Gemini's real citations and the website comparison load side by side
   const cit = api("/api/citations?slug=" + encodeURIComponent(slug)).then(c => {
@@ -82,15 +82,15 @@ function renderHero(animate) {
   $("#ov-title").innerHTML = `The page now ranks <span class="fig">${fmt1(ma)}</span> on average, ${verb.replace(fmt1(mb), `<span class="fig was">${fmt1(mb)}</span>`)}`;
   const forQ = n === 1 ? "for the one buyer question ticked in Run" : `for each of the ${n} buyer questions`;
   const inTop = n === 1
-    ? `Your copy is ${topA ? "" : "not "}in the top ${bm.top_k}; Danfoss's page is ${topB ? "" : "not "}in it. Tick more questions in <a href="#run/questions">Run › Buyer questions</a> for a fairer picture.`
-    : `Your copy is in the top ${bm.top_k} for <b>${topA} of ${n}</b> questions; Danfoss's page for ${topB}.`;
+    ? `Our version is ${topA ? "" : "not "}in the top ${bm.top_k}; Danfoss's page is ${topB ? "" : "not "}in it. Tick more questions in <a href="#run/questions">Run › Buyer questions</a> for a fairer picture.`
+    : `Our version is in the top ${bm.top_k} for <b>${topA} of ${n}</b> questions; Danfoss's page for ${topB}.`;
   $("#ov-lede").innerHTML = `Rank of the page's ${RANK_KIND[k]} among ${bm.pages} pages (the saved competitor pages and this one) ${forQ}. Lower is better: the AI answer box only reads the top ${bm.top_k}. ${inTop}`;
   drawDumbbell(host, bm, k, animate && !REDUCED.matches);
 }
 
 function drawDumbbell(host, bm, k, animate) {
-  host.innerHTML = `<div class="legend"><span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" class="pt s2"/></svg>Danfoss's page (as copied)</span>
-    <span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" class="pt s1"/></svg>Your copy</span>
+  host.innerHTML = `<div class="legend"><span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" class="pt s2"/></svg>Current Danfoss page</span>
+    <span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" class="pt s1"/></svg>Our version</span>
     <span><i class="sw zone"></i>Read by the AI (top ${bm.top_k})</span></div>`;
   tipBox(host);
   const rows = bm.rows, rowH = 34, m = { t: 26, r: 18, b: 10, l: 18 };
@@ -98,7 +98,7 @@ function drawDumbbell(host, bm, k, animate) {
   const maxR = Math.max(bm.pages, ...rows.map(r => Math.max(r.versions.original[k + "_rank"], r.versions.rebuilt[k + "_rank"])));
   const x = r => m.l + (r - 1) / Math.max(1, maxR - 1) * (W - m.l - m.r);
   const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "viz dumb", role: "img",
-    "aria-label": `Rank per buyer question, Danfoss's page and your copy. Lower is better.` }, host);
+    "aria-label": `Rank per buyer question, Danfoss's page and our version. Lower is better.` }, host);
   // the zone the answer box reads, then the rank axis
   svgEl("rect", { x: m.l - 8, y: m.t - 18, width: x(bm.top_k + 0.5) - m.l + 8, height: H - m.t - m.b + 18, rx: 6, class: "zone" }, svg);
   const step = maxR > 14 ? 2 : 1;
@@ -118,8 +118,8 @@ function drawDumbbell(host, bm, k, animate) {
       requestAnimationFrame(() => requestAnimationFrame(() => { dot.style.transform = "translateX(0)"; }));
     }
     const hit = svgEl("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, fill: "transparent", tabindex: 0,
-      "aria-label": `${row.question}: Danfoss's page #${b}, your copy #${a}` }, g);
-    const tip = () => `<b>${esc(row.question)}</b><div>Danfoss's page: <b>#${b}</b> · your copy: <b>#${a}</b>${a < b ? ` <span class="good">▲${b - a}</span>` : a > b ? ` <span class="badtxt">▼${a - b}</span>` : ""}</div>` +
+      "aria-label": `${row.question}: Danfoss's page #${b}, our version #${a}` }, g);
+    const tip = () => `<b>${esc(row.question)}</b><div>Danfoss's page: <b>#${b}</b> · our version: <b>#${a}</b>${a < b ? ` <span class="good">▲${b - a}</span>` : a > b ? ` <span class="badtxt">▼${a - b}</span>` : ""}</div>` +
       (row.versions.rebuilt.best_heading ? `<div class="hint">Best passage: ${esc(row.versions.rebuilt.best_heading.split(" > ").slice(-1)[0])}</div>` : "");
     hit.addEventListener("pointermove", ev => { const r = host.getBoundingClientRect(); showTip(host, tip(), ev.clientX - r.left, ev.clientY - r.top); });
     hit.addEventListener("focus", () => { const r = host.getBoundingClientRect(), hb = hit.getBoundingClientRect(); showTip(host, tip(), hb.left - r.left + hb.width / 2, hb.top - r.top); });
@@ -277,7 +277,7 @@ function cmdkItems() {
     { group: "Action", label: "Open the assistant", hint: "chat about the results", run: () => { if ($("#chat").hidden) $("#open-chat").click(); } },
     { group: "Action", label: "Add a product from a brochure", hint: "PDF, Word or text", run: () => $("#open-import").click() },
     { group: "Action", label: "Start the presentation", hint: "a guided tour for the pitch", run: () => present(0) },
-    { group: "Action", label: "Switch theme", hint: "automatic, light, dark", run: () => $("#toggle-theme").click() },
+    { group: "Action", label: "Switch theme", hint: "automatic, light, dark, neon", run: () => $("#toggle-theme").click() },
   );
   return items;
 }
@@ -327,7 +327,7 @@ document.addEventListener("keydown", e => {
 // --- presentation mode: a guided tour through the views that tell the story ---------------------
 const TOUR = [
   { view: "overview", title: "What changed", text: "Where the product page ranks for each buyer question, before and after the team's edits." },
-  { view: "web/compare", title: "Before and after", text: "Danfoss's page and our copy side by side. Drag the handle; both pages scroll together." },
+  { view: "web/compare", title: "Before and after", text: "Danfoss's page and our version side by side. Drag the handle; both pages scroll together." },
   { view: "web/bm25", title: "Measured per question", text: "BM25 rank against the competitor pages: the whole page and its best passage, like AI search." },
   { view: "run/results", title: "The version AI cites most", text: "Every version is tested in a simulated answer engine. The most cited one wins, with a PDF report." },
   { view: "run/questions-detail", title: "Question by question", text: "Where each version wins or loses, with JEV's real answers one click away." },

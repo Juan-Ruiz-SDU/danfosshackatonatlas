@@ -66,9 +66,9 @@ function renderHero(animate) {
   const host = $("#ov-dumbbell");
   $("#ov-hero-controls").classList.toggle("hidden", !OV.bm);
   if (!OV.bm || !OV.bm.rows.length) {
-    $("#ov-title").textContent = OV.siteMissing ? "Copy Danfoss's website to measure the page" : "The page can't be measured yet";
+    $("#ov-title").textContent = OV.siteMissing ? "Load the product pages to measure them" : "The page can't be measured yet";
     $("#ov-lede").innerHTML = OV.siteMissing
-      ? `Atlas needs its own copy of the product's Danfoss page to compare it with the competitors. Open <a href="#web/site">Web page › Site</a> and press <b>Copy the website</b>.`
+      ? `To compare the product page with the competitors, open <a href="#web/site">Web page › Site</a>, then <b>Pages to edit › Load the pages</b>.`
       : esc(OV.siteError || "No buyer questions or competitor pages yet.") + ` Tick questions in <a href="#run/questions">Run › Buyer questions</a> and add competitor pages in <a href="#run/product">Run › Product</a>.`;
     host.innerHTML = "";
     return;

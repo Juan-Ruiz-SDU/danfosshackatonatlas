@@ -8,7 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/neon.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -52,7 +54,7 @@
 <nav class="tabs rail" role="tablist" aria-label="Views">
   <button role="tab" data-tab="overview" aria-selected="false"><svg class="ic"><use href="#i-overview"/></svg><span class="t">Overview</span><span class="d">What changed, in numbers</span></button>
   <button role="tab" data-tab="run" aria-selected="true"><svg class="ic"><use href="#i-run"/></svg><span class="t">Run</span><span class="d">Write and test page versions</span></button>
-  <button role="tab" data-tab="web" aria-selected="false"><svg class="ic"><use href="#i-web"/></svg><span class="t">Web page</span><span class="d">Your copy of Danfoss's site</span></button>
+  <button role="tab" data-tab="web" aria-selected="false"><svg class="ic"><use href="#i-web"/></svg><span class="t">Web page</span><span class="d">The product website</span></button>
   <button role="tab" data-tab="catalog" aria-selected="false"><svg class="ic"><use href="#i-catalog"/></svg><span class="t">Model by model</span><span class="d">One page per model</span></button>
   <button role="tab" data-tab="citations" aria-selected="false"><svg class="ic"><use href="#i-citations"/></svg><span class="t">Citations</span><span class="d">What Gemini really cites</span><i class="dot hidden" id="rail-alert" aria-label="New alerts"></i></button>
   <button role="tab" data-tab="wiki" aria-selected="false"><svg class="ic"><use href="#i-wiki"/></svg><span class="t">Wiki</span><span class="d">The facts every page uses</span></button>
@@ -324,7 +326,7 @@
     </div>
   </div>
 
-  <!-- Web page: a reconstruction of Danfoss's website, edited page by page -->
+  <!-- Web page: the live Danfoss page, and our version edited page by page -->
   <div id="tab-web" class="tab hidden">
     <div class="subtabs" role="tablist" aria-label="Web page views">
       <button role="tab" data-sub="site">Site</button>
@@ -339,34 +341,22 @@
     </div>
 
     <div class="subpanel" data-sub="site">
-      <section class="card">
-        <h2>Copy of Danfoss's website <span class="count product-name"></span></h2>
-        <p class="hint">Atlas reverse-engineers a section of danfoss.com <b>once</b>, for example the heat exchanger catalog.
-          It reads every page twice: the way a crawler without JavaScript sees it, and the way a browser shows it.
-          It keeps a snapshot of each page as the reference, plus <b>your own copy</b> of each page, already laid out
-          for crawlers. Then it shows the copies as a small website below. Danfoss's live site cannot be shown inside
-          Atlas, because its server forbids being framed. After the copy, everything works on your copies.</p>
-        <p id="web-copyinfo" class="hint"></p>
-        <form id="web-form" class="row">
-          <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/en/products/..." aria-label="First page of the section to copy">
-          <label class="inline">Pages <input id="web-max" type="number" min="1" max="40" value="15" style="width:70px"></label>
-          <button class="primary" id="web-copy-btn">Copy the website</button>
+      <section class="card" id="web-live-card">
+        <h2>danfoss.com, live <span class="count product-name"></span></h2>
+        <form id="web-live-form" class="row">
+          <input id="web-live-url" type="url" style="flex:1 1 380px" placeholder="https://www.danfoss.com/en/products/..." aria-label="Page address">
+          <button class="primary">Show</button>
+          <a id="web-live-open" class="ghostlink" target="_blank" rel="noopener">Open on danfoss.com ↗</a>
         </form>
-        <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copies (otherwise only the reference snapshots are renewed)</label>
-        <div id="web-job" class="hidden">
-          <div class="row between"><span class="step" id="web-job-step"></span><button class="ghost danger" id="web-stop" type="button">Stop</button></div>
-          <pre id="web-log"></pre>
+        <p class="hint" id="web-live-status"></p>
+        <div class="browser">
+          <div class="browserbar"><span class="dots"><i></i><i></i><i></i></span><span id="web-live-addr" class="addr"></span></div>
+          <iframe id="web-live" sandbox="allow-same-origin allow-popups" title="danfoss.com, live"></iframe>
         </div>
-        <details><summary>The site blocks the download? Import one page from your browser</summary>
-          <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, write its address
-            in the box above and pick the file here.</p>
-          <input type="file" id="web-import" accept=".html,.htm">
-        </details>
-        <p class="hint" id="web-status"></p>
       </section>
 
       <section class="card hidden" id="web-site">
-        <h2>Your website</h2>
+        <h2>Our version <span class="count product-name"></span></h2>
         <div class="sitebox">
           <ol id="web-pages" class="pagelist" aria-label="Pages of the website"></ol>
           <div class="browser">
@@ -381,10 +371,33 @@
           in few clicks, linked from related pages, and listed in the sitemap. All its text should be in the HTML.</p>
         <div id="web-sitechecks"></div>
       </section>
+
+      <section class="card">
+        <details id="web-load">
+          <summary>Pages to edit</summary>
+          <p id="web-copyinfo" class="hint"></p>
+          <form id="web-form" class="row">
+            <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/en/products/..." aria-label="First page of the section">
+            <label class="inline">Pages <input id="web-max" type="number" min="1" max="40" value="15" style="width:70px"></label>
+            <button class="primary" id="web-copy-btn">Load the pages</button>
+          </form>
+          <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited pages</label>
+          <details><summary>A page does not load? Import it from your browser</summary>
+            <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, write its address
+              in the box above and pick the file here.</p>
+            <input type="file" id="web-import" accept=".html,.htm">
+          </details>
+          <div id="web-job" class="hidden">
+            <div class="row between"><span class="step" id="web-job-step"></span><button class="ghost danger" id="web-stop" type="button">Stop</button></div>
+            <pre id="web-log"></pre>
+          </div>
+          <p class="hint" id="web-status"></p>
+        </details>
+      </section>
     </div>
 
     <div class="subpanel" data-sub="edit">
-      <p class="empty-state">Copy the website in <a href="#web/site">Site</a> first, then pick a page to edit it here.</p>
+      <p class="empty-state">Load the pages under <a href="#web/site">Site › Pages to edit</a> first, then pick a page to edit it here.</p>
       <section class="card hidden" id="web-edit">
         <h2>Edit this page: <span id="web-edit-title"></span></h2>
         <p class="hint">Markdown: <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>,
@@ -409,7 +422,7 @@
     </div>
 
     <div class="subpanel" data-sub="compare">
-      <p class="empty-state">Copy the website in <a href="#web/site">Site</a> first, then pick a page to compare it with Danfoss's.</p>
+      <p class="empty-state">Load the pages under <a href="#web/site">Site › Pages to edit</a> first, then pick a page to compare it with Danfoss's.</p>
       <section class="card hidden web-out" id="web-slider-card">
         <h2>Danfoss's page and your copy</h2>
         <p class="hint">Drag the handle. Left: Danfoss's page as Atlas copied it, before any edit. Right: your copy as it is now, with its wiki blocks filled in. Both scroll together.</p>

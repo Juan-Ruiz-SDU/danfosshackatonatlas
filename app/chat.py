@@ -36,7 +36,7 @@ has sub-tabs (shown as "Tab › Sub-tab"). Its tabs:
   The "Section by section, verified citations" style finds sub-queries (Gemini's real searches,
   buyer questions), retrieves evidence for each with BM25 + embeddings + a reranker, writes one
   section per sub-query citing [ids], and checks every sentence against its cited evidence.
-- Web page: a reconstruction of the Danfoss website section, edited with wiki blocks and trained
+- Web page: the live danfoss.com page, and our version of the section, edited with wiki blocks and trained
   against competitor pages; shows a before/after slider against Danfoss's page, what Googlebot sees,
   BM25 per question and a fact check.
 - Model by model: one page per model of the product family, from the fact sheet table.

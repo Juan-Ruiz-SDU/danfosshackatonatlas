@@ -31,6 +31,7 @@ import citations  # noqa: E402
 import comparison  # noqa: E402
 import verify  # noqa: E402
 import chat  # noqa: E402
+import live  # noqa: E402
 import pipeline  # noqa: E402
 import products  # noqa: E402
 import retrieval  # noqa: E402
@@ -614,7 +615,7 @@ def site_zip(p):
     import zipfile
     paths = website.paths(p)
     if not website.load_map(p):
-        raise ValueError("Copy the website first (Web page › Site).")
+        raise ValueError("Load the pages first (Web page › Site › Pages to edit).")
     website.refresh(p, danfoss_url(p))
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
@@ -623,7 +624,7 @@ def site_zip(p):
         if paths["sitemap"].is_file():
             z.write(paths["sitemap"], "sitemap.xml")
         z.writestr("robots.txt", "User-agent: *\nAllow: /\n\nSitemap: https://www.danfoss.com/sitemap.xml\n")
-        z.writestr("README.txt", "Atlas reconstruction of a section of danfoss.com, edited for crawlers and AI search.\n"
+        z.writestr("README.txt", "A section of danfoss.com as edited in Atlas for crawlers and AI search.\n"
                    "Every page is static HTML with its structured data (JSON-LD) in the <head>.\n"
                    "Product facts come from the Atlas wiki. sitemap.xml lists the pages with their real addresses.\n")
     return buf.getvalue()
@@ -689,6 +690,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.static("index.html")
             if url.path.startswith("/static/"):
                 return self.static(url.path[len("/static/"):])
+            if url.path == "/live":  # the live danfoss.com page for the Web page tab
+                try:
+                    body = live.page(q.get("url", ""))
+                except Exception as e:  # noqa: BLE001  (shown inside the frame)
+                    body = live.error_page(q.get("url", ""), e)
+                return self.send(200, body.encode("utf-8"), "text/html; charset=utf-8")
             if url.path == "/api/state":
                 return self.send(200, state())
             if url.path == "/api/product":

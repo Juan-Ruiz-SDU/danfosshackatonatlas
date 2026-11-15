@@ -817,15 +817,34 @@ function pageUrl(file, dl) { return `/pages/${encodeURIComponent(P.product.slug)
 // --- Web page tab: the mini website ------------------------------------------------------
 let SITE = null, PAGESEL = null, sitePoll = null;
 
+// --- the live danfoss.com page (fetched by Atlas when you open it: danfoss.com refuses frames) ---
+function showLive(url) {
+  url = (url || "").trim();
+  if (!url) { $("#web-live-status").textContent = "Write the address of a danfoss.com page."; return; }
+  $("#web-live-url").value = url; $("#web-live-addr").textContent = url; $("#web-live-open").href = url;
+  $("#web-live-status").textContent = "Loading the page from danfoss.com… (10–20 seconds the first time)";
+  $("#web-live").src = "/live?url=" + encodeURIComponent(url);
+}
+$("#web-live-form").onsubmit = e => { e.preventDefault(); showLive($("#web-live-url").value); };
+$("#web-live").addEventListener("load", () => {
+  $("#web-live-status").textContent = "";
+  try {  // follow the links clicked inside the box
+    const u = new URL($("#web-live").contentWindow.location.href).searchParams.get("url");
+    if (u) { $("#web-live-url").value = u; $("#web-live-addr").textContent = u; $("#web-live-open").href = u; }
+  } catch (e) { /* not our page */ }
+});
+
 async function loadWeb() {
   SITE = await api("/api/site?slug=" + encodeURIComponent(P.product.slug));
   if (!$("#web-url").value || $("#web-url").dataset.auto === "1") {
     $("#web-url").value = SITE.start || P.danfoss_url || ""; $("#web-url").dataset.auto = "1";
   }
+  const liveUrl = P.danfoss_url || SITE.start || "";
+  if (liveUrl && $("#web-live").dataset.product !== P.product.slug) { $("#web-live").dataset.product = P.product.slug; showLive(liveUrl); }
   renderJobBox(SITE.job);
   if (SITE.job && SITE.job.status === "running") pollSite();
   if (!SITE.site) {
-    $("#web-copyinfo").innerHTML = "No copy yet. Check the first page of the section (for example the catalog) and press <b>Copy the website</b>. It takes a minute or two.";
+    $("#web-copyinfo").innerHTML = "To edit our version, write the first page of the section (for example the catalog) and press <b>Load the pages</b>. It takes a minute or two.";
     ["#web-site", "#web-edit", "#web-gaps-card"].forEach(s => $(s).classList.add("hidden"));
     $$(".web-out").forEach(e => e.classList.add("hidden"));
     $("#web-page-pick-wrap").classList.add("hidden");
@@ -840,7 +859,7 @@ function renderJobBox(job) {
   const box = $("#web-job");
   box.classList.toggle("hidden", !job);
   if (!job) return;
-  const label = { running: "Copying the website…", done: "✔ Copy finished", error: "⚠ Stopped with a problem" }[job.status] || job.status;
+  const label = { running: "Loading the pages…", done: "✔ Pages loaded", error: "⚠ Stopped with a problem" }[job.status] || job.status;
   $("#web-job-step").textContent = `${label} (${Math.floor(job.elapsed / 60)}:${String(job.elapsed % 60).padStart(2, "0")})`;
   $("#web-stop").classList.toggle("hidden", job.status !== "running");
   const log = $("#web-log"); log.textContent = job.log.join("\n"); log.scrollTop = log.scrollHeight;
@@ -855,7 +874,7 @@ function pollSite() {
     renderJobBox(s.job);
     if (!s.job || s.job.status !== "running") {
       clearInterval(sitePoll); sitePoll = null;
-      if (s.job?.status === "done") { toast("Website copied"); await safe(loadWeb); }
+      if (s.job?.status === "done") { toast("Pages loaded"); await safe(loadWeb); }
       else if (s.job?.status === "error") toast(s.job.error, 8000);
     }
   }, 1500);
@@ -864,7 +883,7 @@ function pollSite() {
 $("#web-form").onsubmit = e => {
   e.preventDefault();
   if (!P) return;
-  if (SITE?.site && $("#web-replace").checked && !confirm("Replace ALL your edited page copies with fresh copies of Danfoss's pages?")) return;
+  if (SITE?.site && $("#web-replace").checked && !confirm("Replace ALL your edited pages with Danfoss's current pages?")) return;
   safe(async () => {
     await api("/api/site/copy", { slug: P.product.slug, url: $("#web-url").value.trim(),
       max_pages: +$("#web-max").value || 15, replace: $("#web-replace").checked });
@@ -888,8 +907,8 @@ $("#web-import").onchange = e => {
 
 function renderSite() {
   const s = SITE.site, rows = Object.fromEntries((SITE.checks?.pages || []).map(r => [r.id, r]));
-  $("#web-copy-btn").textContent = "Copy the website again";
-  $("#web-copyinfo").innerHTML = `${s.pages.length} pages copied ${esc(s.copied.replace("T", " "))} from <a href="${esc(s.start)}" target="_blank" rel="noopener">${esc(s.start)}</a>${s.browser ? "" : " (without a browser: pages that need JavaScript may be incomplete)"}.`;
+  $("#web-copy-btn").textContent = "Load the pages again";
+  $("#web-copyinfo").innerHTML = `${s.pages.length} pages loaded ${esc(s.copied.replace("T", " "))} from <a href="${esc(s.start)}" target="_blank" rel="noopener">${esc(s.start)}</a>${s.browser ? "" : " (without a browser: pages that need JavaScript may be incomplete)"}.`;
   $("#web-site").classList.remove("hidden");
   $("#web-pages").innerHTML = s.pages.map(pg => {
     const r = rows[pg.id] || {};

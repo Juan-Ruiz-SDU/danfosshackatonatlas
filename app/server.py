@@ -130,6 +130,9 @@ def state():
                 "est_write": p.get("est_write", 30), "est_answer": p.get("est_answer", 10)}
         if info["type"] == "ollama":
             info["reachable"], installed = ai.ollama_status(p["base_url"])
+            # embedding models (e.g. nomic-embed-text, used by "Words + meaning") can't chat,
+            # so they must never be offered as a writer, judge or brochure model
+            installed = [m for m in installed if "embed" not in m.lower()]
             # show the models that are really installed on that server first
             info["installed"] = installed
             info["models"] = installed + [m for m in info["models"] if m not in installed]

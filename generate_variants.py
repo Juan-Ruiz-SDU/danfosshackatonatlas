@@ -384,10 +384,23 @@ def generate_page(args, prompt, previous=None):
     return best, args.retries + 1
 
 
+def norm_number(n):
+    """One number in a comparable form. Thousand separators are removed ('1,200' and
+    '1.200' -> '1200'), but a decimal point is kept, so '1.5' and '15' stay different
+    (a moved decimal point is a typical made-up number). '1,5' -> '1.5', '15.0' -> '15'."""
+    if re.fullmatch(r"\d{1,3}(?:([.,])\d{3})(?:\1\d{3})*", n):
+        return re.sub(r"[.,]", "", n)
+    n = n.replace(",", ".")
+    if n.count(".") > 1:  # e.g. a version or a document code: keep only the digits
+        return n.replace(".", "")
+    if "." in n:
+        n = n.rstrip("0").rstrip(".")
+    return n
+
+
 def norm_numbers(text):
-    """Set of numbers in text, with thousand/decimal separators removed so
-    '1,200' and '1200' match."""
-    return {re.sub(r"[.,]", "", n) for n in NUM_RE.findall(text)}
+    """Set of numbers in text, in the comparable form of norm_number()."""
+    return {norm_number(n) for n in NUM_RE.findall(text)}
 
 
 def main():

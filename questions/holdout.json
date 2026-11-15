@@ -1,0 +1,7 @@
+[
+  {"id": "hs-compare", "text": "How does {a_product} compare with other options for {application}?"},
+  {"id": "hs-specs", "text": "Which specifications matter most when comparing {product} models?"},
+  {"id": "hs-support", "text": "Which {product} suppliers offer the best technical support?"},
+  {"id": "hs-new", "text": "What is new in {product} technology for {application}?"},
+  {"id": "hs-mistakes", "text": "What mistakes should I avoid when installing {a_product}?"}
+]

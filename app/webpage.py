@@ -416,19 +416,99 @@ def _slug(s, used):
     return slug
 
 
-def _jsonld(meta, items, url, breadcrumbs, brand="Danfoss"):
+MANUFACTURER = {"@type": "Organization", "name": "Danfoss", "url": "https://www.danfoss.com"}
+
+
+def _jsonld(meta, items, url, breadcrumbs, brand="Danfoss", product=None):
+    """Structured data (schema.org JSON-LD) for Google and AI search, from the page's own
+    content and the wiki only. A catalog page (it has tiles) is a CollectionPage listing its
+    products; any other page describes one Product. Prices, reviews and ratings are never
+    invented: without them Google shows no product rich snippet, but it still reads the data."""
     h1 = next((x["text"] for x in items if x["kind"] == "h1"), meta.get("title", ""))
-    data = [{"@context": "https://schema.org", "@type": "Product", "name": h1,
-             "brand": {"@type": "Brand", "name": brand},
-             "description": meta.get("description") or next(
-                 (x["text"] for x in items if x["kind"] == "p"), ""),
-             "url": url}]
+    desc = meta.get("description") or next((x["text"] for x in items if x["kind"] == "p"), "")
+    cards = [c for x in items if x["kind"] == "cards" for c in x["items"]]
+    product = product or {}
+    # a catalog page: most of its tiles lead to pages below it (its products), not to news or other sections
+    base = url.rstrip("/") + "/"
+    kids = [c for c in cards if urllib.parse.urljoin(url, c["href"]).startswith(base)
+            and urllib.parse.urljoin(url, c["href"]).rstrip("/") + "/" != base]
+    collection = not product.get("model") and len(kids) >= 2 and len(kids) * 2 >= len(cards)
+    page = {"@context": "https://schema.org", "@type": "CollectionPage" if collection else "WebPage",
+            "@id": url + "#webpage", "name": meta.get("title") or h1, "url": url, "description": desc,
+            "publisher": MANUFACTURER, "dateModified": datetime.date.today().isoformat()}
+    path = urllib.parse.urlsplit(url).path.lower()
+    info_page = not product.get("model") and re.search(r"servic|partner|distribut|about|contact|news|career|event", path)
+    if collection:
+        page["mainEntity"] = {"@type": "ItemList", "numberOfItems": len(kids), "itemListElement": [
+            {"@type": "ListItem", "position": k + 1, "name": c["title"],
+             "url": urllib.parse.urljoin(url, c["href"])} for k, c in enumerate(kids)]}
+        data = [page]
+    elif info_page:  # service, partner, news pages: a web page about Danfoss, not a product
+        page["about"] = MANUFACTURER
+        data = [page]
+    else:
+        prod = {"@context": "https://schema.org", "@type": "Product", "@id": url + "#product", "name": h1,
+                "brand": {"@type": "Brand", "name": brand}, "manufacturer": MANUFACTURER,
+                "description": desc, "url": url}
+        if product.get("category"):
+            prod["category"] = product["category"]
+        if product.get("model"):
+            prod["model"] = product["model"]
+        props = [(k, v) for k, v in (product.get("properties") or {}).items() if str(v).strip() and k != product.get("key")]
+        if props:
+            prod["additionalProperty"] = [{"@type": "PropertyValue", "name": k, "value": v} for k, v in props]
+        page["about"] = {"@id": prod["@id"]}
+        data = [prod, page]
     if breadcrumbs:
         data.append({"@context": "https://schema.org", "@type": "BreadcrumbList",
                      "itemListElement": [{"@type": "ListItem", "position": k + 1, "name": name,
                                           "item": link}
                                          for k, (name, link) in enumerate(breadcrumbs)]})
     return data
+
+
+def structured_data(page_html):
+    """The JSON-LD of a built page, and plain checks of what Google reads from it."""
+    meta, _ = parse_page(page_html or "")
+    objs, bad = [], 0
+    for d in meta.get("jsonld", []):  # parse_page has already read each block as JSON
+        if isinstance(d, dict) and "_invalid" in d:
+            bad += 1
+            continue
+        for o in (d if isinstance(d, list) else d.get("@graph", [d]) if isinstance(d, dict) else []):
+            if isinstance(o, dict):
+                objs.append(o)
+    types = [o.get("@type") for o in objs]
+    checks = []
+
+    def add(check, ok, note, status=None):
+        checks.append({"check": check, "status": status or ("ok" if ok else "bad"), "note": note})
+    add("JSON-LD present and valid", objs and not bad,
+        f"{len(objs)} object(s): {', '.join(map(str, types))}" if objs else "No structured data on the page"
+        + (f"; {bad} block(s) are not valid JSON" if bad else ""))
+    prod = next((o for o in objs if o.get("@type") == "Product"), None)
+    coll = next((o for o in objs if o.get("@type") == "CollectionPage"), None)
+    if prod:
+        add("Product name", bool(prod.get("name")), prod.get("name") or "missing")
+        d = str(prod.get("description") or "")
+        add("Product description", len(d) >= 50, f"{len(d)} characters" + ("" if len(d) >= 50 else ": too short to describe the product"),
+            None if len(d) >= 50 else "warn")
+        add("Brand and manufacturer", bool(prod.get("brand")) and bool(prod.get("manufacturer")),
+            "Danfoss as brand and manufacturer" if prod.get("manufacturer") else "manufacturer missing")
+        add("Category", bool(prod.get("category")), prod.get("category") or "add the product type in Run › Product",
+            None if prod.get("category") else "warn")
+        n = len(prod.get("additionalProperty") or [])
+        add("Specifications", n > 0, f"{n} properties from the fact sheet table" if n else
+            "none on this page (model pages in Model by model carry the fact sheet's specifications)", None if n else "warn")
+        add("Price, reviews, ratings", False, "Not present, on purpose: Google needs them for product rich snippets, "
+            "but they must come from a real Danfoss price list or real reviews, never be invented.", "warn")
+    if coll:
+        items = (coll.get("mainEntity") or {}).get("itemListElement") or []
+        add("Catalog list (ItemList)", bool(items), f"{len(items)} products listed with their links")
+    add("Breadcrumbs (BreadcrumbList)", "BreadcrumbList" in types,
+        "shows the page's place in the site" if "BreadcrumbList" in types else "no breadcrumb trail on this page",
+        None if "BreadcrumbList" in types else "warn")
+    return {"objects": objs, "pretty": json.dumps(objs, indent=2, ensure_ascii=False), "checks": checks}
 
 
 def breadcrumbs_from(raw_html, base):
@@ -460,7 +540,8 @@ a{color:#2a6fdb}
 .updated{color:#6b6b70;font-size:.9rem}"""
 
 
-def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map=None, chrome=None):
+def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map=None, chrome=None,
+                product=None):
     """A light, static HTML page: everything in the first response, no scripts
     except the JSON-LD data, one H1, a table of contents of the H2 sections.
     link_map(absolute_url) -> local href (or None) points links to pages of a
@@ -512,7 +593,7 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map
                         + "</tr></thead><tbody>"
                         + "".join("<tr>" + "".join(f"<td>{e(c)}</td>" for c in r) + "</tr>"
                                   for r in rows[1:]) + "</tbody></table>")
-    ld = json.dumps(_jsonld(meta, items, url, breadcrumbs or []), ensure_ascii=False, indent=1)
+    ld = json.dumps(_jsonld(meta, items, url, breadcrumbs or [], product=product), ensure_ascii=False, indent=1)
     ld = ld.replace("</", "<\\/")
     title = meta.get("title") or next((x["text"] for x in items if x["kind"] == "h1"), "")
     desc = meta.get("description", "")

@@ -204,10 +204,15 @@ def _rows(out):
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def _key(r):
+    """A row's page version (runs before versions existed only have a style)."""
+    return r.get("version") or r["style"]
+
+
 def _stats(rows):
     by = collections.defaultdict(list)
     for r in rows:
-        by[r["style"]].append(r)
+        by[_key(r)].append(r)
     out = {}
     for style, rs in by.items():
         n = len(rs)
@@ -222,7 +227,7 @@ def _per_question(rows, best, worst):
     lines = []
     for i, q in enumerate(qs, 1):
         def desc(style):
-            rs = [r for r in rows if r["style"] == style and r["question"] == q]
+            rs = [r for r in rows if _key(r) == style and r["question"] == q]
             if not rs:
                 return "-"
             c, f = sum(r["cited"] for r in rs), sum(r["first"] for r in rs)
@@ -240,7 +245,7 @@ def _page_text(p, out, style, rows):
     f = out / "variants" / f"{style}.md"
     if f.is_file():
         return f.read_text(encoding="utf-8", errors="replace").strip()
-    name = next((r["page"] for r in rows if r["style"] == style), None)
+    name = next((r["page"] for r in rows if _key(r) == style), None)
     import pipeline  # late: pipeline imports this module
     for d in pipeline.load_pages(p, 2000):
         if d.name == name:
@@ -317,8 +322,9 @@ def analyse(job, p, out):
     settings = json.loads((out / "settings.json").read_text(encoding="utf-8"))
     rows = _rows(out)
     stats = _stats(rows)
-    best = result["winner"]["style"]
-    generated = [s for s in settings.get("styles", []) if s in stats and (out / "variants" / f"{s}.md").is_file()]
+    best = result["winner"].get("version") or result["winner"]["style"]
+    # every written version (variants/<version>.md) that was tested
+    generated = [f.stem for f in sorted((out / "variants").glob("*.md")) if f.stem in stats]
     others = [s for s in generated if s != best]
     rank = lambda s: (stats[s]["share"], stats[s]["cited_count"], stats[s]["first_count"])  # noqa: E731
     if others:
@@ -329,7 +335,12 @@ def analyse(job, p, out):
         raise ValueError("Only one page version was tested, so there is nothing to compare. "
                          "Tick at least two page versions in the Run card.")
     import pipeline
-    names = pipeline.STYLE_NAMES
+    names = dict(pipeline.STYLE_NAMES)
+    for v in stats:  # "stats_2" -> "Fact-dense (figures) #2"
+        st, _, k = v.rpartition("_")
+        if v not in names and st in names and k.isdigit():
+            names[v] = pipeline.version_name(st, int(k))
+    names.update({r["version"]: r["name"] for r in result.get("ranking") or []})
     targets = result.get("targets") or check(stats[best], product_targets(p))
     files = wiki_files(p)
     if not files:

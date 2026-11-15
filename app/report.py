@@ -237,18 +237,39 @@ def report_pdf(path, c):
                        color=ACCENT if not tg["met"] else (0, 0, 0))
         pdf.ln(2)
 
-    pdf.heading("Which version gets cited?", 13)
-    pdf.text_block(f"Citation share per version, over {n_q} buyer questions "
-                   f"× {c['settings']['repeats']} repeat(s).", 9, color=GREY)
-    pdf.ln(1)
-    pdf.bars([(x["name"], x["share"], x["style"] == w["style"]) for x in c["summary"]])
+    if c.get("explanation"):
+        pdf.heading("What this means", 13)
+        pdf.text_block(c["explanation"], 10)
+        pdf.text_block(f"Written by {c['settings'].get('analyst', '')} {c['settings'].get('analyst_model', '')} "
+                       "from the numbers below.", 8, color=GREY)
 
-    rows = [["Version", "Retrieved", "Cited", "95% range", "Cited when shown", "Share", "Cited first", "Recommended"]]
-    for x in c["summary"]:
-        rows.append([x["name"], pct(x["retrieved"]), pct(x["cited"]),
-                     f"{pct(x['cited_low'])}–{pct(x['cited_high'])}",
-                     pct(x["cited_when_shown"]), pct(x["share"]), pct(x["first"]), pct(x["recommended"])])
-    pdf.grid(rows, widths=(32, 14, 11, 17, 17, 11, 13, 21), size=8)
+    pdf.heading("Ranking: best to worst", 13)
+    pdf.text_block(f"Citation share per version, over {n_q} buyer questions "
+                   f"× {c['settings']['repeats']} repeat(s). A tie means its 95% range overlaps the winner's.",
+                   9, color=GREY)
+    pdf.ln(1)
+    rank = c.get("ranking") or []
+    pdf.bars([(f"{r['rank']}. {r['name']}", r["share"], r["winner"]) for r in rank])
+
+    rows = [["#", "Version", "Share", "Cited", "95% range", "Cited when shown", "Cited first", "Note"]]
+    for r in rank:
+        rows.append([r["rank"], r["name"], pct(r["share"]), pct(r["cited"]),
+                     f"{pct(r['cited_low'])}–{pct(r['cited_high'])}", pct(r["cited_when_shown"]), pct(r["first"]),
+                     "winner" if r["winner"] else "tie" if r["tie"] else ("test only" if not r["publishable"] else "")])
+    pdf.grid(rows, widths=(7, 44, 13, 13, 20, 20, 16, 17), size=8)
+
+    h = c.get("holdout")
+    if h:
+        pdf.heading("Holdout check: questions never used to write the pages", 13)
+        verdict = ("The winner is still the most cited version" if h["winner_still_first"]
+                   else "The winner is NOT the most cited version here, so its lead may come from tuning to the usual questions")
+        if h["winner_beats_baseline"] is not None:
+            verdict += (", and it beats Danfoss's current page." if h["winner_beats_baseline"]
+                        else ", but it does not beat Danfoss's current page.")
+        pdf.text_block(verdict + f" {len(h['questions'])} holdout questions.", 10)
+        pdf.grid([["Version", "Share", "Cited", "95% range"]] +
+                 [[x["name"], pct(x["share"]), pct(x["cited"]), f"{pct(x['cited_low'])}–{pct(x['cited_high'])}"]
+                  for x in h["summary"]], widths=(80, 25, 25, 30), size=8)
 
     pdf.heading("Before you publish", 13)
     if c["winner_numbers"]:
@@ -263,8 +284,8 @@ def report_pdf(path, c):
     else:
         pdf.text_block(f"**Length:** {c['winner_words']} words, more than 20% off the target of "
                        f"{target}, even after retries. Trim it by hand if needed.", 10, color=ACCENT)
-    lo_win = w.get("cited_low", next(x["cited_low"] for x in c["summary"] if x["style"] == w["style"]))
-    rivals = [x for x in c["summary"] if x["style"] != w["style"]]
+    lo_win = w.get("cited_low", 0)
+    rivals = [x for x in c["summary"] if x.get("version") != w.get("version")]
     if rivals and max(x["cited_high"] for x in rivals) > lo_win:
         pdf.text_block("The 95% ranges of the versions overlap, so part of the gap may be luck. "
                        "Add questions or repeats for a firmer answer.", 10, color=GREY)
@@ -288,8 +309,12 @@ def report_pdf(path, c):
         f"Each page competed with {c['n_competitors']} competitor pages "
         f"({', '.join(c['competitors'][:12])}). A search ranking (BM25) picked the top {s['top_k']} "
         "results for each question, as Google's blue links do.",
-        f"**{s['judge']} / {s['judge_model']}** then answered each question like Google's AI Overview, "
-        "using only those results, and cited them.",
+        f"**JEV ({s['judge']} / {s['judge_model']})**, a different AI than the writer, then answered each "
+        "question like Google's AI Overview, using only those results, and cited them"
+        + (", with brand names replaced by Brand A, B, C so brand fame could not decide." if s.get("blind") else ".")
+        + (" The Danfoss page was always among the results (writing quality alone)." if s.get("force_target") else ""),
+        f"Each question was asked {s['repeats']} time(s) with the results shuffled; "
+        f"{s.get('variants', 1)} page(s) were written per style.",
         "**Citation share**: of all citations in an answer, how many went to the Danfoss page. "
         "**Cited when shown**: how often the page was cited when the AI saw it, which measures the writing alone.",
         "Source discovery: " + ("on, fresh sources from Google Search." if s["discovery"]
@@ -314,12 +339,28 @@ def report_markdown(c):
          f"**Best version to publish: {w['name']}**, citation share {pct(w['share'])}, "
          f"cited in {pct(w['cited'])} of answers"
          + (f" (Danfoss's current page: {pct(b['share'])})." if b else "."), "",
-         "| Version | Retrieved | Cited | 95% range | Cited when shown | Share | Cited first | Recommended |",
-         "|---|---|---|---|---|---|---|---|"]
-    for x in c["summary"]:
-        L.append(f"| {x['name']} | {pct(x['retrieved'])} | {pct(x['cited'])} | "
-                 f"{pct(x['cited_low'])}–{pct(x['cited_high'])} | {pct(x['cited_when_shown'])} | "
-                 f"{pct(x['share'])} | {pct(x['first'])} | {pct(x['recommended'])} |")
+         ]
+    if c.get("explanation"):
+        L += ["## What this means", "", c["explanation"], ""]
+    s = c["settings"]
+    L += ["## Ranking: best to worst", "",
+          f"JEV (the judge): {s['judge']} {s['judge_model']}"
+          + (" · brand names hidden" if s.get("blind") else "") + f" · {s['repeats']} repeat(s). "
+          "A tie means its 95% range overlaps the winner's.", "",
+          "| # | Version | Share | Cited | 95% range | Cited when shown | Cited first | Note |",
+          "|---|---|---|---|---|---|---|---|"]
+    for r in c.get("ranking") or []:
+        L.append(f"| {r['rank']} | {r['name']} | {pct(r['share'])} | {pct(r['cited'])} | "
+                 f"{pct(r['cited_low'])}–{pct(r['cited_high'])} | {pct(r['cited_when_shown'])} | {pct(r['first'])} | "
+                 + ("winner" if r["winner"] else "tie" if r["tie"] else "test only" if not r["publishable"] else "") + " |")
+    h = c.get("holdout")
+    if h:
+        L += ["", "## Holdout check", "",
+              f"{len(h['questions'])} questions never used to write the pages. The winner is "
+              + ("still first" if h["winner_still_first"] else "**not** first") + ".", "",
+              "| Version | Share | Cited | 95% range |", "|---|---|---|---|"]
+        L += [f"| {x['name']} | {pct(x['share'])} | {pct(x['cited'])} | {pct(x['cited_low'])}–{pct(x['cited_high'])} |"
+              for x in h["summary"]]
     if c.get("targets"):
         tg = c["targets"]
         L += ["", ("**Targets met.** " if tg["met"] else "**Targets missed:** wiki suggestions are in the app "

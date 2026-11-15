@@ -252,10 +252,14 @@ def build(p, item_id, questions, competitors, version="template", provider=None,
     meta = product_meta(page_items, p)
     cat = catalog(p)
     slug_id = re.sub(r"[^a-z0-9]+", "-", f"{cat['key']}-{item_id}".lower()).strip("-")
+    it = next((x for x in cat["items"] if x["id"] == item_id), None)
+    spec = dict(zip(cat["columns"], it["cells"])) if it else {}  # the model's row of the fact sheet table
     html_text = webpage.render_html(page_items, meta, proposed_url(p, slug_id), None, "en",
                                     note="Built from the Atlas fact sheet only. "
                                          + ("Rewritten by AI: check the flags before use."
-                                            if version == "ai" else "Every sentence comes from the fact sheet."))
+                                            if version == "ai" else "Every sentence comes from the fact sheet."),
+                                    product={"category": p.get("product_type", ""), "model": item_id,
+                                             "key": cat["key"], "properties": spec})
     folder = webpage.store_paths(p)["folder"] / "products"
     folder.mkdir(parents=True, exist_ok=True)
     name = f"{slug_id}{'-ai' if version == 'ai' else ''}.html"
@@ -270,7 +274,7 @@ def build(p, item_id, questions, competitors, version="template", provider=None,
                    else "make the copy in the Web page tab first, so product pages get a URL"})
     return {
         "id": item_id, "version": version, "file": f"products/{name}", "words": len(md.split()),
-        "flags": flags, "audit": checks,
+        "flags": flags, "audit": checks, "structured": webpage.structured_data(html_text),
         "googlebot": webpage.googlebot_view(md, questions),
         "bm25": webpage.bm25_table({version: md}, competitors, questions),
     }

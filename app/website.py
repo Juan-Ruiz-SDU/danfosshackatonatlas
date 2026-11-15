@@ -538,9 +538,33 @@ def render_site(p):
             items, {"title": meta.get("title", ""), "description": meta.get("description", "")},
             meta.get("url") or pg["final_url"], [tuple(b) for b in crumbs], meta.get("lang") or "en",
             note=f"Atlas reconstruction of {pg['final_url']} for testing. Not the official Danfoss website.",
-            link_map=link_map, chrome=chrome)
+            link_map=link_map, chrome=chrome, product={"category": p.get("product_type", "")})
         page_paths(p, pg["id"])["html"].write_text(page_html, encoding="utf-8")
     webpage.write_sitemap(p)
+
+
+def render_original(p, pid):
+    """Danfoss's page as it was copied (the reference snapshot), drawn with the same
+    look as the copies, for the before/after slider. Read-only: nothing is written."""
+    site = load_map(p)
+    pg = next((x for x in site["pages"] if x["id"] == pid), None) if site else None
+    if not pg:
+        raise ValueError(f"No page '{pid}' in the copied site")
+    pth = page_paths(p, pid)
+    meta, body = webpage.read_copy(pth["original_md"])
+    rec = json.loads(pth["original_json"].read_text(encoding="utf-8"))
+    crumbs = [tuple(b) for b in rec.get("breadcrumbs", [])]
+    chrome = {
+        "css": SITE_CSS,
+        "header": '<header class="dh"><div class="bar"><span class="logo">Danfoss</span></div></header>',
+        "crumbs": "",
+        "footer": '<div class="in">Danfoss A/S · Nordborgvej 81, 6430 Nordborg, Denmark</div>',
+    }
+    return webpage.render_html(
+        webpage.md_to_items(body), {"title": meta.get("title", ""), "description": meta.get("description", "")},
+        pg["final_url"], crumbs, meta.get("lang") or "en",
+        note=f"Snapshot of {pg['final_url']} as Atlas copied it on {rec.get('copied', '')[:10]}, before any edit.",
+        chrome=chrome)
 
 
 def _short(s, n=34):
@@ -664,6 +688,7 @@ def page_analysis(p, pid, questions, competitors, allowed_numbers, lab_id, top_k
         "file": f"site/{pid}.html",
         "wiki": {"used": blocks_used, "missing": blocks_missing},
         "gaps": competitor_gaps(p, webpage.to_markdown(items), competitors, questions),
+        "structured": webpage.structured_data(page_html),
     }
 
 

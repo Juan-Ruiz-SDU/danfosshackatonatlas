@@ -53,15 +53,41 @@ STYLE_NAMES = {
 DEFAULTS = {
     "discovery": False, "search_model": "gemini-2.5-flash",
     "writer": "ollama", "writer_model": "qwen3:8b",
-    "judge": "ollama", "judge_model": "qwen3:8b",
-    "styles": ["plain", "stats", "sources"], "words": 400, "repeats": 1,
+    # JEV, the judge that plays Google's answer box. It must be a different AI than the writer:
+    # a model tends to prefer text written in its own style (self-preference bias).
+    "judge": "gemini", "judge_model": "gemini-2.5-flash",
+    "styles": ["plain", "stats", "sources"], "words": 400,
+    # "Thorough" by default (more data, firmer answers): 3 shuffled repeats per question,
+    # 2 pages per style, and a re-test of the best versions on holdout questions.
+    "repeats": 3, "variants": 2, "holdout": True,
     "top_k": 5, "max_words": 700, "fresh_pages": False, "retries": 3,
     "retrieval": "page",
+    # JEV sees "Brand A/B/C" instead of real brand names, so brand fame cannot decide
+    "blind": True,
+    # always show the Danfoss page to JEV: measures the writing alone, not the search ranking
+    "force_target": False,
     # section writer: evidence search (BM25 + embeddings + reranker); reranker = writer AI if empty
     "embeddings": True, "embed_model": "nomic-embed-text", "reranker": "", "reranker_model": "",
-    # when the best page misses the product's citation targets, this AI proposes wiki changes
+    # writes the plain-language text about the result, and (when a target is missed) the wiki changes
     "analysis": True, "analyst": "ollama", "analyst_model": "qwen3:8b",
 }
+RANKING_SIZE = 10  # the result lists the best versions, winner first, up to this many
+# Brand names to hide from JEV besides each page's own brand (same list as the Citations reviewer)
+KNOWN_BRANDS = re.compile(r"\b(danfoss|alfa[ -]?laval|swep|hexonic|kelvion|ciat|carrier|daikin|bitzer|"
+                          r"dorin|sondex|copeland|embraco|tecumseh|kriwan)\b", re.I)
+
+
+def check_judge(s):
+    """JEV must not be the AI that wrote the pages."""
+    same = (s["judge"] == s["writer"] and s["judge_model"].strip().lower() == s["writer_model"].strip().lower())
+    if same:
+        raise ValueError(f"JEV, the judge, is the same AI as the writer ({s['writer']} {s['writer_model']}). "
+                         "A model prefers text in its own style, so pick another AI for JEV under "
+                         "Run › JEV (recommended: Gemini 2.5 Flash; or another Ollama model).")
+
+
+def version_name(style, k=None):
+    return STYLE_NAMES.get(style, style) + (f" #{k}" if k else "")
 
 
 def run(job, slug, settings):
@@ -74,6 +100,8 @@ def run(job, slug, settings):
     styles = [x for x in s["styles"] if x in gv.STYLES or x == SECTIONS]
     if not any(x in PUBLISHABLE for x in styles):
         raise ValueError("Pick at least one style that can be published (not only keyword-stuffed).")
+    check_judge(s)
+    holdout_qs = products.holdout_questions(p) if s.get("holdout") else []
 
     stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
     out = p["folder"] / "runs" / stamp
@@ -81,7 +109,13 @@ def run(job, slug, settings):
     (out / "settings.json").write_text(json.dumps(
         {**s, "product": p["name"], "questions": questions, "started": stamp},
         indent=2, ensure_ascii=False), encoding="utf-8")
-    job.log(f"Product: {p['name']}  ·  {len(questions)} questions  ·  run folder {out.name}")
+    job.log(f"Product: {p['name']}  ·  {len(questions)} questions"
+            + (f" + {len(holdout_qs)} holdout" if holdout_qs else "") + f"  ·  run folder {out.name}")
+    job.log(f"Writer: {s['writer']} {s['writer_model']}  ·  JEV (judge): {s['judge']} {s['judge_model']}"
+            f"{' (brand names hidden)' if s.get('blind') else ''}  ·  {s['repeats']} repeat(s)"
+            f"{'  ·  Danfoss page always shown' if s.get('force_target') else ''}")
+    if len(questions) < 10:
+        job.log(f"  Note: {len(questions)} questions is little data; with 10 or more the 95% ranges get narrower.")
 
     fetch_fixed(job, p)
     discovery = discover(job, p, questions, s, out) if s["discovery"] else None
@@ -97,6 +131,10 @@ def run(job, slug, settings):
     competitors = [d for d in pages if d.brand.lower() != TARGET]
     for d in originals:  # the reformatted page keeps its own name in the scores
         d.style = "restructured" if d.style == "restructured" else "original"
+    for d in originals:  # each current Danfoss page is its own entry in the ranking
+        twins = [x for x in originals if x.style == d.style]
+        d.version = d.style if len(twins) == 1 else d.name
+        d.display = STYLE_NAMES[d.style] + (f" ({d.name})" if len(twins) > 1 else "")
     job.log(f"Comparison pages: {len(competitors)} competitor, {len(originals)} current Danfoss")
     if len(competitors) < 2:
         raise ValueError(
@@ -106,7 +144,31 @@ def run(job, slug, settings):
 
     variants = write_variants(job, p, sheet, styles, s, out, questions)
     rows, summary = citation_test(job, variants + originals, competitors, questions, s, out)
-    return finish(job, p, s, out, questions, variants, originals, competitors, rows, summary, discovery)
+    holdout = holdout_test(job, summary, variants, originals, competitors, holdout_qs, s, out)
+    return finish(job, p, s, out, questions, variants, originals, competitors, rows, summary, discovery,
+                  holdout)
+
+
+def holdout_test(job, summary, variants, originals, competitors, questions, s, out):
+    """The best two publishable versions and today's Danfoss page(s), re-tested on questions
+    that were never used to write the pages or to improve the wiki. If the winner only wins
+    on the usual questions, the improvements learned the test, not better pages."""
+    if not questions:
+        return None
+    eligible = [x["version"] for x in summary if x["publishable"]][:2]
+    docs = [v for v in variants if v.version in eligible] + originals
+    if not docs:
+        return None
+    job.log(f"Holdout check: {len(docs)} versions on {len(questions)} questions never used for writing")
+    _, hsum = citation_test(job, docs, competitors, questions, s, out, "citation_holdout.jsonl",
+                            "Checking the best versions on holdout questions")
+    win = eligible[0]
+    w = next(x for x in hsum if x["version"] == win)
+    base = next((x for x in hsum if x["style"] == "original"), None)
+    return {"questions": questions, "summary": hsum,
+            "winner_share": w["share"], "baseline_share": base["share"] if base else None,
+            "winner_beats_baseline": (w["share"] > base["share"]) if base else None,
+            "winner_still_first": hsum[0]["version"] == win}
 
 
 # --- 1. fixed comparison pages --------------------------------------------------
@@ -221,9 +283,14 @@ def write_variants(job, p, sheet, styles, s, out, questions=()):
     if sources:
         job.log(f"Writer also gets {len(sources.split())} words of original source passages from {raw_dir.name}/")
     variants = []
-    for i, style in enumerate(styles):
-        job.step("Writing the page in different styles", i, len(styles))
+    per_style = max(1, min(5, int(s.get("variants", 1) or 1)))
+    # the section writer is slow and deterministic in its search, so it writes one page
+    plan = [(style, k if copies > 1 else None) for style in styles
+            for copies in [1 if style == SECTIONS else per_style] for k in range(1, copies + 1)]
+    for i, (style, k) in enumerate(plan):
+        job.step("Writing the page versions", i, len(plan))
         allowed = gv.allowed_numbers(sheet, style)
+        version = style if k is None else f"{style}_{k}"
         if style == SECTIONS:
             cited, text, process = sections.write_page(p, sheet, questions, s, log=job.log,
                                                        cancel=job.cancelled, step=job.step)
@@ -233,12 +300,14 @@ def write_variants(job, p, sheet, styles, s, out, questions=()):
         else:
             prompt = gv.build_prompt(p["name"], s["words"], sheet,
                                      gv.STYLES[style].format(keyword=kw), guidelines, sources)
-            text, attempts = generate_page(job, s, prompt)
-        path = out / "variants" / f"{style}.md"
+            # copy 1 keeps the old cache key; later copies get their own, so they are new texts
+            text, attempts = generate_page(job, s, prompt, salt=None if (k or 1) == 1 else f"copy{k}")
+        path = out / "variants" / f"{version}.md"
         path.write_text(text + "\n", encoding="utf-8")
         words = text.split()
         cut = " ".join(words[:s["max_words"]]) + (" ..." if len(words) > s["max_words"] else "")
         doc = lab.Doc(path, "Danfoss", style, cut)
+        doc.version, doc.display = version, version_name(style, k)
         doc.full_text = text
         doc.unknown_numbers = sorted(gv.norm_numbers(text) - allowed, key=len)
         doc.words = len(words)
@@ -247,7 +316,7 @@ def write_variants(job, p, sheet, styles, s, out, questions=()):
         variants.append(doc)
         flag = f", check numbers: {', '.join(doc.unknown_numbers)}" if doc.unknown_numbers else ""
         size = "" if doc.length_ok else ", LENGTH OFF (closest attempt kept)"
-        job.log(f"  wrote {STYLE_NAMES.get(style, style)}: {len(words)} words, "
+        job.log(f"  wrote {doc.display}: {len(words)} words, "
                 f"{attempts} attempt(s){flag}{size}")
     return variants
 
@@ -257,7 +326,7 @@ def length_ok(text, target):
     return abs(len(text.split()) - target) <= 0.2 * target
 
 
-def generate_page(job, s, prompt):
+def generate_page(job, s, prompt, salt=None):
     """The team's length-retry generation (Pablo's generate_page): if a page is more
     than 20% off the target length, ask again telling the AI the previous word count
     and the range to hit, up to `retries` extra times, and keep the attempt closest
@@ -272,7 +341,7 @@ def generate_page(job, s, prompt):
             p += (f"\nIMPORTANT: your previous version had {last_words} words. "
                   f"This version MUST be between {lo} and {hi} words. Aim for {target}.\n")
         page = ai.chat(s["writer"], s["writer_model"], "", p, temperature=0.3,
-                       cancel=job.cancelled, use_cache=not s["fresh_pages"], log=job.log)
+                       cancel=job.cancelled, use_cache=not s["fresh_pages"], log=job.log, salt=salt)
         page = re.sub(r"\A```(?:markdown|md)?\s*\n(.*?)\n```\s*\Z", r"\1", page.strip(),
                       flags=re.DOTALL)
         last_words = len(page.split())
@@ -286,11 +355,28 @@ def generate_page(job, s, prompt):
 
 
 # --- 4. citation test -------------------------------------------------------------
-def citation_test(job, targets, competitors, questions, s, out):
+def _blind(shown, seed):
+    """Brand labels for one answer: each brand in the results gets 'Brand A', 'Brand B'... in a
+    shuffled order, so the same letter does not always mean Danfoss."""
+    brands = sorted({d.brand for d in shown})
+    random.Random(seed).shuffle(brands)
+    return {b: f"Brand {chr(65 + i)}" for i, b in enumerate(brands)}
+
+
+def _mask(text, labels):
+    for brand, label in sorted(labels.items(), key=lambda kv: -len(kv[0])):
+        text = re.sub(rf"\b{re.escape(brand)}\b", label, text, flags=re.I)
+    return KNOWN_BRANDS.sub("[a brand]", text)
+
+
+def citation_test(job, targets, competitors, questions, s, out, fname="citation_test.jsonl",
+                  step_name="Testing which page Google's AI cites"):
     total = len(targets) * len(questions) * s["repeats"]
     rows, done = [], 0
-    raw = (out / "citation_test.jsonl").open("w", encoding="utf-8")
+    blind, force = bool(s.get("blind")), bool(s.get("force_target"))
+    raw = (out / fname).open("w", encoding="utf-8")
     for target in targets:
+        version = getattr(target, "version", target.style)
         corpus = competitors + [target]  # one Danfoss page at a time vs the same rivals
         if s.get("retrieval") == "passage":  # rank passages, show each page's best ones
             ranker = lab.PassageRanker(corpus)
@@ -307,47 +393,59 @@ def citation_test(job, targets, competitors, questions, s, out):
             rank = next(i for i, (_, d) in enumerate(ranked) if d is target) + 1
             top = [d for _, d in ranked[:s["top_k"]]]
             retrieved = target in top
+            forced = force and not retrieved
+            if forced:  # JEV always sees the Danfoss page: it replaces the last of the top results
+                top = top[:-1] + [target]
             for rep in range(s["repeats"]):
-                job.step("Testing which page Google's AI cites", done, total)
+                job.step(step_name, done, total)
                 seed = 42 + 1000 * rep + qi
                 shown = top[:]
                 random.Random(seed).shuffle(shown)
                 id_to_doc = {f"D{i + 1}": d for i, d in enumerate(shown)}
-                results = "\n\n".join(f"[{i}] Source: {d.brand}\n{page_text(d, q)}"
-                                      for i, d in id_to_doc.items())
+                labels = _blind(shown, seed) if blind else {}
+                results = "\n\n".join(
+                    f"[{i}] Source: {labels.get(d.brand, d.brand)}\n"
+                    + (_mask(page_text(d, q), labels) if blind else page_text(d, q))
+                    for i, d in id_to_doc.items())
+                # the salt keeps blind/forced answers apart from earlier ones in the cache
+                salt = seed if not (blind or force) else f"{seed}|{'blind' if blind else ''}|{'force' if force else ''}"
                 text = ai.chat(s["judge"], s["judge_model"], lab.SYSTEM,
                                lab.USER.format(question=q, results=results),
-                               temperature=0.2, cancel=job.cancelled, log=job.log, salt=seed)
+                               temperature=0.2, cancel=job.cancelled, log=job.log, salt=salt)
                 cites, rec = lab.parse_answer(text, id_to_doc)
                 mine = [c for c in cites if id_to_doc[c] is target]
+                name = labels.get(target.brand, TARGET).lower()
                 row = {
-                    "page": target.name, "style": target.style, "question": q, "repeat": rep,
-                    "bm25_rank": rank, "retrieved": retrieved, "in_context": target in shown,
+                    "page": target.name, "version": version, "style": target.style, "question": q, "repeat": rep,
+                    "bm25_rank": rank, "retrieved": retrieved, "in_context": target in shown, "forced": forced,
                     "cited": bool(mine), "share": len(mine) / len(cites) if cites else 0.0,
                     "first": bool(cites) and id_to_doc[cites[0]] is target,
-                    "recommended": TARGET in rec.lower(),
+                    "recommended": bool(re.search(rf"\b{re.escape(name)}\b", rec.lower())),
                     "cited_brands": [id_to_doc[c].brand for c in cites],
-                    "recommendation": rec, "answer": text,
+                    "labels": labels, "recommendation": rec, "answer": text,
                 }
                 rows.append(row)
                 raw.write(json.dumps(row, ensure_ascii=False) + "\n")
                 raw.flush()
                 done += 1
-        job.log(f"  tested {STYLE_NAMES.get(target.style, target.style)} ({target.name})")
+        job.log(f"  tested {getattr(target, 'display', STYLE_NAMES.get(target.style, target.style))} ({target.name})")
     raw.close()
-    job.step("Testing which page Google's AI cites", total, total)
+    job.step(step_name, total, total)
 
     summary = []
-    for style in dict.fromkeys(t.style for t in targets):
-        rs = [r for r in rows if r["style"] == style]
+    by_version = {getattr(t, "version", t.style): t for t in targets}
+    for version, t in by_version.items():
+        rs = [r for r in rows if r["version"] == version]
         n = len(rs)
         if not n:
             continue
+        style = t.style
         shown = [r for r in rs if r["in_context"]]
         k = sum(r["cited"] for r in rs)
         lo, hi = lab.wilson(k, n)
         summary.append({
-            "style": style, "name": STYLE_NAMES.get(style, style),
+            "version": version, "style": style,
+            "name": getattr(t, "display", STYLE_NAMES.get(style, style)),
             "publishable": style in PUBLISHABLE, "trials": n,
             "retrieved": sum(r["retrieved"] for r in rs) / n,
             "cited": k / n, "cited_low": lo, "cited_high": hi,
@@ -362,15 +460,80 @@ def citation_test(job, targets, competitors, questions, s, out):
 
 
 # --- 5. result --------------------------------------------------------------------
-def finish(job, p, s, out, questions, variants, originals, competitors, rows, summary, discovery):
+def ranking(summary, n=RANKING_SIZE):
+    """The versions from best to worst (up to n). A version whose 95% range of 'cited'
+    overlaps the winner's is marked as a tie: with this much data, the gap may be luck."""
+    lead = next((x for x in summary if x["publishable"]), summary[0])
+    out = []
+    for i, x in enumerate(summary[:n], 1):
+        tie = x is not lead and x["cited_high"] >= lead["cited_low"] and x["cited_low"] <= lead["cited_high"]
+        out.append({"rank": i, "winner": x is lead, "tie": tie,
+                    **{k: x[k] for k in ("version", "name", "style", "publishable", "trials", "share", "cited",
+                                         "cited_low", "cited_high", "first", "cited_when_shown")}})
+    return out
+
+
+EXPLAIN_PROMPT = """You explain the result of a test to a busy product team, in plain English and a direct tone.
+Several versions of a product web page were tested: for each buyer question, a search ranking picked
+the top results, an AI answer engine ("JEV") answered from them and cited sources. The table ranks the
+versions from most to least cited.
+
+PRODUCT: {product}
+QUESTIONS: {n_questions}, each asked {repeats} time(s). JEV: {judge}. Brand names hidden from JEV: {blind}.
+
+RANKING (rank. version: citation share, share of answers citing it with its 95% range, cited first; "tie" = its range overlaps the winner's):
+{table}
+
+CURRENT DANFOSS PAGE: {baseline}
+HOLDOUT CHECK (questions never used to write or improve the pages): {holdout}
+TARGETS: {targets}
+
+Write 4 to 6 sentences:
+1. Which version won and by how much, compared with the next ones and with the current Danfoss page.
+2. Whether the gap is firm or could be luck (ties, overlapping ranges, number of trials).
+3. What the holdout check says, if there is one.
+4. The one thing to do next.
+RULES: use ONLY the numbers above, never invent facts about the product, no headings, no lists, no marketing words."""
+
+
+def explain_result(job, p, s, rank, baseline, holdout, targets, n_questions):
+    """Plain-language text about the ranking, written by the analyst AI (not by JEV)."""
+    table = "\n".join(f"{r['rank']}. {r['name']}: share {r['share']:.0%}, cited {r['cited']:.0%} "
+                      f"({r['cited_low']:.0%}-{r['cited_high']:.0%}), first {r['first']:.0%}"
+                      + (" [winner]" if r["winner"] else " [tie]" if r["tie"] else "") for r in rank)
+    hold = ("none" if not holdout else
+            f"{len(holdout['questions'])} questions; winner share {holdout['winner_share']:.0%}"
+            + (f", current Danfoss page {holdout['baseline_share']:.0%}" if holdout["baseline_share"] is not None else "")
+            + ("; the winner is still first" if holdout["winner_still_first"] else "; the winner is NOT first here"))
+    prompt = EXPLAIN_PROMPT.format(
+        product=p["name"], n_questions=n_questions, repeats=s["repeats"], judge=f"{s['judge']} {s['judge_model']}",
+        blind="yes" if s.get("blind") else "no", table=table,
+        baseline=f"share {baseline['share']:.0%}, cited {baseline['cited']:.0%}" if baseline else "not tested",
+        holdout=hold, targets=analysis.check_text(targets))
+    try:
+        text = ai.chat(s.get("analyst") or "ollama", s.get("analyst_model") or "qwen3:8b", "", prompt,
+                       temperature=0.2, cancel=job.cancelled, log=job.log)
+        return re.sub(r"\s+\n", "\n", text).strip() or None
+    except ai.Cancelled:
+        raise
+    except Exception as e:  # noqa: BLE001  (the text is a bonus: the run's files are ready without it)
+        job.log(f"Could not write the text about the result ({e}). The ranking and the files are ready.")
+        return None
+
+
+def finish(job, p, s, out, questions, variants, originals, competitors, rows, summary, discovery, holdout=None):
     job.step("Making the final page and the report", 0, 1)
     eligible = [x for x in summary if x["publishable"]]
     win = eligible[0]
-    winner = next(v for v in variants if v.style == win["style"])
+    winner = next(v for v in variants if v.version == win["version"])
     baseline = next((x for x in summary if x["style"] == "original"), None)
     brands = collections.Counter(b for r in rows for b in r["cited_brands"])
     targets = analysis.check(win, analysis.product_targets(p))
     job.log("Targets: " + analysis.check_text(targets))
+    rank = ranking(summary)
+    job.log("Ranking: " + " > ".join(f"{r['name']} {r['share']:.0%}" + (" (tie)" if r["tie"] else "") for r in rank))
+    job.step("Writing the text about the result", 0, 1)
+    explanation = explain_result(job, p, s, rank, baseline, holdout, targets, len(questions))
 
     (out / "final_page.md").write_text(winner.full_text + "\n", encoding="utf-8")
     with (out / "scores.csv").open("w", encoding="utf-8", newline="") as f:
@@ -385,10 +548,11 @@ def finish(job, p, s, out, questions, variants, originals, competitors, rows, su
         "total_citations": sum(brands.values()), "questions": questions,
         "competitors": sorted({d.brand for d in competitors}), "n_competitors": len(competitors),
         "n_originals": len(originals), "discovery": discovery, "settings": s,
-        "variants": [{"style": v.style, "name": STYLE_NAMES.get(v.style, v.style), "words": v.words,
+        "variants": [{"version": v.version, "style": v.style, "name": v.display, "words": v.words,
                       "unknown_numbers": v.unknown_numbers, "attempts": v.attempts,
                       "length_ok": v.length_ok} for v in variants],
         "winner_length_ok": winner.length_ok, "targets": targets,
+        "ranking": rank, "holdout": holdout, "explanation": explanation,
     }
     files = {"final_md": "final_page.md"}
     try:
@@ -410,10 +574,18 @@ def finish(job, p, s, out, questions, variants, originals, competitors, rows, su
 
     result = {
         "run": out.name, "product": p["name"], "slug": p["slug"],
-        "winner": {"style": win["style"], "name": win["name"], "share": win["share"],
+        "winner": {"version": win["version"], "style": win["style"], "name": win["name"], "share": win["share"],
                    "cited": win["cited"], "first": win["first"]},
         "baseline": ({"share": baseline["share"], "cited": baseline["cited"]} if baseline else None),
         "check_numbers": winner.unknown_numbers, "files": files, "targets": targets,
+        "ranking": rank, "explanation": explanation,
+        "holdout": ({k: holdout[k] for k in ("winner_share", "baseline_share", "winner_beats_baseline",
+                                             "winner_still_first")} | {"questions": len(holdout["questions"]),
+                    "summary": [{k: x[k] for k in ("version", "name", "share", "cited", "cited_low", "cited_high", "trials")}
+                                for x in holdout["summary"]]}) if holdout else None,
+        "judge": f"{s['judge']} {s['judge_model']}", "writer": f"{s['writer']} {s['writer_model']}",
+        "analyst": f"{s.get('analyst') or 'ollama'} {s.get('analyst_model') or 'qwen3:8b'}",
+        "blind": bool(s.get("blind")), "repeats": s["repeats"], "questions": len(questions),
         "analysis": {"status": "not needed" if targets["met"] else
                      "pending" if s.get("analysis", True) else "off"},
     }

@@ -1,19 +1,26 @@
 {
-  "disabled_standard": [
-    "s-what-is",
-    "s-best-for",
-    "s-recommend-brand",
-    "s-buying-checklist",
-    "s-sizing",
-    "s-efficiency",
-    "s-cost",
-    "s-where-buy",
-    "s-lifespan",
-    "s-problems",
-    "s-maintenance",
-    "s-alternatives",
-    "s-replacement",
-    "s-worth-it"
-  ],
-  "custom": []
+  "disabled_standard": [],
+  "custom": [],
+  "holdout": [
+    {
+      "id": "h-lab-1",
+      "text": "What should I look for when choosing a brazed plate heat exchanger for an air-to-water heat pump?"
+    },
+    {
+      "id": "h-lab-2",
+      "text": "Which brazed plate heat exchanger has the lowest pressure drop for a ground source heat pump?"
+    },
+    {
+      "id": "h-lab-3",
+      "text": "Which heat exchanger suppliers have models for CO2 heat pumps?"
+    },
+    {
+      "id": "h-lab-4",
+      "text": "Should I use a brazed or a gasketed plate heat exchanger in a heat pump?"
+    },
+    {
+      "id": "h-lab-5",
+      "text": "Which brazed plate heat exchanger supplier offers the widest capacity range for heat pumps?"
+    }
+  ]
 }

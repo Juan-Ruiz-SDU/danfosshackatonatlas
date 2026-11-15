@@ -35,8 +35,10 @@ import pipeline  # noqa: E402
 import products  # noqa: E402
 import retrieval  # noqa: E402
 import sections  # noqa: E402
+import watch  # noqa: E402
 import webpage  # noqa: E402
 import website  # noqa: E402
+import wikiedit  # noqa: E402
 
 
 # --- the one background run -----------------------------------------------------
@@ -138,7 +140,17 @@ def state():
             "styles": [{"id": k, "name": pipeline.STYLE_NAMES.get(k, k),
                         "publishable": k in pipeline.PUBLISHABLE}
                        for k in [*pipeline.gv.STYLES, pipeline.SECTIONS]],
-            "job": JOB.as_dict() if JOB else None}
+            "job": JOB.as_dict() if JOB else None, "watch": watch_brief()}
+
+
+def watch_brief():
+    try:
+        st = watch.status()
+    except Exception:  # noqa: BLE001
+        return None
+    unread = [a for a in st["alerts"] if not a["read"]]
+    return {"unread": len(unread), "latest": unread[0]["title"] if unread else None,
+            "kind": unread[0]["kind"] if unread else None}
 
 
 def run_folder(p, run):
@@ -169,7 +181,8 @@ def product_info(slug):
     return {
         "product": {k: p.get(k, "") for k in ("slug", "name", "product_type", "application", "keyword")},
         "danfoss_url": danfoss_url(p),
-        "questions": products.questions(p), "fact_sheet": sheet, "fact_sheet_error": sheet_error,
+        "questions": products.questions(p), "holdout": products.holdout(p),
+        "fact_sheet": sheet, "fact_sheet_error": sheet_error,
         "pages": {"danfoss": sum(d.brand.lower() == "danfoss" for d in pages),
                   "competitors": sum(d.brand.lower() != "danfoss" for d in pages),
                   "fixed_links": len(products.source_list(p))},
@@ -483,6 +496,139 @@ def build_product_page(b):
                          fresh=bool(b.get("fresh")))
 
 
+# --- Run › Results: the details of one run ---------------------------------------------------
+def _jsonl(path):
+    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()] if path.is_file() else []
+
+
+def _vkey(r):
+    return r.get("version") or r["style"]
+
+
+def _vname(v, names):
+    if v in names:
+        return names[v]
+    st, _, k = v.rpartition("_")
+    return pipeline.version_name(st, int(k)) if st in pipeline.STYLE_NAMES and k.isdigit() else pipeline.STYLE_NAMES.get(v, v)
+
+
+def run_detail(slug, run):
+    """Per version and question: how often it was cited (the heatmap); the written versions."""
+    p = products.get(slug)
+    out = run_folder(p, run)
+    res = json.loads((out / "result.json").read_text(encoding="utf-8"))
+    names = {x["version"]: x["name"] for x in res.get("ranking") or []}
+
+    def grid(rows):
+        if not rows:
+            return None
+        qs = list(dict.fromkeys(r["question"] for r in rows))
+        order = [x["version"] for x in res.get("ranking") or []]
+        versions = order + [v for v in dict.fromkeys(_vkey(r) for r in rows) if v not in order]
+        cells = {}
+        for r in rows:
+            c = cells.setdefault(f"{_vkey(r)}|{qs.index(r['question'])}", {"n": 0, "cited": 0, "first": 0, "shown": 0})
+            c["n"] += 1
+            c["cited"] += bool(r["cited"])
+            c["first"] += bool(r["first"])
+            c["shown"] += bool(r["in_context"])
+        present = {_vkey(r) for r in rows}
+        return {"questions": qs, "cells": cells,
+                "versions": [{"version": v, "name": _vname(v, names)} for v in versions if v in present]}
+    try:
+        sheet = products.fact_sheet(p)
+    except ValueError:
+        sheet = ""
+    variants = []
+    for f in sorted((out / "variants").glob("*.md")):
+        text = f.read_text(encoding="utf-8", errors="replace")
+        st, _, k = f.stem.rpartition("_")
+        style = st if k.isdigit() and st in pipeline.STYLE_NAMES else f.stem
+        variants.append({"version": f.stem, "name": _vname(f.stem, names), "file": f"variants/{f.name}",
+                         "words": len(text.split()),
+                         "unknown_numbers": sorted(pipeline.gv.norm_numbers(text) - pipeline.gv.allowed_numbers(sheet, style), key=len)
+                         if sheet else []})
+    return {"run": run, "main": grid(_jsonl(out / "citation_test.jsonl")),
+            "holdout": grid(_jsonl(out / "citation_holdout.jsonl")), "variants": variants}
+
+
+def run_answers(q):
+    """JEV's real answers for one version and one question of a run."""
+    p = products.get(q.get("slug", ""))
+    out = run_folder(p, q.get("run", ""))
+    rows = _jsonl(out / ("citation_holdout.jsonl" if q.get("holdout") == "1" else "citation_test.jsonl"))
+    qs = list(dict.fromkeys(r["question"] for r in rows))
+    i = int(q.get("i", 0))
+    if not 0 <= i < len(qs):
+        raise ValueError("No such question in that run")
+    pick = [r for r in rows if _vkey(r) == q.get("version") and r["question"] == qs[i]]
+    return {"question": qs[i], "answers": [{k: r.get(k) for k in (
+        "repeat", "answer", "recommendation", "cited", "first", "in_context", "forced", "bm25_rank",
+        "cited_brands", "labels")} for r in pick]}
+
+
+# --- Wiki tab --------------------------------------------------------------------------------
+RAW_JOB = None
+
+
+def wiki_state(slug):
+    p = products.get(slug)
+    return {**wikiedit.files(p), "log": wikiedit.log_text(p), "raw": wikiedit.raw_status(p),
+            "raw_job": RAW_JOB.as_dict() if RAW_JOB and RAW_JOB.slug == slug else None}
+
+
+def wiki_save(b):
+    p = products.get(b.get("slug", ""))
+    r = wikiedit.save(p, str(b.get("path", "")), str(b.get("text", "")), str(b.get("note", "")), bool(b.get("create")))
+    if r["changed"]:
+        try:  # pages with {{wiki: ...}} blocks follow the wiki
+            website.refresh(p, danfoss_url(p))
+        except Exception as e:  # noqa: BLE001
+            r["site_error"] = str(e)
+    return {**r, **wiki_state(p["slug"])}
+
+
+def start_raw_update(b):
+    global RAW_JOB
+    p = products.get(b.get("slug", ""))
+    with LOCK:
+        if RAW_JOB and RAW_JOB.status == "running":
+            raise ValueError("The documents are already being downloaded.")
+        RAW_JOB = job = SiteJob(p["slug"])
+
+    def work():
+        try:
+            job.log("Downloading the documents the wiki cites…")
+            wikiedit.update_raw(p, job.log)
+            job.status = "done"
+            job.log("Finished.")
+        except BaseException as e:  # noqa: BLE001  (SystemExit from the lab script too)
+            job.status, job.error = "error", str(e) or type(e).__name__
+            job.log("ERROR: " + job.error)
+    threading.Thread(target=work, daemon=True).start()
+
+
+def site_zip(p):
+    """The mini website as files to hand over: every page, sitemap.xml, robots.txt."""
+    import io
+    import zipfile
+    paths = website.paths(p)
+    if not website.load_map(p):
+        raise ValueError("Copy the website first (Web page › Site).")
+    website.refresh(p, danfoss_url(p))
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(paths["site"].glob("*.html")):
+            z.write(f, f.name)
+        if paths["sitemap"].is_file():
+            z.write(paths["sitemap"], "sitemap.xml")
+        z.writestr("robots.txt", "User-agent: *\nAllow: /\n\nSitemap: https://www.danfoss.com/sitemap.xml\n")
+        z.writestr("README.txt", "Atlas reconstruction of a section of danfoss.com, edited for crawlers and AI search.\n"
+                   "Every page is static HTML with its structured data (JSON-LD) in the <head>.\n"
+                   "Product facts come from the Atlas wiki. sitemap.xml lists the pages with their real addresses.\n")
+    return buf.getvalue()
+
+
 def update_product(slug, fields):
     p = products.get(slug)
     path = p["folder"] / "product.json"
@@ -513,7 +659,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
         n = int(self.headers.get("Content-Length") or 0)
         return json.loads(self.rfile.read(n) or b"{}")
 
+    # --- only Atlas's own page may talk to Atlas -------------------------------------------
+    # Another website open in the browser could otherwise send requests to 127.0.0.1 (for
+    # example change the Gemini address so the key goes elsewhere). The Host check stops
+    # DNS rebinding; the Origin check stops cross-site requests; requiring JSON on POST stops
+    # plain HTML forms, which cannot send it to another site without the browser asking first.
+    def _hosts(self):
+        port = self.server.server_address[1]
+        return {f"127.0.0.1:{port}", f"localhost:{port}"}
+
+    def trusted(self, post):
+        if (self.headers.get("Host") or "") not in self._hosts():
+            return "Unknown host"
+        origin = self.headers.get("Origin")
+        if origin and urllib.parse.urlsplit(origin).netloc not in self._hosts():
+            return "Requests from other websites are not allowed"
+        if post and not (self.headers.get("Content-Type") or "").startswith("application/json"):
+            return "Send JSON"
+        return None
+
     def do_GET(self):
+        why = self.trusted(post=False)
+        if why:
+            return self.send(403, {"error": why})
         url = urllib.parse.urlsplit(self.path)
         q = dict(urllib.parse.parse_qsl(url.query))
         try:
@@ -539,6 +707,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.send(200, site_state(q.get("slug", "")))
             if url.path == "/api/site/page":
                 return self.send(200, site_page(q.get("slug", ""), q.get("id", "")))
+            if url.path == "/api/site/original":  # before/after slider: the snapshot as a page
+                html_page = website.render_original(products.get(q.get("slug", "")), q.get("id", ""))
+                return self.send(200, html_page.encode("utf-8"), "text/html; charset=utf-8")
+            if url.path == "/api/site/export":
+                p = products.get(q.get("slug", ""))
+                return self.send(200, site_zip(p), "application/zip",
+                                 {"Content-Disposition": f'attachment; filename="{p["slug"]}_website.zip"'})
+            if url.path == "/api/run/detail":
+                return self.send(200, run_detail(q.get("slug", ""), q.get("run", "")))
+            if url.path == "/api/run/answers":
+                return self.send(200, run_answers(q))
+            if url.path == "/api/wiki":
+                return self.send(200, wiki_state(q.get("slug", "")))
+            if url.path == "/api/wiki/file":
+                return self.send(200, wikiedit.read(products.get(q.get("slug", "")), q.get("path", "")))
+            if url.path == "/api/watch":
+                return self.send(200, watch.status())
             if url.path == "/api/site/wiki":
                 return self.send(200, website.wiki_blocks(products.get(q.get("slug", ""))))
             if url.path == "/api/citations":
@@ -569,6 +754,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send(500, {"error": f"Unexpected problem: {e}"})
 
     def do_POST(self):
+        why = self.trusted(post=True)
+        if why:
+            return self.send(403, {"error": why})
         path = urllib.parse.urlsplit(self.path).path
         try:
             b = self.body()
@@ -582,13 +770,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif path == "/api/questions/add":
                 if b.get("scope") == "standard":
                     products.add_standard(b.get("text", ""))
+                elif b.get("scope") == "holdout":
+                    products.add_holdout(products.get(b["slug"]), b.get("text", ""))
                 else:
                     products.add_custom(products.get(b["slug"]), b.get("text", ""))
             elif path == "/api/questions/delete":
                 if b.get("kind") == "standard":
                     products.delete_standard(b["id"])
+                elif b.get("kind") == "holdout":
+                    products.delete_holdout(products.get(b["slug"]), b["id"])
                 else:
                     products.delete_custom(products.get(b["slug"]), b["id"])
+            elif path == "/api/wiki/save":
+                return self.send(200, wiki_save(b))
+            elif path == "/api/raw/update":
+                start_raw_update(b)
+            elif path == "/api/watch/check":
+                new = watch.check()
+                return self.send(200, {"new": len(new), **watch.status()})
+            elif path == "/api/watch/read":
+                watch.mark_read()
+            elif path == "/api/watch/test":
+                return self.send(200, {"result": watch.test_email()})
             elif path == "/api/product/update":
                 update_product(b["slug"], b)
             elif path == "/api/key":
@@ -712,6 +915,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send(200, path.read_bytes(), ctype, {"Content-Disposition": disp})
 
 
+def start_watch():
+    """News watch every WATCH_HOURS; Citations refresh every CITATIONS_EVERY_DAYS (0 = off)."""
+    import datetime
+
+    def last_citations():
+        runs = citations.list_runs()
+        return datetime.datetime.fromtimestamp(runs[-1].stat().st_mtime) if runs else None
+
+    def refresh_citations():
+        if ai.has_key("GEMINI_API_KEY") and not (CIT_JOB and CIT_JOB.status == "running"):
+            start_citations_update({"section": "all"})
+    watch.start_scheduler(refresh_citations, last_citations)
+
+
 def free_port(start=8765):
     for port in range(start, start + 50):
         with socket.socket() as s:
@@ -731,6 +948,7 @@ def main():
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{port}/"
     print(f"Atlas is running at {url}\nKeep this window open while you use it. Close it to stop.")
+    start_watch()
     threading.Timer(0.8, lambda: webbrowser.open(url)).start()
     try:
         server.serve_forever()

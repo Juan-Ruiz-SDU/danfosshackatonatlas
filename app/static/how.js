@@ -253,7 +253,12 @@ function shapePath(shape, x, y, r, cls, id = "") {
 let CHAT = { msgs: [], id: null, timer: null, ready: false };
 try { CHAT.msgs = JSON.parse(localStorage.getItem("atlas.chat") || "[]"); } catch (e) { CHAT.msgs = []; }
 function chatSave() { try { localStorage.setItem("atlas.chat", JSON.stringify(CHAT.msgs.slice(-30))); } catch (e) {} }
-function currentTab() { return $(".tabs [aria-selected=true]")?.textContent.trim() || "Run"; }
+function currentTab() {
+  const tab = $(".tabs [aria-selected=true]");
+  const name = (tab?.querySelector(".t") || tab)?.textContent.trim() || "Run";
+  const sub = tab && $(`#tab-${tab.dataset.tab} .subtabs [aria-selected=true]`);
+  return sub ? `${name} › ${sub.textContent.replace(/^\d+/, "").trim()}` : name;
+}
 function chatContext() {
   $("#chat-where").textContent = `Knows the app, the “${currentTab()}” tab` + (P ? ` and the facts of ${P.product.name}.` : ".");
 }

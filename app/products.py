@@ -26,6 +26,7 @@ APP = pathlib.Path(__file__).resolve().parent
 REPO = APP.parent
 PRODUCTS = REPO / "products"
 STANDARD = REPO / "questions" / "standard.json"
+HOLDOUT = REPO / "questions" / "holdout.json"  # standard holdout questions, shared by every product
 sys.path.insert(0, str(REPO))
 import generate_variants  # noqa: E402  (fact sheet loader and writing styles)
 
@@ -183,6 +184,41 @@ def add_custom(p, text):
         raise ValueError("Type a question first")
     sel = _read(_qfile(p), {"disabled_standard": [], "custom": []})
     sel.setdefault("custom", []).append({"id": "c-" + uuid.uuid4().hex[:8], "text": text, "enabled": True})
+    _write(_qfile(p), sel)
+
+
+# --- holdout questions: only for checking, never for writing or improving the wiki ------------
+def standard_holdout():
+    return _read(HOLDOUT, [])
+
+
+def holdout(p):
+    """Holdout questions of this product: the standard ones (filled in) then its own.
+    They are asked only after the ranking, to check the best versions; the writer, the
+    section writer and the wiki analysis never see them."""
+    sel = _read(_qfile(p), {})
+    out = [{"id": q["id"], "kind": "holdout-standard", "text": fill(q["text"], p)} for q in standard_holdout()]
+    out += [{"id": q["id"], "kind": "holdout", "text": q["text"]} for q in sel.get("holdout", [])]
+    asked = {q["text"].strip().lower() for q in questions(p)}
+    return [q for q in out if q["text"].strip().lower() not in asked]  # never a question of the test itself
+
+
+def holdout_questions(p):
+    return [q["text"] for q in holdout(p)]
+
+
+def add_holdout(p, text):
+    text = text.strip()
+    if not text:
+        raise ValueError("Type a question first")
+    sel = _read(_qfile(p), {"disabled_standard": [], "custom": []})
+    sel.setdefault("holdout", []).append({"id": "h-" + uuid.uuid4().hex[:8], "text": text})
+    _write(_qfile(p), sel)
+
+
+def delete_holdout(p, qid):
+    sel = _read(_qfile(p), {"disabled_standard": [], "custom": []})
+    sel["holdout"] = [q for q in sel.get("holdout", []) if q["id"] != qid]
     _write(_qfile(p), sel)
 
 

@@ -33,3 +33,6 @@ lab/discovered/suggestions/
 products/*/sources.txt
 products/*/fixed/
 products/*/sources/
+
+# Atlas alerts saved as emails when no SMTP server is set
+app/outbox/

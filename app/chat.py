@@ -25,7 +25,10 @@ MAX_FACTS = 6000      # characters of the fact sheet in the system prompt
 MAX_TURNS = 12        # earlier messages sent back to the model
 
 APP_GUIDE = """You are the assistant inside Atlas, a tool of a Danfoss hackathon team. Atlas finds the
-version of a product web page that AI search (Google's AI Overviews, Gemini) cites first. Its tabs:
+version of a product web page that AI search (Google's AI Overviews, Gemini) cites first. Each tab
+has sub-tabs (shown as "Tab › Sub-tab"). Its tabs:
+- Overview: the headline results: where the product page ranks per buyer question before and after
+  the team's edits, the latest run's citation share, Gemini's real citations over time.
 - Run: writes the product page in several styles from the product wiki (the only source of facts),
   then a citation lab simulates Google's AI: BM25 picks the top pages for each buyer question and
   an AI answers and cites. It reports which version is cited most and, if the targets are missed,
@@ -34,7 +37,8 @@ version of a product web page that AI search (Google's AI Overviews, Gemini) cit
   buyer questions), retrieves evidence for each with BM25 + embeddings + a reranker, writes one
   section per sub-query citing [ids], and checks every sentence against its cited evidence.
 - Web page: a reconstruction of the Danfoss website section, edited with wiki blocks and trained
-  against competitor pages; shows what Googlebot sees, BM25 per question and a fact check.
+  against competitor pages; shows a before/after slider against Danfoss's page, what Googlebot sees,
+  BM25 per question and a fact check.
 - Model by model: one page per model of the product family, from the fact sheet table.
 - Citations: asks Gemini (with Google Search) the prompts and records which pages it cites and the
   share of the answer each one supports; compares them with our pages per sub-query; an AI reviewer

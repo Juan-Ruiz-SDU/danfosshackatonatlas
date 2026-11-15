@@ -76,7 +76,7 @@ def quote_supports(quote, claim):
 
 
 def _numbers(s):
-    return {re.sub(r"[.,]", "", n) for n in NUM_RE.findall(s or "")}
+    return {gv.norm_number(n) for n in NUM_RE.findall(s or "")}  # '1.5' and '15' stay different
 
 
 # --- evidence ------------------------------------------------------------------------

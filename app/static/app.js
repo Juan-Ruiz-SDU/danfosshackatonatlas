@@ -65,6 +65,13 @@ function renderBanner() {
         <button class="primary">Save</button></form></section>`;
     }
   }
+  const w = S.watch;
+  if (w && w.unread) {
+    html += `<section class="card alert-card"><b>${w.kind === "model" ? "New AI model" : "Google changed how it ranks pages"}:</b> ${esc(w.latest)}.
+      <span class="hint">${w.kind === "model" ? "The results were measured with older models, so the pages probably need a new round of tests." : "Check whether the citations moved and re-test the pages."}</span>
+      <a href="#citations/alerts">Open the alert${w.unread > 1 ? `s (${w.unread})` : ""}</a></section>`;
+  }
+  $("#rail-alert")?.classList.toggle("hidden", !(w && w.unread));
   if (!S.deps.fpdf) {
     html += `<section class="card"><b>PDFs are off.</b> <span class="hint">To get the final page and the report as PDF, close Atlas and run
       <code>pip install -r requirements.txt</code> (or start Atlas with "Start Atlas.bat", which does it for you).</span></section>`;
@@ -89,7 +96,7 @@ function renderBanner() {
 
 function fillProviders() {
   const opts = Object.entries(S.providers).map(([id, p]) => `<option value="${esc(id)}">${esc(p.label)}${p.has_key ? "" : " (no key yet)"}</option>`).join("");
-  for (const [sel, input, list] of [["#s-writer", "#s-writer-model", "#writer-models"], ["#s-judge", "#s-judge-model", "#judge-models"], ["#imp-provider", "#imp-model", "#imp-models"]]) {
+  for (const [sel, input, list] of [["#s-writer", "#s-writer-model", "#writer-models"], ["#s-judge", "#s-judge-model", "#judge-models"], ["#s-analyst", "#s-analyst-model", "#analyst-models"], ["#imp-provider", "#imp-model", "#imp-models"]]) {
     const s = $(sel);
     const prev = s.value;
     s.innerHTML = opts;
@@ -116,50 +123,96 @@ function gather() {
     discovery: $("#s-discovery").checked,
     writer: $("#s-writer").value, writer_model: $("#s-writer-model").value.trim(),
     judge: $("#s-judge").value, judge_model: $("#s-judge-model").value.trim(),
+    analyst: $("#s-analyst").value, analyst_model: $("#s-analyst-model").value.trim(),
     styles: $$("#s-styles input:checked").map(i => i.value),
     words: +$("#s-words").value || 400, repeats: +$("#s-repeats").value || 1,
+    variants: +$("#s-variants").value || 1, holdout: $("#s-holdout").checked,
+    blind: $("#s-blind").checked, force_target: $("#s-force").checked,
+    embeddings: $("#s-embeddings").checked, max_words: +$("#s-maxwords").value || 700,
     top_k: +$("#s-topk").value || 5, fresh_pages: $("#s-fresh").checked,
     retries: $("#s-retries").value === "" ? 3 : +$("#s-retries").value,
     retrieval: $("#s-retrieval").value || "page",
   };
 }
+// Settings saved in the browser before JEV and the "more data" defaults: keep the writer and the
+// page choices, take the new defaults for the judge and the amount of data.
+const SETTINGS_VERSION = 2;
+function savedSettings() {
+  const s = recall("settings", {});
+  if (s._v === SETTINGS_VERSION) return s;
+  const keep = ["discovery", "writer", "writer_model", "styles", "words", "top_k", "retries", "retrieval", "fresh_pages"];
+  return Object.fromEntries(keep.filter(k => k in s).map(k => [k, s[k]]));
+}
 let restoring = false;
 function restoreSettings() {
   restoring = true;
-  try { applySettings({ ...S.defaults, ...recall("settings", {}) }); } finally { restoring = false; }
+  try { applySettings({ ...S.defaults, ...savedSettings() }); } finally { restoring = false; }
 }
 function applySettings(s) {
   $("#s-discovery").checked = !!s.discovery;
-  for (const [sel, input, pk, mk] of [["#s-writer", "#s-writer-model", "writer", "writer_model"], ["#s-judge", "#s-judge-model", "judge", "judge_model"]]) {
+  for (const [sel, input, pk, mk] of [["#s-writer", "#s-writer-model", "writer", "writer_model"], ["#s-judge", "#s-judge-model", "judge", "judge_model"], ["#s-analyst", "#s-analyst-model", "analyst", "analyst_model"]]) {
     if (S.providers[s[pk]]) { $(sel).value = s[pk]; $(sel).onchange(); }
     if (s[mk]) $(input).value = s[mk];
   }
   $$("#s-styles input").forEach(i => i.checked = s.styles.includes(i.value));
   $("#s-words").value = s.words; $("#s-repeats").value = s.repeats; $("#s-topk").value = s.top_k;
+  $("#s-variants").value = s.variants ?? 1; $("#s-holdout").checked = !!s.holdout;
+  $("#s-blind").checked = !!s.blind; $("#s-force").checked = !!s.force_target;
+  $("#s-embeddings").checked = s.embeddings !== false; $("#s-maxwords").value = s.max_words ?? 700;
   $("#s-fresh").checked = !!s.fresh_pages;
   $("#s-retries").value = s.retries ?? 3;
   $("#s-retrieval").value = s.retrieval === "passage" ? "passage" : "page";
+  renderPreset();
 }
-function saveSettings() { if (restoring) return; store("settings", gather()); renderBanner(); estimate(); }
-["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-words", "#s-repeats", "#s-topk", "#s-fresh", "#s-retries", "#s-retrieval"]
+function saveSettings() { if (restoring) return; store("settings", { ...gather(), _v: SETTINGS_VERSION }); renderBanner(); estimate(); renderPreset(); }
+["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-analyst-model", "#s-words", "#s-repeats", "#s-variants", "#s-holdout",
+  "#s-blind", "#s-force", "#s-embeddings", "#s-maxwords", "#s-topk", "#s-fresh", "#s-retries", "#s-retrieval"]
   .forEach(s => $(s).addEventListener("change", saveSettings));
+
+// Quick: one pass, for trying things. Thorough: more data, for results to show (the default).
+const PRESETS = {
+  quick: { repeats: 1, variants: 1, holdout: false },
+  thorough: { repeats: 3, variants: 2, holdout: true },
+};
+function renderPreset() {
+  const s = gather();
+  const on = Object.entries(PRESETS).find(([, v]) => v.repeats === s.repeats && v.variants === s.variants && v.holdout === s.holdout)?.[0];
+  $$("#s-preset [data-preset]").forEach(b => b.classList.toggle("on", b.dataset.preset === on));
+  $("#preset-hint").textContent = on === "quick" ? "1 pass per question, 1 page per style, no holdout check: for trying things out."
+    : on === "thorough" ? "3 shuffled repeats, 2 pages per style and a holdout check: firmer results, about 3 to 6 times the AI calls."
+    : "Custom (see More options).";
+}
+$$("#s-preset [data-preset]").forEach(b => b.onclick = () => {
+  const v = PRESETS[b.dataset.preset];
+  $("#s-repeats").value = v.repeats; $("#s-variants").value = v.variants; $("#s-holdout").checked = v.holdout;
+  saveSettings();
+});
+function judgeIsWriter(s) {
+  return s.judge === s.writer && s.judge_model.toLowerCase() === s.writer_model.toLowerCase();
+}
 
 function estimate() {
   if (!P || !S) return;
   const s = gather();
   const nq = P.questions.filter(q => q.enabled).length;
-  const ns = s.styles.length;
+  const nh = s.holdout ? (P.holdout || []).length : 0;
+  const ns = s.styles.reduce((a, st) => a + (st === "sections" ? 1 : s.variants), 0);  // pages to write
   const targets = ns + P.pages.danfoss;
   const search = s.discovery ? nq : 0;
-  const judge = targets * nq * s.repeats;
-  const calls = search + ns + judge;
+  const judge = targets * nq * s.repeats + (nh ? (Math.min(2, ns) + P.pages.danfoss) * nh * s.repeats : 0);
+  const calls = search + ns + judge + 1;
   const pw = S.providers[s.writer] || {}, pj = S.providers[s.judge] || {};
   // writing: 1.5 attempts per page on average (length retries)
   const secs = search * 9 + ns * 1.5 * ((pw.est_write || 30) + (pw.sleep || 0)) + judge * ((pj.est_answer || 10) + (pj.sleep || 0));
   const mins = Math.max(1, Math.round(secs / 60));
   const time = mins >= 90 ? `${(mins / 60).toFixed(1)} hours` : `${mins} min`;
-  let txt = `${nq} questions × ${targets} page versions → about <b>${calls} AI calls</b>, roughly ${time}. Answers already saved are free.`;
-  if (pw.type === "ollama" || pj.type === "ollama") txt += ` Runs on Ollama: no tokens or quota used.`;
+  let txt = `${nq} questions${nh ? ` + ${nh} holdout` : ""} × ${targets} page versions × ${s.repeats} repeat${s.repeats === 1 ? "" : "s"} → about <b>${calls} AI calls</b>, roughly ${time}. Answers already saved are free.`;
+  if (nq < 10) txt += `<br><span style="color:var(--warn)">${nq} questions is little data: tick 10 or more in Buyer questions for firmer results.</span>`;
+  const warn = $("#judge-warn");
+  warn.classList.toggle("hidden", !judgeIsWriter(s));
+  warn.textContent = judgeIsWriter(s) ? `JEV is the same AI as the writer (${s.writer_model}). A model prefers text in its own style, so the run will refuse to start: pick another AI for JEV (recommended: Gemini 2.5 Flash).` : "";
+  if (pw.type === "ollama" && pj.type === "ollama") txt += ` Runs on Ollama: no tokens or quota used.`;
+  else if (pw.type === "ollama") txt += ` Writing runs on Ollama (free); JEV on ${esc(pj.label || s.judge)} uses its quota.`;
   if (mins >= 90 && pj.type === "ollama") txt += `<br><span style="color:var(--warn)">That's long on a CPU. To speed it up, tick fewer questions or page versions, or keep the computer from sleeping and let it run.</span>`;
   if (calls > 200 && (s.judge === "gemini" || s.writer === "gemini")) txt += `<br><span style="color:var(--warn)">This may hit Gemini's free daily limit. If it does, press Run again tomorrow: it continues where it stopped.</span>`;
   $("#estimate").innerHTML = txt;
@@ -251,6 +304,14 @@ function renderQuestions() {
   $("#q-custom").innerHTML = own.map(item).join("") || `<li class="empty">None yet. Add one below.</li>`;
   const n = P.questions.filter(q => q.enabled).length;
   $("#q-count").textContent = `${n} of ${P.questions.length} selected`;
+  const ho = P.holdout || [];
+  $("#q-holdout").innerHTML = ho.map(q => `<li><span>${esc(q.text)}</span>${q.kind === "holdout" ? `<button class="x" title="Delete" data-hdel="${esc(q.id)}">✕</button>` : `<span class="tag">standard</span>`}</li>`).join("")
+    || `<li class="empty">None yet. Add one below with “Holdout, for this product”.</li>`;
+  $("#q-holdout-count").textContent = `${ho.length} question${ho.length === 1 ? "" : "s"}`;
+  $$("#q-holdout [data-hdel]").forEach(b => b.onclick = () => safe(async () => {
+    await api("/api/questions/delete", { slug: P.product.slug, id: b.dataset.hdel, kind: "holdout" });
+    await loadProduct(P.product.slug);
+  }));
   $$(".qlist input[type=checkbox]").forEach(c => c.onchange = () => {
     P.questions.find(q => q.id === c.dataset.id).enabled = c.checked;
     renderQuestions(); saveSelection();
@@ -281,7 +342,7 @@ $("#q-add").onsubmit = e => {
   safe(async () => {
     await api("/api/questions/add", { slug: P.product.slug, text, scope });
     $("#q-text").value = "";
-    toast(scope === "standard" ? "Added for all products" : "Added for this product");
+    toast(scope === "standard" ? "Added for all products" : scope === "holdout" ? "Holdout question added" : "Added for this product");
     S = await api("/api/state");
     await loadProduct(P.product.slug);
   });
@@ -292,9 +353,11 @@ $("#run").onclick = () => safe(async () => {
   const s = gather();
   if (!P.questions.some(q => q.enabled)) return toast("Tick at least one question");
   if (!s.styles.length) return toast("Tick at least one page version");
+  if (judgeIsWriter(s)) return toast("Pick a different AI for JEV than the writer", 5000);
   saveSettings();
   await api("/api/run", { slug: P.product.slug, settings: s });
   startPolling();
+  $("#card-progress").scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
 $("#stop").onclick = () => safe(async () => { await api("/api/stop", {}); toast("Stopping after the current step…"); });
 
@@ -312,7 +375,7 @@ function startPolling() {
       if (job.status === "done") {
         toast("Done! Your files are ready.");
         await loadProduct(job.slug);
-        $("#card-results").scrollIntoView({ behavior: "smooth" });
+        showTab("run", "results");
       }
     }
   };
@@ -372,6 +435,7 @@ function renderResults() {
     : `<li><span>${esc(o.run)} · ${esc(o.winner.name)} · ${pct(o.winner.share)}</span>
        <span>${o.files.final_pdf ? `<a href="${fileUrl(o.run, o.files.final_pdf, 1)}">page</a> · <a href="${fileUrl(o.run, o.files.report_pdf, 1)}">report</a> · ` : ""}<a href="${fileUrl(o.run, o.files.zip, 1)}">zip</a></span></li>`).join("");
   renderSuggestions();
+  if (typeof renderRunExtras === "function") renderRunExtras(r);
 }
 
 // --- citation targets & wiki suggestions -------------------------------------------
@@ -441,7 +505,7 @@ function renderSuggestions() {
         $("#fact-sheet").textContent = (await api("/api/product?slug=" + encodeURIComponent(P.product.slug))).fact_sheet;
     });
   const next = $("#next-run");
-  if (next) next.onclick = () => { $("#run").click(); $("#card-progress").scrollIntoView({ behavior: "smooth" }); };
+  if (next) next.onclick = () => { $("#run").click(); showTab("run", "run"); };
 }
 
 // One wiki suggestion (Run tab analysis or Citations tab): accept, edit or decline.
@@ -501,6 +565,7 @@ function renderSettings() {
   const td = $("#t-default");
   td.elements.cited_pct.value = S.default_targets.cited_pct; td.elements.first_count.value = S.default_targets.first_count;
   $("#std-manage").innerHTML = S.standard.map(q => `<li><span>${esc(q.text)}</span><button class="x" data-std="${esc(q.id)}" title="Delete for all products">✕</button></li>`).join("");
+  if (typeof renderAlertSettings === "function") renderAlertSettings();
   $$("#std-manage [data-std]").forEach(b => b.onclick = () => {
     if (!confirm("Delete this standard question for ALL products?")) return;
     safe(async () => { await api("/api/questions/delete", { id: b.dataset.std, kind: "standard" }); await loadState(); renderSettings(); });
@@ -597,28 +662,90 @@ $("#imp-step2").onsubmit = e => {
   });
 };
 
-// --- tabs -----------------------------------------------------------------------------
-function showTab(name) {
+// --- tabs and sub-tabs ------------------------------------------------------------------
+// A view is "tab" or "tab/sub" (e.g. web/factcheck). The address bar shows it (#web/factcheck),
+// so a view can be linked directly; the last sub-tab of each tab is remembered.
+function subsOf(name) { return $$(`#tab-${name} .subtabs [data-sub]`).map(b => b.dataset.sub); }
+function currentView() {
+  const tab = $(".tabs [aria-selected=true]")?.dataset.tab || "run";
+  const sub = $(`#tab-${tab} .subtabs [aria-selected=true]`)?.dataset.sub;
+  return { tab, sub };
+}
+function showSub(tab, sub) {
+  const subs = subsOf(tab);
+  if (!subs.length) return;
+  if (!subs.includes(sub)) sub = recall("sub." + tab, subs[0]);
+  if (!subs.includes(sub)) sub = subs[0];
+  $$(`#tab-${tab} .subtabs [data-sub]`).forEach(b => {
+    const on = b.dataset.sub === sub;
+    b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1;
+  });
+  $$(`#tab-${tab} .subpanel`).forEach(p => p.classList.toggle("hidden", p.dataset.sub !== sub));
+  store("sub." + tab, sub);
+  if ($(".tabs [aria-selected=true]")?.dataset.tab === tab) setHash(tab, sub);
+  if (typeof chatContext === "function") chatContext();
+}
+function setHash(tab, sub) {
+  const h = "#" + tab + (sub ? "/" + sub : "");
+  if (location.hash !== h) history.replaceState(null, "", h);
+}
+function showTab(name, sub) {
+  if (!$(`#tab-${name}`)) name = "run";
   $$(".tabs [role=tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
   $$(".tab").forEach(t => t.classList.toggle("hidden", t.id !== "tab-" + name));
+  document.body.dataset.view = name;
   store("tab", name);
+  if (subsOf(name).length) showSub(name, sub); else setHash(name);
+  if (name === "overview" && P && !OV && typeof loadOverview === "function") safe(loadOverview);
   if (name === "catalog" && P && !CAT) safe(loadCatalog);
   if (name === "web" && P && !SITE) safe(loadWeb);
   if (name === "citations" && P && !CIT) safe(loadCitations);
   if (name === "how" && P && !HOW) safe(loadHow);
+  if (name === "wiki" && P && !WIKI && typeof loadWiki === "function") safe(loadWiki);
+  if (name === "citations" && typeof loadWatch === "function") safe(loadWatch);
   if (typeof chatContext === "function") chatContext();
 }
+function go(view) {  // "web/factcheck", "run", ...
+  const [tab, sub] = String(view).replace(/^#/, "").split(":")[0].split("/");
+  showTab(tab, sub);
+  window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
 $$(".tabs [role=tab]").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+$$(".subtabs [data-sub]").forEach(b => b.onclick = () => showSub(b.closest(".tab").id.slice(4), b.dataset.sub));
+// arrow keys move between sub-tabs, like a tab list should
+$$(".subtabs").forEach(bar => bar.addEventListener("keydown", e => {
+  if (!["ArrowLeft", "ArrowRight"].includes(e.key) || !e.target.matches("[data-sub]")) return;
+  const btns = $$("[data-sub]", bar), i = btns.indexOf(e.target);
+  const next = btns[(i + (e.key === "ArrowRight" ? 1 : -1) + btns.length) % btns.length];
+  next.click(); next.focus();
+}));
+// in-app links like <a href="#web/site"> switch views without reloading
+document.addEventListener("click", e => {
+  const a = e.target.closest('a[href^="#"]');
+  if (!a || a.getAttribute("href").length < 2 || a.dataset.all || a.dataset.none) return;
+  const tab = a.getAttribute("href").slice(1).split(/[/:]/)[0];
+  if (!$(`#tab-${tab}`)) return;
+  e.preventDefault(); go(a.getAttribute("href"));
+});
+window.addEventListener("hashchange", () => {
+  const [tab, sub] = location.hash.slice(1).split(":")[0].split("/");
+  if ($(`#tab-${tab}`)) showTab(tab, sub);
+});
 
-let WEB = null, CAT = null, CATSEL = null, CATFILE = null;
+let WEB = null, CAT = null, CATSEL = null, CATFILE = null, OV = null, WIKI = null, RUNDETAIL = null;
 function resetPageTabs() {
-  WEB = null; SITE = null; PAGESEL = null; CAT = null; CATSEL = null; WIKIBLOCKS = null; CIT = null; CITROW = null; HOW = null;
+  WEB = null; SITE = null; PAGESEL = null; CAT = null; CATSEL = null; WIKIBLOCKS = null; CIT = null; CITROW = null; HOW = null; OV = null;
+  WIKI = null;
+  if (!$("#tab-wiki").classList.contains("hidden") && typeof loadWiki === "function") safe(loadWiki);
   if (!$("#tab-how").classList.contains("hidden")) safe(loadHow);
+  if (!$("#tab-overview").classList.contains("hidden") && typeof loadOverview === "function") safe(loadOverview);
+  $("#web-page-pick-wrap").classList.add("hidden");
+  $$(".web-out").forEach(e => e.classList.add("hidden"));
   $$(".product-name").forEach(e => e.textContent = P.product.name);
   if (!$("#web-url").value || $("#web-url").dataset.auto === "1") {
     $("#web-url").value = P.danfoss_url || ""; $("#web-url").dataset.auto = "1";
   }
-  ["#web-out", "#web-edit", "#web-site", "#web-job", "#web-gaps-card"].forEach(s => $(s).classList.add("hidden"));
+  ["#web-edit", "#web-site", "#web-job", "#web-gaps-card"].forEach(s => $(s).classList.add("hidden"));
   $("#web-status").textContent = ""; $("#web-md").value = ""; $("#web-verify-out").innerHTML = "";
   $("#cat-page").classList.add("hidden"); $("#cat-list").innerHTML = "";
   if (!$("#tab-catalog").classList.contains("hidden")) safe(loadCatalog);
@@ -699,7 +826,9 @@ async function loadWeb() {
   if (SITE.job && SITE.job.status === "running") pollSite();
   if (!SITE.site) {
     $("#web-copyinfo").innerHTML = "No copy yet. Check the first page of the section (for example the catalog) and press <b>Copy the website</b>. It takes a minute or two.";
-    ["#web-site", "#web-edit", "#web-out"].forEach(s => $(s).classList.add("hidden"));
+    ["#web-site", "#web-edit", "#web-gaps-card"].forEach(s => $(s).classList.add("hidden"));
+    $$(".web-out").forEach(e => e.classList.add("hidden"));
+    $("#web-page-pick-wrap").classList.add("hidden");
     return;
   }
   renderSite();
@@ -771,12 +900,19 @@ function renderSite() {
   }).join("");
   $$("#web-pages li").forEach(li => li.onclick = () => safe(() => selectPage(li.dataset.id, true)));
   if (SITE.checks) renderAudit($("#web-sitechecks"), { "Your website": SITE.checks.summary });
+  // the page picker next to the sub-tabs: every sub-tab works on the page picked here
+  $("#web-page-pick").innerHTML = s.pages.map(pg => `<option value="${esc(pg.id)}" ${pg.id === PAGESEL ? "selected" : ""}>${esc(_shortTitle((rows[pg.id] || {}).h1 || pg.h1))}</option>`).join("");
+  $("#web-page-pick-wrap").classList.remove("hidden");
+  $("#web-export").href = "/api/site/export?slug=" + encodeURIComponent(P.product.slug);
 }
+function _shortTitle(s) { s = String(s || "").trim(); return s.length > 48 ? s.slice(0, 47) + "…" : s; }
+$("#web-page-pick").onchange = e => safe(() => selectPage(e.target.value, true));
 
 async function selectPage(id, setFrame) {
   if (PAGESEL !== id) $("#web-verify-out").innerHTML = "";
   PAGESEL = id;
   $$("#web-pages li").forEach(li => li.classList.toggle("sel", li.dataset.id === id));
+  if ($("#web-page-pick").value !== id) $("#web-page-pick").value = id;
   if (setFrame) $("#web-frame").src = pageUrl(`site/${id}.html`) + "?t=" + Date.now();
   WEB = await api(`/api/site/page?slug=${encodeURIComponent(P.product.slug)}&id=${encodeURIComponent(id)}`);
   renderPage();
@@ -832,7 +968,7 @@ function renderGaps(rows) {
       <td>${r.missing.map(esc).join(", ") || (r.absent_everywhere.length ? `<span class="hint">none (${r.absent_everywhere.map(esc).join(", ")}: on no page)</span>` : "—")}</td>
       <td>${r.wiki.map(s => `<button type="button" class="chipbtn" data-ref="${esc(s.ref)}" title="has “${esc(s.term)}”">+ ${esc(s.title)}</button>`).join(" ") || "—"}</td></tr>`).join("") +
     "</tbody></table></div>";
-  $$("#web-gaps [data-ref]").forEach(b => b.onclick = () => { insertWiki(b.dataset.ref); $("#web-md").scrollIntoView({ block: "center" }); });
+  $$("#web-gaps [data-ref]").forEach(b => b.onclick = () => { showSub("web", "edit"); insertWiki(b.dataset.ref); $("#web-md").scrollIntoView({ block: "center" }); });
 }
 
 function renderPage() {
@@ -848,7 +984,9 @@ function renderPage() {
   $("#web-edit-title").textContent = (SITE.checks?.pages || []).find(r => r.id === w.id)?.h1 || w.id;
   if ($("#web-md").dataset.page !== w.id || $("#web-md").value !== cp.text) { $("#web-md").value = cp.text; $("#web-md").dataset.page = w.id; }
   $("#web-saved").textContent = `Copied ${cp.copied.slice(0, 10)} (${cp.rendered_with}) · last saved ${cp.changed.replace("T", " ")}`;
-  $("#web-out").classList.remove("hidden");
+  $$(".web-out").forEach(e => e.classList.remove("hidden"));
+  if (typeof renderCompare === "function") renderCompare();
+  if (typeof renderStructured === "function") renderStructured($("#web-structured"), w.structured);
   const list = (a) => a.map(esc).join(" ");
   $("#web-check").innerHTML = (c.same
       ? `<div class="okbox">✔ Same content as Danfoss's page: only the format changed (${c.words_after} words, numbers identical).</div>`
@@ -1063,7 +1201,7 @@ function pickProduct(id) {
   $("#cat-title").textContent = `${CAT.key} ${id}`;
   $("#cat-out").classList.add("hidden");
   buildProduct("template");
-  $("#cat-page").scrollIntoView({ behavior: "smooth", block: "start" });
+  showSub("catalog", "page");
 }
 
 function buildProduct(version) {
@@ -1084,6 +1222,7 @@ function buildProduct(version) {
       $("#cat-files").innerHTML = `<a class="dl main" href="${pageUrl(r.file, 1)}">⬇ Page (HTML)</a><a class="dl" href="${pageUrl(r.file)}" target="_blank" rel="noopener">Open in a new tab</a>`;
       $("#cat-frame").src = pageUrl(r.file) + "?t=" + Date.now();
       renderAudit($("#cat-audit"), { [version]: r.audit });
+      if (typeof renderStructured === "function") renderStructured($("#cat-structured"), r.structured);
       renderGooglebot($("#cat-gbot"), { [version]: r.googlebot });
       renderBm25($("#cat-bm25"), r.bm25);
       $("#cat-status").textContent = version === "ai" ? "AI rewrite ready." : "Page from the fact sheet ready.";
@@ -1095,6 +1234,8 @@ $("#cat-ai").onclick = () => CATSEL && buildProduct("ai");
 
 safe(async () => {
   await loadState();
-  const fromUrl = location.hash.slice(1).split(":")[0];  // e.g. /#how opens the How it works tab
-  showTab($(`.tabs [data-tab="${CSS.escape(fromUrl)}"]`) ? fromUrl : recall("tab", "run"));
+  // e.g. /#how opens How it works, /#web/factcheck opens that sub-tab, /#how:micro-plate-bphe also picks the product
+  const [tab, sub] = location.hash.slice(1).split(":")[0].split("/");
+  if ($(`.tabs [data-tab="${CSS.escape(tab || "")}"]`)) showTab(tab, sub);
+  else showTab(recall("tab", "overview"));
 });

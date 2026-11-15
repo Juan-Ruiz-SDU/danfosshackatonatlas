@@ -4,262 +4,456 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atlas</title>
+<script>try { const t = localStorage.getItem("atlas.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-overview" viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><circle cx="12" cy="18" r="1.4"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+  <symbol id="i-web" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9h18"/><circle cx="6" cy="6.8" r=".6"/><circle cx="8.2" cy="6.8" r=".6"/></symbol>
+  <symbol id="i-catalog" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></symbol>
+  <symbol id="i-citations" viewBox="0 0 24 24"><path d="M5 6h14v9H10l-4 3.5V15H5z"/><path d="M9 10h6"/></symbol>
+  <symbol id="i-how" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M8 6h3a3 3 0 0 1 3 3v0a3 3 0 0 0 2 2.8M8 18h3a3 3 0 0 0 3-3v0a3 3 0 0 1 2-2.8"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-present" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5v15a7.5 7.5 0 0 0 0-15z" fill="currentColor"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-wiki" viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 12h8M8 15.5h8M8 19h5"/></symbol>
+</svg>
+
 <header class="top">
   <div class="brand">
-    <span class="logo">A</span>
+    <span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4 L28 27 H4 Z"/><path d="M10.5 19.5 H21.5"/></svg></span>
     <div>
       <div class="name">Atlas</div>
       <div class="tag">Find the version of your product page that AI search cites first</div>
     </div>
   </div>
-  <div class="row">
-    <button class="ghost" id="open-chat" aria-controls="chat" aria-expanded="false">💬 Assistant</button>
-    <button class="ghost" id="open-settings">⚙ Settings</button>
+  <div class="product-switch">
+    <select id="product-select" aria-label="Product"></select>
+    <button class="ghost icon-btn" id="open-import" title="Add a product from a brochure" aria-label="Add a product from a brochure"><svg class="ic"><use href="#i-plus"/></svg></button>
+  </div>
+  <div class="top-actions">
+    <button class="ghost cmdk-btn" id="open-cmdk" title="Search views and actions (Ctrl+K)"><svg class="ic"><use href="#i-search"/></svg><span>Go to…</span><kbd>Ctrl K</kbd></button>
+    <button class="ghost icon-btn" id="open-present" title="Presentation mode: a guided tour for the pitch" aria-label="Presentation mode"><svg class="ic"><use href="#i-present"/></svg></button>
+    <button class="ghost icon-btn" id="toggle-theme" title="Theme: automatic" aria-label="Switch theme"><svg class="ic"><use href="#i-theme"/></svg></button>
+    <button class="ghost" id="open-chat" aria-controls="chat" aria-expanded="false"><svg class="ic"><use href="#i-chat"/></svg><span>Assistant</span></button>
+    <button class="ghost icon-btn" id="open-settings" title="Settings" aria-label="Settings"><svg class="ic"><use href="#i-gear"/></svg></button>
   </div>
 </header>
 
+<div class="shell">
+<nav class="tabs rail" role="tablist" aria-label="Views">
+  <button role="tab" data-tab="overview" aria-selected="false"><svg class="ic"><use href="#i-overview"/></svg><span class="t">Overview</span><span class="d">What changed, in numbers</span></button>
+  <button role="tab" data-tab="run" aria-selected="true"><svg class="ic"><use href="#i-run"/></svg><span class="t">Run</span><span class="d">Write and test page versions</span></button>
+  <button role="tab" data-tab="web" aria-selected="false"><svg class="ic"><use href="#i-web"/></svg><span class="t">Web page</span><span class="d">Your copy of Danfoss's site</span></button>
+  <button role="tab" data-tab="catalog" aria-selected="false"><svg class="ic"><use href="#i-catalog"/></svg><span class="t">Model by model</span><span class="d">One page per model</span></button>
+  <button role="tab" data-tab="citations" aria-selected="false"><svg class="ic"><use href="#i-citations"/></svg><span class="t">Citations</span><span class="d">What Gemini really cites</span><i class="dot hidden" id="rail-alert" aria-label="New alerts"></i></button>
+  <button role="tab" data-tab="wiki" aria-selected="false"><svg class="ic"><use href="#i-wiki"/></svg><span class="t">Wiki</span><span class="d">The facts every page uses</span></button>
+  <button role="tab" data-tab="how" aria-selected="false"><svg class="ic"><use href="#i-how"/></svg><span class="t">How it works</span><span class="d">The section writer, step by step</span></button>
+</nav>
+
 <main>
-  <nav class="tabs" role="tablist" aria-label="Views">
-    <button role="tab" data-tab="run" aria-selected="true">Run</button>
-    <button role="tab" data-tab="web" aria-selected="false">Web page</button>
-    <button role="tab" data-tab="catalog" aria-selected="false">Model by model</button>
-    <button role="tab" data-tab="citations" aria-selected="false">Citations</button>
-    <button role="tab" data-tab="how" aria-selected="false">How it works</button>
-  </nav>
   <div id="banner"></div>
 
-  <div id="tab-run" class="tab">
-  <!-- 1. Product -->
-  <section class="card" id="card-product">
-    <h2><span class="num">1</span> Product</h2>
-    <div class="row">
-      <select id="product-select" aria-label="Product"></select>
-      <button class="ghost" id="open-import">+ Add a product from a brochure</button>
+  <!-- Overview: the story for the jury -->
+  <div id="tab-overview" class="tab hidden">
+    <section class="hero" id="ov-hero">
+      <div class="hero-copy">
+        <p class="hero-product product-name"></p>
+        <h1 id="ov-title">Loading the latest results…</h1>
+        <p class="hero-lede" id="ov-lede"></p>
+        <div class="row hero-controls hidden" id="ov-hero-controls">
+          <div class="seg" id="ov-rank-kind" role="group" aria-label="Ranking">
+            <button type="button" data-kind="passage" class="on">Best passage</button>
+            <button type="button" data-kind="page">Whole page</button>
+          </div>
+          <a href="#web/bm25" class="ghostlink">Open the BM25 table</a>
+        </div>
+      </div>
+      <div id="ov-dumbbell" class="chart dumbbell"></div>
+    </section>
+
+    <section class="readouts" id="ov-stats" aria-label="Key results"></section>
+
+    <div class="ov-grid">
+      <section class="card">
+        <h2>Run by run</h2>
+        <p class="hint">Citation share in the simulated answer engine: the best new version of each run against Danfoss's current page.</p>
+        <div id="ov-runs" class="chart"></div>
+      </section>
+      <section class="card">
+        <h2>What Gemini really cites</h2>
+        <p class="hint">Share of Gemini's answers (with Google Search) that cite Danfoss, update by update, against the target.</p>
+        <div id="ov-gemini" class="chart"></div>
+      </section>
     </div>
-    <div class="fields" id="product-fields">
-      <label>Product type <small>used in the standard questions</small>
-        <input id="f-type" placeholder="e.g. brazed plate heat exchanger"></label>
-      <label>Main use <small>used in the standard questions</small>
-        <input id="f-app" placeholder="e.g. heat pumps"></label>
-    </div>
-    <p class="hint" id="pages-hint"></p>
-    <details id="cmp" class="cmp">
-      <summary>Comparison pages: <span id="cmp-sum"></span></summary>
-      <p>Every run tests the new Danfoss pages <b>against competitors' pages</b>, the way Google's AI picks between them.
-        The app needs <b>at least 2 competitor pages</b>. 4 to 8 is better.</p>
-      <ol class="cmp-steps">
-        <li><a id="cmp-google" href="#" target="_blank" rel="noopener">Search Google for this product ↗</a> (opens a new tab).</li>
-        <li>Open a <b>competitor's product page</b>: a page from the company that makes it. Not a shop, a forum or a news article.</li>
-        <li>Copy the link from the browser's address bar (it starts with <code>https://</code>).</li>
-        <li>Paste it in the box below, <b>one link per line</b>. The brand is read from the link.</li>
-        <li>Press <b>Save and download</b>. Each link then shows ✔ (ready) or ✘ with what to do.</li>
+
+    <section class="card">
+      <h2>How Atlas gets there</h2>
+      <ol class="pipeline">
+        <li><a href="#run/product"><b>Collect the competition</b><span>Competitor pages you paste, plus the pages Gemini cites for each buyer question.</span></a></li>
+        <li><a href="#run/run"><b>Write page versions</b><span>Each style is written only from the wiki. Numbers that are not in it are flagged.</span></a></li>
+        <li><a href="#run/results"><b>Test like AI search</b><span>A search ranking picks the top results. An AI answers from them and cites its sources.</span></a></li>
+        <li><a href="#run/results"><b>Improve the wiki</b><span>When a target is missed, the AI proposes wiki changes. A person accepts or declines each one.</span></a></li>
+        <li><a href="#web/site"><b>Rebuild the website</b><span>Page copies pull their facts from the wiki, so every accepted change reaches them.</span></a></li>
       </ol>
-      <label>Competitor pages <small>one link per line</small>
-        <textarea id="cmp-comp" rows="5" placeholder="https://www.competitor.com/products/their-product&#10;https://www.another-brand.com/product-page"></textarea></label>
-      <label>Current Danfoss page for this product <small>optional: the page the new pages should beat</small>
-        <textarea id="cmp-dan" rows="1" placeholder="https://www.danfoss.com/en/products/..."></textarea></label>
-      <div class="row"><button id="cmp-save" class="primary">Save and download</button><span class="hint" id="cmp-busy"></span></div>
-      <ul id="cmp-status" class="cmp-status"></ul>
-    </details>
-    <details>
-      <summary>Show the fact sheet (the only facts the pages may use)</summary>
-      <pre id="fact-sheet"></pre>
-    </details>
-  </section>
+    </section>
+  </div>
 
-  <!-- 2. Questions -->
-  <section class="card" id="card-questions">
-    <h2><span class="num">2</span> Buyer questions <span class="count" id="q-count"></span></h2>
-    <p class="hint">The questions people ask AI search. Every page version is tested against the ticked ones.</p>
-    <div class="qgroup">
-      <div class="qhead">
-        <h3>Standard questions <small>shared by all products</small></h3>
-        <span class="links"><a href="#" data-all="standard">all</a> · <a href="#" data-none="standard">none</a></span>
-      </div>
-      <ul id="q-standard" class="qlist"></ul>
+  <!-- Run -->
+  <div id="tab-run" class="tab">
+    <div class="subtabs" role="tablist" aria-label="Run steps">
+      <button role="tab" data-sub="product"><span class="n">1</span>Product</button>
+      <button role="tab" data-sub="questions"><span class="n">2</span>Buyer questions</button>
+      <button role="tab" data-sub="run"><span class="n">3</span>Run</button>
+      <button role="tab" data-sub="results"><span class="n">4</span>Results</button>
+      <button role="tab" data-sub="questions-detail">Per question</button>
+      <button role="tab" data-sub="versions">Versions</button>
     </div>
-    <div class="qgroup">
-      <div class="qhead">
-        <h3>Questions for this product only</h3>
-        <span class="links"><a href="#" data-all="custom">all</a> · <a href="#" data-none="custom">none</a></span>
-      </div>
-      <ul id="q-custom" class="qlist"><li class="empty">None yet.</li></ul>
-    </div>
-    <form id="q-add" class="addq">
-      <input id="q-text" placeholder="Type a new question…" autocomplete="off">
-      <div class="scope">
-        <label><input type="radio" name="scope" value="custom" checked> Only for this product</label>
-        <label><input type="radio" name="scope" value="standard"> Standard, for all products</label>
-      </div>
-      <button type="submit">Add question</button>
-      <p class="hint tiny" id="scope-hint">In a standard question, write <code>{product}</code>, <code>{a_product}</code> or <code>{application}</code>, and each product fills in its own.</p>
-    </form>
-  </section>
 
-  <!-- 3. Run -->
-  <section class="card" id="card-run">
-    <h2><span class="num">3</span> Run</h2>
-    <label class="switch">
-      <input type="checkbox" id="s-discovery">
-      <span class="slider"></span>
-      <span><b>Find fresh sources with Google search</b><br>
-        <small id="discovery-hint">Off: faster, uses the pages saved earlier. On: asks Google's AI every question and imports the pages it cites as the competition.</small></span>
-    </label>
-    <div class="grid2">
-      <fieldset>
-        <legend>AI that writes the pages</legend>
-        <select id="s-writer"></select>
-        <input id="s-writer-model" list="writer-models" placeholder="model">
-        <datalist id="writer-models"></datalist>
-      </fieldset>
-      <fieldset>
-        <legend>AI that plays Google's answer box</legend>
-        <select id="s-judge"></select>
-        <input id="s-judge-model" list="judge-models" placeholder="model">
-        <datalist id="judge-models"></datalist>
-      </fieldset>
+    <div class="subpanel" data-sub="product">
+      <section class="card" id="card-product">
+        <h2>Product <span class="count product-name"></span></h2>
+        <div class="fields" id="product-fields">
+          <label>Product type <small>used in the standard questions</small>
+            <input id="f-type" placeholder="e.g. brazed plate heat exchanger"></label>
+          <label>Main use <small>used in the standard questions</small>
+            <input id="f-app" placeholder="e.g. heat pumps"></label>
+        </div>
+        <p class="hint" id="pages-hint"></p>
+        <details id="cmp" class="cmp">
+          <summary>Comparison pages: <span id="cmp-sum"></span></summary>
+          <p>Every run tests the new Danfoss pages <b>against competitors' pages</b>, the way Google's AI picks between them.
+            The app needs <b>at least 2 competitor pages</b>. 4 to 8 is better.</p>
+          <ol class="cmp-steps">
+            <li><a id="cmp-google" href="#" target="_blank" rel="noopener">Search Google for this product ↗</a> (opens a new tab).</li>
+            <li>Open a <b>competitor's product page</b>: a page from the company that makes it. Not a shop, a forum or a news article.</li>
+            <li>Copy the link from the browser's address bar (it starts with <code>https://</code>).</li>
+            <li>Paste it in the box below, <b>one link per line</b>. The brand is read from the link.</li>
+            <li>Press <b>Save and download</b>. Each link then shows ✔ (ready) or ✘ with what to do.</li>
+          </ol>
+          <label>Competitor pages <small>one link per line</small>
+            <textarea id="cmp-comp" rows="5" placeholder="https://www.competitor.com/products/their-product&#10;https://www.another-brand.com/product-page"></textarea></label>
+          <label>Current Danfoss page for this product <small>optional: the page the new pages should beat</small>
+            <textarea id="cmp-dan" rows="1" placeholder="https://www.danfoss.com/en/products/..."></textarea></label>
+          <div class="row"><button id="cmp-save" class="primary">Save and download</button><span class="hint" id="cmp-busy"></span></div>
+          <ul id="cmp-status" class="cmp-status"></ul>
+        </details>
+        <details>
+          <summary>Show the fact sheet (the only facts the pages may use)</summary>
+          <pre id="fact-sheet"></pre>
+        </details>
+      </section>
     </div>
-    <fieldset>
-      <legend>Page versions to write and test</legend>
-      <div id="s-styles" class="chips"></div>
-    </fieldset>
-    <fieldset>
-      <legend>Citation targets for this product</legend>
-      <div class="row targets">
-        <label>Danfoss cited in at least <input type="number" id="t-cited" min="0" max="100" step="5"> % of answers</label>
-        <label>and cited first in at least <input type="number" id="t-first" min="0" max="200" step="1"> answers</label>
-      </div>
-      <p class="hint" id="t-hint"></p>
-    </fieldset>
-    <details>
-      <summary>More options</summary>
-      <div class="grid3">
-        <label>Words per page <input type="number" id="s-words" min="150" max="1500" step="50"></label>
-        <label>Repeats per question <input type="number" id="s-repeats" min="1" max="5"></label>
-        <label>Search results the AI sees <input type="number" id="s-topk" min="2" max="10"></label>
-        <label>Retries if the length is off <input type="number" id="s-retries" min="0" max="6"></label>
-        <label>Search ranking
-          <select id="s-retrieval">
-            <option value="page">Whole pages (the original lab)</option>
-            <option value="passage">Passages, like AI search</option>
-          </select></label>
-      </div>
-      <label class="check"><input type="checkbox" id="s-fresh"> Write brand-new pages (otherwise pages already written with the same settings are reused, which is free)</label>
-    </details>
-    <div class="runbar">
-      <div id="estimate" class="hint"></div>
-      <button id="run" class="primary">Run</button>
-    </div>
-  </section>
 
-  <!-- 4. Progress -->
-  <section class="card hidden" id="card-progress">
-    <h2><span class="num">4</span> Progress</h2>
-    <div class="step" id="p-step"></div>
-    <div class="bar"><div id="p-bar"></div></div>
-    <div class="row between">
-      <span class="hint" id="p-detail"></span>
-      <button class="ghost danger" id="stop">Stop</button>
+    <div class="subpanel" data-sub="questions">
+      <section class="card" id="card-questions">
+        <h2>Buyer questions <span class="count" id="q-count"></span></h2>
+        <p class="hint">The questions people ask AI search. Every page version is tested against the ticked ones.</p>
+        <div class="qgroup">
+          <div class="qhead">
+            <h3>Standard questions <small>shared by all products</small></h3>
+            <span class="links"><a href="#" data-all="standard">all</a> · <a href="#" data-none="standard">none</a></span>
+          </div>
+          <ul id="q-standard" class="qlist"></ul>
+        </div>
+        <div class="qgroup">
+          <div class="qhead">
+            <h3>Questions for this product only</h3>
+            <span class="links"><a href="#" data-all="custom">all</a> · <a href="#" data-none="custom">none</a></span>
+          </div>
+          <ul id="q-custom" class="qlist"><li class="empty">None yet.</li></ul>
+        </div>
+        <div class="qgroup">
+          <div class="qhead">
+            <h3>Holdout questions <small>only to check the best versions; never used to write pages or improve the wiki</small></h3>
+            <span class="count" id="q-holdout-count"></span>
+          </div>
+          <ul id="q-holdout" class="qlist"></ul>
+        </div>
+        <form id="q-add" class="addq">
+          <input id="q-text" placeholder="Type a new question…" autocomplete="off">
+          <div class="scope">
+            <label><input type="radio" name="scope" value="custom" checked> Only for this product</label>
+            <label><input type="radio" name="scope" value="standard"> Standard, for all products</label>
+            <label><input type="radio" name="scope" value="holdout"> Holdout, for this product</label>
+          </div>
+          <button type="submit">Add question</button>
+          <p class="hint tiny" id="scope-hint">In a standard question, write <code>{product}</code>, <code>{a_product}</code> or <code>{application}</code>, and each product fills in its own.</p>
+        </form>
+      </section>
     </div>
-    <div id="p-error" class="error hidden"></div>
-    <details id="p-logbox">
-      <summary>Details</summary>
-      <pre id="p-log"></pre>
-    </details>
-  </section>
 
-  <!-- 5. Results -->
-  <section class="card" id="card-results">
-    <h2><span class="num">5</span> Your files</h2>
-    <div id="latest"></div>
-    <div id="suggestions" class="hidden"></div>
-    <details id="older" class="hidden">
-      <summary>Earlier runs</summary>
-      <ul id="runs"></ul>
-    </details>
-  </section>
+    <div class="subpanel" data-sub="run">
+      <section class="card" id="card-run">
+        <h2>Run</h2>
+        <label class="switch">
+          <input type="checkbox" id="s-discovery">
+          <span class="slider"></span>
+          <span><b>Find fresh sources with Google search</b><br>
+            <small id="discovery-hint">Off: faster, uses the pages saved earlier. On: asks Google's AI every question and imports the pages it cites as the competition.</small></span>
+        </label>
+        <div class="row preset">
+          <span class="preset-label">How much data</span>
+          <div class="seg" id="s-preset" role="group" aria-label="How much data">
+            <button type="button" data-preset="quick">Quick</button>
+            <button type="button" data-preset="thorough">Thorough</button>
+          </div>
+          <span class="hint" id="preset-hint"></span>
+        </div>
+        <div class="grid3 ai-roles">
+          <fieldset>
+            <legend>AI that writes the pages</legend>
+            <select id="s-writer"></select>
+            <input id="s-writer-model" list="writer-models" placeholder="model">
+            <datalist id="writer-models"></datalist>
+          </fieldset>
+          <fieldset>
+            <legend>JEV: the judge that plays Google's answer box</legend>
+            <select id="s-judge"></select>
+            <input id="s-judge-model" list="judge-models" placeholder="model">
+            <datalist id="judge-models"></datalist>
+            <small class="hint tiny">Must be a different AI than the writer. Recommended: Gemini 2.5 Flash.</small>
+          </fieldset>
+          <fieldset>
+            <legend>AI that explains the result</legend>
+            <select id="s-analyst"></select>
+            <input id="s-analyst-model" list="analyst-models" placeholder="model">
+            <datalist id="analyst-models"></datalist>
+            <small class="hint tiny">Writes the text about the ranking and the wiki suggestions. Recommended: qwen3:8b.</small>
+          </fieldset>
+        </div>
+        <div id="judge-warn" class="error hidden"></div>
+        <fieldset>
+          <legend>Page versions to write and test</legend>
+          <div id="s-styles" class="chips"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Citation targets for this product</legend>
+          <div class="row targets">
+            <label>Danfoss cited in at least <input type="number" id="t-cited" min="0" max="100" step="5"> % of answers</label>
+            <label>and cited first in at least <input type="number" id="t-first" min="0" max="200" step="1"> answers</label>
+          </div>
+          <p class="hint" id="t-hint"></p>
+        </fieldset>
+        <details>
+          <summary>More options</summary>
+          <div class="grid3">
+            <label>Words per page <input type="number" id="s-words" min="150" max="1500" step="50"></label>
+            <label>Repeats per question <input type="number" id="s-repeats" min="1" max="10"></label>
+            <label>Pages per style <input type="number" id="s-variants" min="1" max="5"></label>
+            <label>Search results the AI sees <input type="number" id="s-topk" min="2" max="10"></label>
+            <label>Retries if the length is off <input type="number" id="s-retries" min="0" max="6"></label>
+            <label>Words of each page the AI reads <input type="number" id="s-maxwords" min="200" max="3000" step="100"></label>
+            <label>Search ranking
+              <select id="s-retrieval">
+                <option value="page">Whole pages (the original lab)</option>
+                <option value="passage">Passages, like AI search</option>
+              </select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="s-holdout"> Re-test the best versions on the holdout questions (questions never used to write the pages)</label>
+          <label class="check"><input type="checkbox" id="s-blind"> Hide brand names from JEV (it sees Brand A, B, C), so brand fame cannot decide</label>
+          <label class="check"><input type="checkbox" id="s-force"> Always show the Danfoss page to JEV: measures the writing alone, not the search ranking</label>
+          <label class="check"><input type="checkbox" id="s-embeddings"> Section writer: find evidence with embeddings too (needs <code>nomic-embed-text</code> in Ollama)</label>
+          <label class="check"><input type="checkbox" id="s-fresh"> Write brand-new pages (otherwise pages already written with the same settings are reused, which is free)</label>
+        </details>
+        <div class="runbar">
+          <div id="estimate" class="hint"></div>
+          <button id="run" class="primary">Run</button>
+        </div>
+      </section>
+
+      <section class="card hidden" id="card-progress">
+        <h2>Progress</h2>
+        <div class="step" id="p-step"></div>
+        <div class="bar"><div id="p-bar"></div></div>
+        <div class="row between">
+          <span class="hint" id="p-detail"></span>
+          <button class="ghost danger" id="stop">Stop</button>
+        </div>
+        <div id="p-error" class="error hidden"></div>
+        <details id="p-logbox">
+          <summary>Details</summary>
+          <pre id="p-log"></pre>
+        </details>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="results">
+      <section class="card" id="card-results">
+        <h2>Your files</h2>
+        <div id="latest"></div>
+        <div id="explanation" class="hidden"></div>
+        <div id="ranking" class="hidden"></div>
+        <div id="holdout-box" class="hidden"></div>
+        <div id="suggestions" class="hidden"></div>
+        <details id="older" class="hidden">
+          <summary>Earlier runs</summary>
+          <ul id="runs"></ul>
+        </details>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="questions-detail">
+      <p class="empty-state">No finished run yet. Start one in <a href="#run/run">Run</a>.</p>
+      <section class="card hidden" id="card-heatmap">
+        <h2>Per question <span class="count" id="heat-run"></span></h2>
+        <p class="hint">How often JEV cited each version, question by question (darker = cited more often). Click a cell to read JEV's real answers.</p>
+        <div class="row"><div class="seg" id="heat-set" role="group" aria-label="Question set">
+          <button type="button" data-set="main" class="on">Test questions</button>
+          <button type="button" data-set="holdout">Holdout questions</button></div></div>
+        <div id="heatmap"></div>
+        <div id="answers"></div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="versions">
+      <p class="empty-state">No finished run yet. Start one in <a href="#run/run">Run</a>.</p>
+      <section class="card hidden" id="card-versions">
+        <h2>Every version of the run</h2>
+        <p class="hint">All pages written in the run, side by side. Numbers that are not in the fact sheet are flagged.</p>
+        <div id="versions-list" class="versions"></div>
+      </section>
+    </div>
   </div>
 
   <!-- Web page: a reconstruction of Danfoss's website, edited page by page -->
   <div id="tab-web" class="tab hidden">
-    <section class="card">
-      <h2><span class="num">1</span> Copy of Danfoss's website <span class="count product-name"></span></h2>
-      <p class="hint">Atlas reverse-engineers a section of danfoss.com <b>once</b>, for example the heat exchanger catalog.
-        It reads every page twice: the way a crawler without JavaScript sees it, and the way a browser shows it.
-        It keeps a snapshot of each page as the reference, plus <b>your own copy</b> of each page, already laid out
-        for crawlers. Then it shows the copies as a small website below. Danfoss's live site cannot be shown inside
-        Atlas, because its server forbids being framed. After the copy, everything works on your copies.</p>
-      <p id="web-copyinfo" class="hint"></p>
-      <form id="web-form" class="row">
-        <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/en/products/..." aria-label="First page of the section to copy">
-        <label class="inline">Pages <input id="web-max" type="number" min="1" max="40" value="15" style="width:70px"></label>
-        <button class="primary" id="web-copy-btn">Copy the website</button>
-      </form>
-      <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copies (otherwise only the reference snapshots are renewed)</label>
-      <div id="web-job" class="hidden">
-        <div class="row between"><span class="step" id="web-job-step"></span><button class="ghost danger" id="web-stop" type="button">Stop</button></div>
-        <pre id="web-log"></pre>
-      </div>
-      <details><summary>The site blocks the download? Import one page from your browser</summary>
-        <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, write its address
-          in the box above and pick the file here.</p>
-        <input type="file" id="web-import" accept=".html,.htm">
-      </details>
-      <p class="hint" id="web-status"></p>
-    </section>
+    <div class="subtabs" role="tablist" aria-label="Web page views">
+      <button role="tab" data-sub="site">Site</button>
+      <button role="tab" data-sub="edit">Edit</button>
+      <button role="tab" data-sub="compare">Before / after</button>
+      <button role="tab" data-sub="competitors">Competitors</button>
+      <button role="tab" data-sub="factcheck">Fact check</button>
+      <button role="tab" data-sub="crawlers">Crawlers</button>
+      <button role="tab" data-sub="structured">Structured data</button>
+      <button role="tab" data-sub="bm25">BM25</button>
+      <label class="subtab-pick hidden" id="web-page-pick-wrap">Page <select id="web-page-pick" aria-label="Page of the website"></select></label>
+    </div>
 
-    <section class="card hidden" id="web-site">
-      <h2><span class="num">2</span> Your website</h2>
-      <div class="sitebox">
-        <ol id="web-pages" class="pagelist" aria-label="Pages of the website"></ol>
-        <div class="browser">
-          <div class="browserbar"><span class="dots"><i></i><i></i><i></i></span><span id="web-addr" class="addr"></span>
-            <a id="web-open" class="ghostlink" target="_blank" rel="noopener">Open ↗</a></div>
-          <iframe id="web-frame" sandbox="allow-same-origin" title="Your website"></iframe>
-        </div>
-      </div>
-      <h3>How the website spreads authority</h3>
-      <p class="hint">Search engines pass authority through links: every page should be reachable from the first page
-        in few clicks, linked from related pages, and listed in the sitemap. All its text should be in the HTML.</p>
-      <div id="web-sitechecks"></div>
-    </section>
-
-    <section class="card hidden" id="web-edit">
-      <h2><span class="num">3</span> Edit this page: <span id="web-edit-title"></span></h2>
-      <p class="hint">Markdown: <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>,
-        <code>- list</code>, <code>| table |</code>, <code>[link](https://...)</code>, and catalog tiles as
-        <code>- [Title](https://...): description</code>. The lines between <code>---</code> at the top are the page's
-        title, description and address. Links to other pages of the website stay links between them. Facts must come
-        from the wiki: the check below flags new numbers that are not in it.</p>
-      <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy of this page (Markdown)"></textarea>
-      <div class="row">
-        <select id="web-wiki-pick" aria-label="Wiki block to insert" style="flex:1 1 300px"></select>
-        <button type="button" id="web-wiki-insert">Insert wiki block at the cursor</button>
-      </div>
-      <p class="hint tiny">A wiki block is a line like <code>{{wiki: platforms/heat-pump-platforms}}</code> (or
-        <code>{{wiki: technologies/micro-plate-pattern#Benefits}}</code> for one section). When the website is built
-        it is replaced by that part of the wiki <b>as it is now</b>, so when the team updates the wiki, the page follows.</p>
-      <p class="hint" id="web-wiki-used"></p>
-      <div class="row between">
-        <span class="hint" id="web-saved"></span>
-        <button class="primary" id="web-save">Save and check</button>
-      </div>
-    </section>
-
-    <section class="card hidden" id="web-gaps-card">
-      <h2>Against the competitors: what to add</h2>
-      <p class="hint">For each buyer question: where this page ranks against the saved competitor pages (best passage
-        and whole page), which page beats it, the question's words the winner has and this page lacks, and the wiki
-        blocks that contain them. Train the page by adding those wiki blocks under a heading in the buyer's words,
-        never the competitor's text. Check the holdout questions too (see <code>wiki/guidelines/competitor-training.md</code>).</p>
-      <div id="web-gaps"></div>
-    </section>
-
-    <div id="web-out" class="stackcards hidden">
+    <div class="subpanel" data-sub="site">
       <section class="card">
+        <h2>Copy of Danfoss's website <span class="count product-name"></span></h2>
+        <p class="hint">Atlas reverse-engineers a section of danfoss.com <b>once</b>, for example the heat exchanger catalog.
+          It reads every page twice: the way a crawler without JavaScript sees it, and the way a browser shows it.
+          It keeps a snapshot of each page as the reference, plus <b>your own copy</b> of each page, already laid out
+          for crawlers. Then it shows the copies as a small website below. Danfoss's live site cannot be shown inside
+          Atlas, because its server forbids being framed. After the copy, everything works on your copies.</p>
+        <p id="web-copyinfo" class="hint"></p>
+        <form id="web-form" class="row">
+          <input id="web-url" type="url" style="flex:1 1 320px" placeholder="https://www.danfoss.com/en/products/..." aria-label="First page of the section to copy">
+          <label class="inline">Pages <input id="web-max" type="number" min="1" max="40" value="15" style="width:70px"></label>
+          <button class="primary" id="web-copy-btn">Copy the website</button>
+        </form>
+        <label class="check"><input type="checkbox" id="web-replace"> Also replace my edited copies (otherwise only the reference snapshots are renewed)</label>
+        <div id="web-job" class="hidden">
+          <div class="row between"><span class="step" id="web-job-step"></span><button class="ghost danger" id="web-stop" type="button">Stop</button></div>
+          <pre id="web-log"></pre>
+        </div>
+        <details><summary>The site blocks the download? Import one page from your browser</summary>
+          <p class="hint">Open the page in your browser, save it with Ctrl+S as “Webpage, HTML only”, write its address
+            in the box above and pick the file here.</p>
+          <input type="file" id="web-import" accept=".html,.htm">
+        </details>
+        <p class="hint" id="web-status"></p>
+      </section>
+
+      <section class="card hidden" id="web-site">
+        <h2>Your website</h2>
+        <div class="sitebox">
+          <ol id="web-pages" class="pagelist" aria-label="Pages of the website"></ol>
+          <div class="browser">
+            <div class="browserbar"><span class="dots"><i></i><i></i><i></i></span><span id="web-addr" class="addr"></span>
+              <a id="web-open" class="ghostlink" target="_blank" rel="noopener">Open ↗</a></div>
+            <iframe id="web-frame" sandbox="allow-same-origin" title="Your website"></iframe>
+          </div>
+        </div>
+        <div class="downloads"><a class="dl" id="web-export" href="#" download>⬇ The whole website (ZIP: pages, sitemap.xml, robots.txt)</a></div>
+        <h3>How the website spreads authority</h3>
+        <p class="hint">Search engines pass authority through links: every page should be reachable from the first page
+          in few clicks, linked from related pages, and listed in the sitemap. All its text should be in the HTML.</p>
+        <div id="web-sitechecks"></div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="edit">
+      <p class="empty-state">Copy the website in <a href="#web/site">Site</a> first, then pick a page to edit it here.</p>
+      <section class="card hidden" id="web-edit">
+        <h2>Edit this page: <span id="web-edit-title"></span></h2>
+        <p class="hint">Markdown: <code># Title</code>, <code>## Section</code>, <code>### Sub-section</code>,
+          <code>- list</code>, <code>| table |</code>, <code>[link](https://...)</code>, and catalog tiles as
+          <code>- [Title](https://...): description</code>. The lines between <code>---</code> at the top are the page's
+          title, description and address. Links to other pages of the website stay links between them. Facts must come
+          from the wiki: the check flags new numbers that are not in it.</p>
+        <textarea id="web-md" rows="22" spellcheck="true" aria-label="Your copy of this page (Markdown)"></textarea>
+        <div class="row">
+          <select id="web-wiki-pick" aria-label="Wiki block to insert" style="flex:1 1 300px"></select>
+          <button type="button" id="web-wiki-insert">Insert wiki block at the cursor</button>
+        </div>
+        <p class="hint tiny">A wiki block is a line like <code>{{wiki: platforms/heat-pump-platforms}}</code> (or
+          <code>{{wiki: technologies/micro-plate-pattern#Benefits}}</code> for one section). When the website is built
+          it is replaced by that part of the wiki <b>as it is now</b>, so when the team updates the wiki, the page follows.</p>
+        <p class="hint" id="web-wiki-used"></p>
+        <div class="row between">
+          <span class="hint" id="web-saved"></span>
+          <button class="primary" id="web-save">Save and check</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="compare">
+      <p class="empty-state">Copy the website in <a href="#web/site">Site</a> first, then pick a page to compare it with Danfoss's.</p>
+      <section class="card hidden web-out" id="web-slider-card">
+        <h2>Danfoss's page and your copy</h2>
+        <p class="hint">Drag the handle. Left: Danfoss's page as Atlas copied it, before any edit. Right: your copy as it is now, with its wiki blocks filled in. Both scroll together.</p>
+        <div class="compare" id="web-compare">
+          <iframe id="web-before" sandbox="allow-same-origin" title="Danfoss's page (snapshot)"></iframe>
+          <iframe id="web-after" sandbox="allow-same-origin" title="Your copy"></iframe>
+          <div class="compare-handle" aria-hidden="true"><span></span></div>
+          <span class="compare-label left">Danfoss's page</span>
+          <span class="compare-label right">Your copy</span>
+          <input type="range" id="web-compare-range" min="0" max="100" value="50" aria-label="Move the divider between Danfoss's page and your copy">
+        </div>
+      </section>
+      <section class="card hidden web-out">
+        <h2>Changes compared to Danfoss's page</h2>
+        <div id="web-check"></div>
+        <div class="downloads" id="web-files"></div>
+      </section>
+      <section class="card hidden web-out">
+        <h2>Headings: before and after</h2>
+        <p class="hint">AI search cuts pages into passages at the headings. Bold text that only looks like a heading does not count.</p>
+        <div class="grid2" id="web-outline"></div>
+      </section>
+      <section class="card hidden web-out">
+        <h2>Never-claim screen</h2>
+        <p class="hint">Sentences that the wiki's never-claim policy would not allow. Danfoss's page has them; your copy keeps them until you change them.</p>
+        <div id="web-claims"></div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="competitors">
+      <p class="empty-state">Pick a page in <a href="#web/site">Site</a>. You also need saved competitor pages (Run › Product).</p>
+      <section class="card hidden" id="web-gaps-card">
+        <h2>Against the competitors: what to add</h2>
+        <p class="hint">For each buyer question: where this page ranks against the saved competitor pages (best passage
+          and whole page), which page beats it, the question's words the winner has and this page lacks, and the wiki
+          blocks that contain them. Train the page by adding those wiki blocks under a heading in the buyer's words,
+          never the competitor's text. Check the holdout questions too (see <code>wiki/guidelines/competitor-training.md</code>).</p>
+        <div id="web-gaps"></div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="factcheck">
+      <p class="empty-state">Pick a page in <a href="#web/site">Site</a> to check its claims.</p>
+      <section class="card hidden web-out">
         <h2>Fact check: is every claim backed by a source?</h2>
         <p class="hint">Each sentence, list item and table row is checked against the wiki facts, the original
           documents in <code>raw/</code> and Danfoss's own pages. Claims copied from a source pass at once; every
@@ -268,135 +462,233 @@
         <div class="row"><button class="primary" id="web-verify">Check every claim</button><span class="hint" id="web-verify-status"></span></div>
         <div id="web-verify-out"></div>
       </section>
-      <section class="card">
-        <h2>Changes compared to Danfoss's page</h2>
-        <div id="web-check"></div>
-        <div class="downloads" id="web-files"></div>
-      </section>
-      <section class="card">
-        <h2>Headings: before and after</h2>
-        <p class="hint">AI search cuts pages into passages at the headings. Bold text that only looks like a heading does not count.</p>
-        <div class="grid2" id="web-outline"></div>
-      </section>
-      <section class="card">
+    </div>
+
+    <div class="subpanel" data-sub="crawlers">
+      <p class="empty-state">Pick a page in <a href="#web/site">Site</a> to see what crawlers get.</p>
+      <section class="card hidden web-out">
         <h2>Crawler checks</h2>
         <p class="hint">What Google lists as crawl factors: how fast the server answers Googlebot, server errors, content quality and other signals; plus what a crawler can read.</p>
         <div id="web-audit"></div>
       </section>
-      <section class="card">
+      <section class="card hidden web-out">
         <h2>What Googlebot sees</h2>
         <div id="web-gbot"></div>
       </section>
-      <section class="card">
+    </div>
+
+    <div class="subpanel" data-sub="structured">
+      <p class="empty-state">Pick a page in <a href="#web/site">Site</a> to see its structured data.</p>
+      <section class="card hidden web-out">
+        <h2>Structured data for Google (JSON-LD)</h2>
+        <p class="hint">Every page carries schema.org data in its HTML head, built from the page and the wiki only:
+          a catalog page is a <b>CollectionPage</b> listing its products; any other page describes a <b>Product</b>
+          with Danfoss as brand and manufacturer. Google and AI search read it to understand what the page is about.
+          Prices, reviews and ratings are never invented.</p>
+        <div id="web-structured"></div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="bm25">
+      <p class="empty-state">Pick a page in <a href="#web/site">Site</a> to rank it against the competitor pages.</p>
+      <section class="card hidden web-out">
         <h2>BM25 per question</h2>
         <div id="web-bm25"></div>
-      </section>
-      <section class="card">
-        <h2>Never-claim screen</h2>
-        <p class="hint">Sentences that the wiki's never-claim policy would not allow. Danfoss's page has them; your copy keeps them until you change them.</p>
-        <div id="web-claims"></div>
       </section>
     </div>
   </div>
 
   <!-- Citations: what Gemini with Google Search cites, over time -->
   <div id="tab-citations" class="tab hidden">
-    <section class="card">
-      <h2><span class="num">1</span> Ask Gemini with Google Search</h2>
-      <p class="hint">The agent asks Gemini every buyer prompt in <code>prompts/prompts.txt</code> with Google Search
-        switched on. It records the searches Gemini runs (its sub-queries), the pages it cites and how much of the
-        answer each page supports, then imports those pages as text. Every update is kept, so you can see how the
-        citations change. AI Overviews has no public API: reading it needs a paid search-results service.</p>
-      <p id="cit-key" class="hint"></p>
-      <div class="row">
-        <label class="inline">Prompts <select id="cit-section"></select></label>
-        <label class="inline">At most <input id="cit-limit" type="number" min="0" value="0" style="width:70px"> <small>(0 = all)</small></label>
-        <label class="inline">Model <input id="cit-model" value="gemini-2.5-flash" list="cit-models" style="width:190px"></label>
-        <datalist id="cit-models"><option value="gemini-2.5-flash"><option value="gemini-2.5-pro"><option value="gemini-2.5-flash-lite"></datalist>
-        <button class="primary" id="cit-update">Update citations</button>
-      </div>
-      <div id="cit-job" class="hidden">
-        <div class="step" id="cit-job-step"></div>
-        <pre id="cit-log"></pre>
-      </div>
-    </section>
+    <div class="subtabs" role="tablist" aria-label="Citations views">
+      <button role="tab" data-sub="ask"><span class="n">1</span>Ask Gemini</button>
+      <button role="tab" data-sub="history"><span class="n">2</span>Over time</button>
+      <button role="tab" data-sub="answers"><span class="n">3</span>Answers</button>
+      <button role="tab" data-sub="alerts">Alerts <span class="badge hidden" id="alert-count"></span></button>
+    </div>
 
-    <section class="card">
-      <h2><span class="num">2</span> How the citations change</h2>
-      <p class="hint">One line per update. <b>Share</b> = the part of Gemini's answers a site supports, on average per prompt.
-        Gemini gives no score per page: this share, measured from its answer, is the closest real number.</p>
-      <div id="cit-targets"></div>
-      <div id="cit-chart" class="chart"></div>
-      <div id="cit-history"></div>
-      <div id="cit-sites"></div>
-    </section>
+    <div class="subpanel" data-sub="alerts">
+      <section class="card">
+        <h2>Alerts: when to test again</h2>
+        <p class="hint">AI models are renewed often, and each one knows the web only up to a date. Google also changes how
+          pages earn authority. Atlas reads Google News on a schedule and warns when a <b>Gemini model newer than the ones
+          Atlas uses</b> comes out (the judge JEV and this tab run on Gemini), or when Google changes how it <b>ranks or
+          trusts pages</b> (core updates, E-E-A-T, AI Overviews). Each alert is also sent by email.</p>
+        <div id="watch-status" class="hint"></div>
+        <div class="row">
+          <button class="primary" id="watch-check">Check the news now</button>
+          <button id="watch-read">Mark all as read</button>
+          <a href="#" id="watch-settings">Email settings</a>
+        </div>
+        <div id="watch-alerts"></div>
+      </section>
+    </div>
 
-    <section class="card">
-      <h2><span class="num">3</span> Answers of one update</h2>
-      <div class="row"><label class="inline">Update <select id="cit-run"></select></label>
-        <label class="inline">Compare with our page <select id="cit-ours" style="max-width:420px"></select></label></div>
-      <div id="cit-prompts"></div>
-    </section>
+    <div class="subpanel" data-sub="ask">
+      <section class="card">
+        <h2>Ask Gemini with Google Search</h2>
+        <p class="hint">The agent asks Gemini every buyer prompt in <code>prompts/prompts.txt</code> with Google Search
+          switched on. It records the searches Gemini runs (its sub-queries), the pages it cites and how much of the
+          answer each page supports, then imports those pages as text. Every update is kept, so you can see how the
+          citations change. AI Overviews has no public API: reading it needs a paid search-results service.</p>
+        <p id="cit-key" class="hint"></p>
+        <div class="row">
+          <label class="inline">Prompts <select id="cit-section"></select></label>
+          <label class="inline">At most <input id="cit-limit" type="number" min="0" value="0" style="width:70px"> <small>(0 = all)</small></label>
+          <label class="inline">Model <input id="cit-model" value="gemini-2.5-flash" list="cit-models" style="width:190px"></label>
+          <datalist id="cit-models"><option value="gemini-2.5-flash"><option value="gemini-2.5-pro"><option value="gemini-2.5-flash-lite"></datalist>
+          <button class="primary" id="cit-update">Update citations</button>
+        </div>
+        <div id="cit-job" class="hidden">
+          <div class="step" id="cit-job-step"></div>
+          <pre id="cit-log"></pre>
+        </div>
+      </section>
+    </div>
 
-    <section class="card hidden" id="cit-detail">
-      <h2 id="cit-q"></h2>
-      <p class="hint" id="cit-meta"></p>
-      <h3>What Gemini cited, and how much of its answer each page supports</h3>
-      <div id="cit-sources"></div>
-      <h3>Gemini's searches (sub-queries) and our page</h3>
-      <p class="hint">For each search Gemini ran: where our page's best passage ranks among the cited pages' passages
-        (BM25), and which page leads. A sub-query is answered when our page has a passage that leads it: a section
-        whose heading and first sentence answer that search directly, with the facts.</p>
-      <div id="cit-queries"></div>
-      <h3>Why these pages? (AI reviewer)</h3>
-      <p class="hint">The reviewer sees plain-text passages of the same length, brand names hidden and the order
-        shuffled, so markdown and length cannot count. It scores each on checkable signals and explains. Its total
-        is then compared with Gemini's real shares: high agreement means the reviewer judges like the engine.
-        Uses the "AI that plays Google's answer box" from the Run tab.</p>
-      <div class="row"><button id="cit-explain" class="primary">Explain why</button>
-        <label class="check"><input type="checkbox" id="cit-fresh"> ask again</label>
-        <span class="hint" id="cit-explain-status"></span></div>
-      <div id="cit-why"></div>
-      <div id="cit-sugg-row" class="row hidden">
-        <button id="cit-suggest">Suggest wiki changes</button>
-        <span class="hint" id="cit-suggest-status">From this explanation: changes to the wiki so the next pages answer these searches. Nothing changes until you accept.</span>
-      </div>
-      <div id="cit-sugg"></div>
-      <details><summary>Gemini's answer</summary><pre id="cit-answer"></pre></details>
-    </section>
+    <div class="subpanel" data-sub="history">
+      <section class="card">
+        <h2>How the citations change</h2>
+        <p class="hint">One line per update. <b>Share</b> = the part of Gemini's answers a site supports, on average per prompt.
+          Gemini gives no score per page: this share, measured from its answer, is the closest real number.</p>
+        <div id="cit-targets"></div>
+        <div id="cit-chart" class="chart"></div>
+        <div id="cit-history"></div>
+        <div id="cit-sites"></div>
+      </section>
+    </div>
+
+    <div class="subpanel" data-sub="answers">
+      <section class="card">
+        <h2>Answers of one update</h2>
+        <div class="row"><label class="inline">Update <select id="cit-run"></select></label>
+          <label class="inline">Compare with our page <select id="cit-ours" style="max-width:420px"></select></label></div>
+        <div id="cit-prompts"></div>
+      </section>
+
+      <section class="card hidden" id="cit-detail">
+        <h2 id="cit-q"></h2>
+        <p class="hint" id="cit-meta"></p>
+        <h3>What Gemini cited, and how much of its answer each page supports</h3>
+        <div id="cit-sources"></div>
+        <h3>Gemini's searches (sub-queries) and our page</h3>
+        <p class="hint">For each search Gemini ran: where our page's best passage ranks among the cited pages' passages
+          (BM25), and which page leads. A sub-query is answered when our page has a passage that leads it: a section
+          whose heading and first sentence answer that search directly, with the facts.</p>
+        <div id="cit-queries"></div>
+        <h3>Why these pages? (AI reviewer)</h3>
+        <p class="hint">The reviewer sees plain-text passages of the same length, brand names hidden and the order
+          shuffled, so markdown and length cannot count. It scores each on checkable signals and explains. Its total
+          is then compared with Gemini's real shares: high agreement means the reviewer judges like the engine.
+          Uses the "AI that plays Google's answer box" from the Run tab.</p>
+        <div class="row"><button id="cit-explain" class="primary">Explain why</button>
+          <label class="check"><input type="checkbox" id="cit-fresh"> ask again</label>
+          <span class="hint" id="cit-explain-status"></span></div>
+        <div id="cit-why"></div>
+        <div id="cit-sugg-row" class="row hidden">
+          <button id="cit-suggest">Suggest wiki changes</button>
+          <span class="hint" id="cit-suggest-status">From this explanation: changes to the wiki so the next pages answer these searches. Nothing changes until you accept.</span>
+        </div>
+        <div id="cit-sugg"></div>
+        <details><summary>Gemini's answer</summary><pre id="cit-answer"></pre></details>
+      </section>
+    </div>
   </div>
 
   <!-- Model by model -->
   <div id="tab-catalog" class="tab hidden">
-    <section class="card">
-      <h2>Models <span class="count product-name"></span></h2>
-      <p class="hint" id="cat-hint">One page per model of this product family, built only from the fact sheet. Pick a model.</p>
-      <div id="cat-list"></div>
-    </section>
-    <section class="card hidden" id="cat-page">
-      <h2 id="cat-title"></h2>
-      <div class="row">
-        <button id="cat-template">Page from the fact sheet</button>
-        <button id="cat-ai" class="primary">Rewrite with the writer AI</button>
-        <label class="check"><input type="checkbox" id="cat-fresh"> new text</label>
-      </div>
-      <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this model's facts.</p>
-      <div id="cat-out" class="hidden">
-        <div id="cat-flags"></div>
-        <div class="row"><button id="cat-verify">Fact check this page</button><span class="hint" id="cat-verify-status"></span></div>
-        <div id="cat-verify-out"></div>
-        <div class="downloads" id="cat-files"></div>
-        <details open><summary>Preview</summary>
-          <iframe id="cat-frame" class="preview" sandbox title="Product page preview"></iframe></details>
-        <h3>Crawler checks</h3>
-        <div id="cat-audit"></div>
-        <h3>What Googlebot sees</h3>
-        <div id="cat-gbot"></div>
-        <h3>BM25 per question</h3>
-        <div id="cat-bm25"></div>
-      </div>
-    </section>
+    <div class="subtabs" role="tablist" aria-label="Model by model views">
+      <button role="tab" data-sub="models">Models</button>
+      <button role="tab" data-sub="page">Model page</button>
+    </div>
+    <div class="subpanel" data-sub="models">
+      <section class="card">
+        <h2>Models <span class="count product-name"></span></h2>
+        <p class="hint" id="cat-hint">One page per model of this product family, built only from the fact sheet. Pick a model.</p>
+        <div id="cat-list"></div>
+      </section>
+    </div>
+    <div class="subpanel" data-sub="page">
+      <p class="empty-state">Pick a model in <a href="#catalog/models">Models</a> to build its page.</p>
+      <section class="card hidden" id="cat-page">
+        <h2 id="cat-title"></h2>
+        <div class="row">
+          <button id="cat-template">Page from the fact sheet</button>
+          <button id="cat-ai" class="primary">Rewrite with the writer AI</button>
+          <label class="check"><input type="checkbox" id="cat-fresh"> new text</label>
+        </div>
+        <p class="hint" id="cat-status">“Page from the fact sheet” copies every sentence from the wiki, so nothing can be invented. “Rewrite” uses the AI that writes the pages (Run tab) and flags numbers that are not in this model's facts.</p>
+        <div id="cat-out" class="hidden">
+          <div id="cat-flags"></div>
+          <div class="row"><button id="cat-verify">Fact check this page</button><span class="hint" id="cat-verify-status"></span></div>
+          <div id="cat-verify-out"></div>
+          <div class="downloads" id="cat-files"></div>
+          <details open><summary>Preview</summary>
+            <iframe id="cat-frame" class="preview" sandbox title="Product page preview"></iframe></details>
+          <h3>Crawler checks</h3>
+          <div id="cat-audit"></div>
+          <h3>Structured data for Google (JSON-LD)</h3>
+          <div id="cat-structured"></div>
+          <h3>What Googlebot sees</h3>
+          <div id="cat-gbot"></div>
+          <h3>BM25 per question</h3>
+          <div id="cat-bm25"></div>
+        </div>
+      </section>
+    </div>
   </div>
+
+  <!-- Wiki: the single source of truth, edited inside Atlas -->
+  <div id="tab-wiki" class="tab hidden">
+    <div class="subtabs" role="tablist" aria-label="Wiki views">
+      <button role="tab" data-sub="edit">Edit</button>
+      <button role="tab" data-sub="log">Change log</button>
+      <button role="tab" data-sub="sources">Original documents</button>
+    </div>
+    <div class="subpanel" data-sub="edit">
+      <section class="card">
+        <h2>The wiki <span class="count" id="wiki-root"></span></h2>
+        <p class="hint">Every fact on every page Atlas writes comes from here. A save checks that the whole wiki still
+          loads, flags new numbers (each needs a Danfoss source), is noted in the change log, and rebuilds the website
+          copy so pages with wiki blocks follow.</p>
+        <div class="wikibox">
+          <div class="wikinav">
+            <input id="wiki-filter" placeholder="Filter files…" aria-label="Filter wiki files">
+            <ul id="wiki-files" class="pagelist" aria-label="Wiki files"></ul>
+            <button type="button" id="wiki-new">+ New concept</button>
+          </div>
+          <div class="wikiedit">
+            <div class="row between"><b id="wiki-path">Pick a file</b><span class="hint tiny" id="wiki-used"></span></div>
+            <input id="wiki-newpath" class="hidden" placeholder="folder/new-concept.md" aria-label="New file name">
+            <textarea id="wiki-text" rows="24" spellcheck="true" aria-label="Wiki file (Markdown)" disabled></textarea>
+            <div class="row">
+              <input id="wiki-note" style="flex:1 1 320px" placeholder="What changed and its source (goes in the change log)" aria-label="Change note">
+              <button class="primary" id="wiki-save" disabled>Save</button>
+            </div>
+            <div id="wiki-result"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="subpanel" data-sub="log">
+      <section class="card">
+        <h2>Change log</h2>
+        <p class="hint">Every change to the wiki, newest first: edits made here, accepted suggestions and the team's own notes (<code>log.md</code>).</p>
+        <div id="wiki-log" class="logview"></div>
+      </section>
+    </div>
+    <div class="subpanel" data-sub="sources">
+      <section class="card">
+        <h2>Original documents (<span id="raw-folder">raw/</span>)</h2>
+        <p class="hint">The Danfoss documents the wiki cites, saved as text. The page writer reads matching passages next
+          to the wiki facts, and the fact check verifies claims against them.</p>
+        <div class="row"><button class="primary" id="raw-update">Download missing documents</button><span class="hint" id="raw-state"></span></div>
+        <pre id="raw-log" class="hidden"></pre>
+        <div id="raw-list"></div>
+      </section>
+    </div>
+  </div>
+
   <!-- How it works: the section writer, step by step -->
   <div id="tab-how" class="tab hidden">
     <section class="card">
@@ -408,38 +700,53 @@
       <div id="how-empty" class="hint"></div>
     </section>
     <div id="how-body" class="hidden">
-      <section class="card">
-        <h2><span class="num">1</span> The process</h2>
-        <div id="how-flow" class="flow"></div>
-        <div id="how-metrics"></div>
-      </section>
-      <section class="card">
-        <h2><span class="num">2</span> Sub-queries: what the page must answer</h2>
-        <p class="hint">Gemini's real searches come first (Citations tab), then the buyer questions, then searches the
-          writer AI adds. A search with no evidence in the wiki gets no section: it is a fact to find, not text to pad.</p>
-        <div id="how-queries"></div>
-      </section>
-      <section class="card">
-        <h2><span class="num">3</span> Evidence for one section</h2>
-        <p class="hint">Each candidate passage with its rank in each step. BM25 finds the exact words, the embeddings find
-          the meaning, RRF fuses both ranks, the reranker grades how well it answers (0–3). The chosen ones (✔) are the only
-          text the writer sees for this section.</p>
-        <div class="row"><label class="inline">Section <select id="how-sec"></select></label></div>
-        <div id="how-cands"></div>
-        <h3>The section, sentence by sentence</h3>
-        <div id="how-checks"></div>
-      </section>
-      <section class="card">
-        <h2><span class="num">4</span> The embedding map</h2>
-        <p class="hint">Every passage turned into a vector by the embedding model, flattened to 2-D (PCA). Close points mean
-          similar meaning. Stars are the sub-queries; lines join each one to the evidence its section used.
-          Competitor passages near a star are what we compete with for that search.</p>
-        <div class="row"><button id="how-map-btn">Draw the map</button><span class="hint" id="how-map-status"></span></div>
-        <div id="how-map" class="chart"></div>
-      </section>
+      <div class="subtabs" role="tablist" aria-label="Section writer steps">
+        <button role="tab" data-sub="process"><span class="n">1</span>The process</button>
+        <button role="tab" data-sub="queries"><span class="n">2</span>Sub-queries</button>
+        <button role="tab" data-sub="evidence"><span class="n">3</span>Evidence</button>
+        <button role="tab" data-sub="map"><span class="n">4</span>Embedding map</button>
+      </div>
+      <div class="subpanel" data-sub="process">
+        <section class="card">
+          <h2>The process</h2>
+          <div id="how-flow" class="flow"></div>
+          <div id="how-metrics"></div>
+        </section>
+      </div>
+      <div class="subpanel" data-sub="queries">
+        <section class="card">
+          <h2>Sub-queries: what the page must answer</h2>
+          <p class="hint">Gemini's real searches come first (Citations tab), then the buyer questions, then searches the
+            writer AI adds. A search with no evidence in the wiki gets no section: it is a fact to find, not text to pad.</p>
+          <div id="how-queries"></div>
+        </section>
+      </div>
+      <div class="subpanel" data-sub="evidence">
+        <section class="card">
+          <h2>Evidence for one section</h2>
+          <p class="hint">Each candidate passage with its rank in each step. BM25 finds the exact words, the embeddings find
+            the meaning, RRF fuses both ranks, the reranker grades how well it answers (0–3). The chosen ones (✔) are the only
+            text the writer sees for this section.</p>
+          <div class="row"><label class="inline">Section <select id="how-sec"></select></label></div>
+          <div id="how-cands"></div>
+          <h3>The section, sentence by sentence</h3>
+          <div id="how-checks"></div>
+        </section>
+      </div>
+      <div class="subpanel" data-sub="map">
+        <section class="card">
+          <h2>The embedding map</h2>
+          <p class="hint">Every passage turned into a vector by the embedding model, flattened to 2-D (PCA). Close points mean
+            similar meaning. Stars are the sub-queries; lines join each one to the evidence its section used.
+            Competitor passages near a star are what we compete with for that search.</p>
+          <div class="row"><button id="how-map-btn">Draw the map</button><span class="hint" id="how-map-status"></span></div>
+          <div id="how-map" class="chart"></div>
+        </section>
+      </div>
     </div>
   </div>
 </main>
+</div>
 
 <aside id="chat" class="chat" aria-label="Assistant" hidden>
   <div class="chat-head">
@@ -455,6 +762,23 @@
     <button class="primary" id="chat-send">Send</button>
   </form>
 </aside>
+
+<!-- Command palette -->
+<dialog id="cmdk" class="cmdk" aria-label="Go to a view or run an action">
+  <input id="cmdk-input" placeholder="Go to a view, a product or an action…" autocomplete="off" aria-controls="cmdk-list">
+  <ul id="cmdk-list" role="listbox"></ul>
+  <p class="hint tiny cmdk-foot">↑ ↓ to move · Enter to open · Esc to close</p>
+</dialog>
+
+<!-- Presentation mode -->
+<div id="present-bar" class="present-bar" hidden role="region" aria-label="Presentation">
+  <div class="present-step"><span id="present-count"></span><b id="present-title"></b><span id="present-text"></span></div>
+  <div class="row">
+    <button class="ghost" id="present-prev">Back</button>
+    <button class="primary" id="present-next">Next</button>
+    <button class="ghost" id="present-exit" aria-label="End the presentation">End</button>
+  </div>
+</div>
 
 <!-- Settings -->
 <dialog id="settings">
@@ -490,6 +814,23 @@
   <h3>Standard questions</h3>
   <p class="hint">Deleting one here removes it for every product. To skip it for one product, untick it instead.</p>
   <ul id="std-manage" class="plain"></ul>
+
+  <h3 id="alerts-settings">Alerts by email</h3>
+  <p class="hint" id="alert-hint">New-model and ranking alerts go to this address. Saved in <code>.env</code> on this computer only.</p>
+  <form id="alert-form" class="stack">
+    <label>Send alerts to <input name="ALERT_EMAIL" type="email" placeholder="atlas-alerts@example.com"></label>
+    <div class="grid3">
+      <label>SMTP server <input name="SMTP_HOST" placeholder="smtp.office365.com"></label>
+      <label>Port <input name="SMTP_PORT" placeholder="587"></label>
+      <label>From <input name="SMTP_FROM" placeholder="atlas@yourcompany.com"></label>
+      <label>User <input name="SMTP_USER" autocomplete="off"></label>
+      <label>Password <input name="SMTP_PASSWORD" type="password" autocomplete="off" placeholder="(unchanged)"></label>
+      <label>Check the news every (hours) <input name="WATCH_HOURS" type="number" min="1" step="1" placeholder="24"></label>
+    </div>
+    <label>Refresh the Citations tab automatically every (days, 0 = off; uses Gemini quota)
+      <input name="CITATIONS_EVERY_DAYS" type="number" min="0" step="1" placeholder="0" style="max-width:120px"></label>
+    <div class="row"><button>Save alert settings</button><button type="button" id="alert-test">Send a test email</button><span class="hint" id="alert-test-result"></span></div>
+  </form>
 </dialog>
 
 <!-- Add product -->
@@ -540,8 +881,10 @@
   </form>
 </dialog>
 
-<div id="toast"></div>
+<div id="toast" role="status"></div>
 <script src="/static/app.js"></script>
 <script src="/static/how.js"></script>
+<script src="/static/overview.js"></script>
+<script src="/static/features.js"></script>
 </body>
 </html>

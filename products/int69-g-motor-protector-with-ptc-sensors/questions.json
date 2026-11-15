@@ -1,5 +1,8 @@
 {
   "disabled_standard": [
+    "s-what-is",
+    "s-best-for",
+    "s-recommend-brand",
     "s-sizing",
     "s-efficiency",
     "s-cost",

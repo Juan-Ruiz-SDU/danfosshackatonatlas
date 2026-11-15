@@ -137,7 +137,7 @@ function applySettings(s) {
   $("#s-words").value = s.words; $("#s-repeats").value = s.repeats; $("#s-topk").value = s.top_k;
   $("#s-fresh").checked = !!s.fresh_pages;
   $("#s-retries").value = s.retries ?? 3;
-  $("#s-retrieval").value = s.retrieval === "passage" ? "passage" : "page";
+  $("#s-retrieval").value = ["passage", "hybrid"].includes(s.retrieval) ? s.retrieval : "page";
 }
 function saveSettings() { if (restoring) return; store("settings", gather()); renderBanner(); estimate(); }
 ["#s-discovery", "#s-writer-model", "#s-judge-model", "#s-words", "#s-repeats", "#s-topk", "#s-fresh", "#s-retries", "#s-retrieval"]

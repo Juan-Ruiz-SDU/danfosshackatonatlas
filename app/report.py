@@ -280,8 +280,11 @@ def report_pdf(path, c):
         f"Pages written by **{s['writer']} / {s['writer_model']}** from the product fact sheet, in "
         f"{len(c['variants'])} styles.",
         f"Each page competed with {c['n_competitors']} competitor pages "
-        f"({', '.join(c['competitors'][:12])}). A search ranking (BM25) picked the top {s['top_k']} "
-        "results for each question, as Google's blue links do.",
+        f"({', '.join(c['competitors'][:12])}). A search ranking ("
+        + {"passage": "BM25 over passages cut at the headings",
+           "hybrid": "words + meaning: BM25 and nomic-embed-text embeddings, merged"}
+          .get(s.get("retrieval"), "BM25 over whole pages")
+        + f") picked the top {s['top_k']} results for each question, as Google's blue links do.",
         f"**{s['judge']} / {s['judge_model']}** then answered each question like Google's AI Overview, "
         "using only those results, and cited them.",
         "**Citation share**: of all citations in an answer, how many went to the Danfoss page. "

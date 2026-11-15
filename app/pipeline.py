@@ -51,7 +51,7 @@ DEFAULTS = {
     "judge": "ollama", "judge_model": "qwen3:8b",
     "styles": ["plain", "stats", "sources"], "words": 400, "repeats": 1,
     "top_k": 5, "max_words": 700, "fresh_pages": False, "retries": 3,
-    "retrieval": "page",
+    "retrieval": "page", "embed_model": "nomic-embed-text",
 }
 
 
@@ -281,10 +281,19 @@ def generate_page(job, s, prompt):
 def citation_test(job, targets, competitors, questions, s, out):
     total = len(targets) * len(questions) * s["repeats"]
     rows, done = [], 0
+    embedder = None
+    if s.get("retrieval") == "hybrid":  # words + meaning: embeddings from the Ollama server
+        embedder = lab.Embedder(ai.providers()["ollama"]["base_url"], s.get("embed_model"),
+                                ai.CACHE)
     raw = (out / "citation_test.jsonl").open("w", encoding="utf-8")
     for target in targets:
         corpus = competitors + [target]  # one Danfoss page at a time vs the same rivals
-        if s.get("retrieval") == "passage":  # rank passages, show each page's best ones
+        if embedder:  # BM25 + embedding similarity, merged; the AI sees the same text as "page"
+            ranker = lab.HybridRanker(corpus, embedder)
+
+            def page_text(d, q):
+                return d.text
+        elif s.get("retrieval") == "passage":  # rank passages, show each page's best ones
             ranker = lab.PassageRanker(corpus)
 
             def page_text(d, q):
@@ -314,7 +323,8 @@ def citation_test(job, targets, competitors, questions, s, out):
                 mine = [c for c in cites if id_to_doc[c] is target]
                 row = {
                     "page": target.name, "style": target.style, "question": q, "repeat": rep,
-                    "bm25_rank": rank, "retrieved": retrieved, "in_context": target in shown,
+                    "bm25_rank": rank, "retrieval": s.get("retrieval", "page"),
+                    "retrieved": retrieved, "in_context": target in shown,
                     "cited": bool(mine), "share": len(mine) / len(cites) if cites else 0.0,
                     "first": bool(cites) and id_to_doc[cites[0]] is target,
                     "recommended": TARGET in rec.lower(),

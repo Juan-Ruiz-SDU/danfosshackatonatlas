@@ -537,7 +537,11 @@ table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
 th,td{border:1px solid #e3e3e0;padding:6px 8px;text-align:left;vertical-align:top}
 th{background:#f5f5f3}
 a{color:#2a6fdb}
-.updated{color:#6b6b70;font-size:.9rem}"""
+.updated{color:#6b6b70;font-size:.9rem}
+.hero p:first-of-type{font-size:1.1rem;color:#505050}
+.btn{display:inline-block;background:#e2000f;color:#fff;font-weight:600;padding:9px 20px;text-decoration:none}
+.tablewrap{overflow-x:auto}
+.sec ul li b{color:#1d1d1f}"""
 
 
 def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map=None, chrome=None,
@@ -564,23 +568,47 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map
             it["id"] = sid
             if k == "h2":
                 toc.append((sid, it["text"]))
+    # Layout only, the text stays word for word: a hero (title, first paragraph, call to
+    # action), a side table of contents, and each H2 section in its own block.
+    state = {"hero": False, "section": False, "layout": False}
+
+    def close_hero():
+        if state["hero"]:
+            body.append("</div></div>")
+            state["hero"] = False
+            if len(toc) > 2:
+                body.append('<div class="layout"><nav class="toc" aria-label="Contents"><b>On this page</b><ol>'
+                            + "".join(f'<li><a href="#{s}">{html.escape(t)}</a></li>' for s, t in toc)
+                            + '</ol></nav><div class="content">')
+                state["layout"] = True
+
+    def li(x):  # "Name: what it does" -> the name in bold (same words)
+        m = re.match(r"^([^:]{2,60}):\s+(.+)$", x)
+        if m and len(m.group(1).split()) <= 8 and "](" not in m.group(1):
+            return f"<li><b>{e(m.group(1))}</b>: {e(m.group(2))}</li>"
+        return f"<li>{e(x)}</li>"
+
     for it in items:
         k = it["kind"]
         if k == "h1":
-            body.append(f"<h1>{e(it['text'])}</h1>")
-            if len(toc) > 2:
-                body.append('<nav class="toc" aria-label="Contents"><b>Contents</b><ol>'
-                            + "".join(f'<li><a href="#{s}">{html.escape(t)}</a></li>' for s, t in toc)
-                            + "</ol></nav>")
-        elif k in ("h2", "h3"):
-            body.append(f'<{k} id="{it["id"]}">{e(it["text"])}</{k}>')
+            body.append(f'<div class="hero"><div class="hero-in"><h1>{e(it["text"])}</h1>')
+            state["hero"] = True
+        elif k == "h2":
+            close_hero()
+            if state["section"]:
+                body.append("</section>")
+            body.append(f'<section class="sec" aria-labelledby="{it["id"]}"><h2 id="{it["id"]}">{e(it["text"])}</h2>')
+            state["section"] = True
+        elif k == "h3":
+            body.append(f'<h3 id="{it["id"]}">{e(it["text"])}</h3>')
         elif k == "p":
             t = e(it["text"])
             if it.get("href"):
-                t = f'<a href="{html.escape(href_of(it["href"]))}">{t}</a>'
+                cta = len(it["text"].split()) <= 4
+                t = f'<a href="{html.escape(href_of(it["href"]))}"{" class=btn" if cta else ""}>{t}</a>'
             body.append(f"<p>{t}</p>")
         elif k == "ul":
-            body.append("<ul>" + "".join(f"<li>{e(x)}</li>" for x in it["items"]) + "</ul>")
+            body.append("<ul>" + "".join(li(x) for x in it["items"]) + "</ul>")
         elif k == "cards":
             body.append('<div class="cards">' + "".join(
                 f'<a class="card" href="{html.escape(href_of(c["href"]))}"><h3>{html.escape(c["title"])}</h3>'
@@ -589,10 +617,15 @@ def render_html(items, meta, url, breadcrumbs=None, lang="en", note="", link_map
         elif k == "table":
             rows = it["rows"]
             head = rows[0] if rows else []
-            body.append("<table><thead><tr>" + "".join(f"<th>{e(c)}</th>" for c in head)
+            body.append('<div class="tablewrap"><table><thead><tr>' + "".join(f"<th>{e(c)}</th>" for c in head)
                         + "</tr></thead><tbody>"
                         + "".join("<tr>" + "".join(f"<td>{e(c)}</td>" for c in r) + "</tr>"
-                                  for r in rows[1:]) + "</tbody></table>")
+                                  for r in rows[1:]) + "</tbody></table></div>")
+    close_hero()
+    if state["section"]:
+        body.append("</section>")
+    if state["layout"]:
+        body.append("</div></div>")
     ld = json.dumps(_jsonld(meta, items, url, breadcrumbs or [], product=product), ensure_ascii=False, indent=1)
     ld = ld.replace("</", "<\\/")
     title = meta.get("title") or next((x["text"] for x in items if x["kind"] == "h1"), "")

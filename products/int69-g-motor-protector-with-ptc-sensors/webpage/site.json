@@ -1,0 +1,19 @@
+{
+ "start": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+ "prefix": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+ "copied": "2026-11-15T08:35:37",
+ "browser": true,
+ "pages": [
+  {
+   "id": "who-we-are",
+   "url": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+   "final_url": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+   "title": "Who we are | Danfoss",
+   "h1": "Who we are",
+   "depth": 0,
+   "parent": null,
+   "words_raw": 366,
+   "words_rendered": 366
+  }
+ ]
+}

@@ -1,0 +1,216 @@
+{
+ "id": "who-we-are",
+ "url": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+ "final_url": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+ "copied": "2026-11-15T08:35:35",
+ "rendered_with": "browser",
+ "meta": {
+  "title": "Who we are | Danfoss",
+  "description": "The Danfoss purpose has always been the same: to help the world build a better future. Today, we are one of the world’s leading technology companies pioneering the green transition.",
+  "canonical": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/",
+  "lang": "en"
+ },
+ "breadcrumbs": [
+  [
+   "Home page",
+   "https://www.danfoss.com/en/"
+  ],
+  [
+   "About Danfoss",
+   "https://www.danfoss.com/en/about-danfoss/"
+  ],
+  [
+   "Company",
+   "https://www.danfoss.com/en/about-danfoss/company/"
+  ],
+  [
+   "Who we are",
+   "https://www.danfoss.com/en/about-danfoss/company/who-we-are/"
+  ]
+ ],
+ "removed_empty_sections": [
+  "Quick links:"
+ ],
+ "audit": [
+  {
+   "check": "HTTP status",
+   "value": 200,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Redirects before the page",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Time to first byte",
+   "value": "0.32 s",
+   "status": "ok",
+   "note": "Google: slow answers to Googlebot's requests mean fewer crawls"
+  },
+  {
+   "check": "HTML size",
+   "value": "513 KB",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "X-Robots-Tag header",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Scripts",
+   "value": "27 (17 external)",
+   "status": "warn",
+   "note": "Content must not depend on them"
+  },
+  {
+   "check": "Title",
+   "value": "20 chars",
+   "status": "ok",
+   "note": "Who we are | Danfoss"
+  },
+  {
+   "check": "Meta description",
+   "value": "181 chars",
+   "status": "warn",
+   "note": "The Danfoss purpose has always been the same: to help the world build a better future. Today, we are one of the world’s leading technology companies pioneering the green transition."
+  },
+  {
+   "check": "Canonical link",
+   "value": "yes",
+   "status": "ok",
+   "note": "https://www.danfoss.com/en/about-danfoss/company/who-we-are/"
+  },
+  {
+   "check": "Robots meta",
+   "value": "none",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Language (lang)",
+   "value": "en",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "H1 headings",
+   "value": 1,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Skipped heading levels",
+   "value": 1,
+   "status": "warn",
+   "note": "e.g. an H2 followed by an H4"
+  },
+  {
+   "check": "Bold text used as a heading",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Empty sections (filled by JavaScript)",
+   "value": 1,
+   "status": "bad",
+   "note": "Quick links: — a crawler that does not run scripts sees nothing there"
+  },
+  {
+   "check": "Repeated list items",
+   "value": 0,
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "Structured data (JSON-LD)",
+   "value": "BreadcrumbList, None",
+   "status": "bad",
+   "note": "BreadcrumbList: relative or broken links"
+  },
+  {
+   "check": "Images without alt text",
+   "value": "8 of 14",
+   "status": "warn",
+   "note": ""
+  },
+  {
+   "check": "Words readable without JavaScript",
+   "value": "366 of 366",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "check": "robots.txt",
+   "value": "readable",
+   "status": "ok",
+   "note": "https://www.danfoss.com/robots.txt"
+  },
+  {
+   "check": "Sitemap declared in robots.txt",
+   "value": 1,
+   "status": "ok",
+   "note": "https://www.danfoss.com/sitemap_index"
+  },
+  {
+   "check": "Googlebot allowed by robots.txt",
+   "value": "yes",
+   "status": "ok"
+  }
+ ],
+ "claims": [
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "With our global leading positions, application know-how, and sustainable innovation, we aim to be our customers’ partner of choice."
+  },
+  {
+   "type": "generic environmental claim",
+   "match": "sustainable",
+   "sentence": "Our expert teams, driven by an entrepreneurial mindset, work closely with our customers to transform ideas into competitive innovations and sustainable solutions."
+  }
+ ],
+ "outline": [
+  {
+   "level": 1,
+   "text": "Who we are"
+  },
+  {
+   "level": 2,
+   "text": "Our customer promise"
+  },
+  {
+   "level": 4,
+   "text": "With our global leading positions, application know-how, and sustainable innovation, we aim to be our customers’ partner of choice."
+  },
+  {
+   "level": 3,
+   "text": "Maximizing customer value by understanding the details of our customers’ business"
+  },
+  {
+   "level": 2,
+   "text": "Our three business segments"
+  },
+  {
+   "level": 3,
+   "text": "Sustainability and competitiveness"
+  },
+  {
+   "level": 2,
+   "text": "Quick links:"
+  }
+ ],
+ "words_raw": 366,
+ "words_rendered": 366,
+ "links": [
+  "https://www.danfoss.com/en/industries/",
+  "https://www.danfoss.com/en/about-danfoss/company/application-development-centers/",
+  "https://www.danfoss.com/en/about-danfoss/company/sustainability/"
+ ]
+}
